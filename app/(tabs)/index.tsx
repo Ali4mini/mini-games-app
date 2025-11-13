@@ -1,5 +1,5 @@
 import React from "react";
-import HomePageUI from "@/screens/HomePageUI";
+import HomePageUI from "../../screens/HomePageUI";
 
 /**
  * This is the route file for the root URL ('/').

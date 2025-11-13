@@ -1,8 +1,8 @@
-import React, { useEffect, useCallback } from "react";
+import React, { useEffect } from "react";
 import { Stack } from "expo-router";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
-import { ThemeProvider } from "../context/ThemeContext";
+import { ThemeProvider } from "@/context/ThemeContext";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 // Keep the splash screen visible while we fetch resources
@@ -14,31 +14,26 @@ export default function RootLayout() {
     LilitaOne: require("../assets/fonts/LilitaOne-Regular.ttf"),
   });
 
-  // This effect will hide the splash screen once the fonts are loaded or an error occurs
   useEffect(() => {
     if (fontsLoaded || fontError) {
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded, fontError]);
 
-  // If the fonts are not loaded yet, render nothing. The splash screen will be visible.
   if (!fontsLoaded && !fontError) {
     return null;
   }
 
-  // Render the layout
   return (
     <SafeAreaProvider>
       <ThemeProvider>
         <Stack>
-          <Stack.Screen name="index" options={{ headerShown: false }} />
-          <Stack.Screen name="games-list" options={{ title: "All Games" }} />
-          <Stack.Screen
-            name="daily-check"
-            options={{ title: "Daily Check-in" }}
-          />
-          <Stack.Screen name="lucky-spin" options={{ title: "Lucky Spin" }} />
-          <Stack.Screen name="referral" options={{ title: "Refer a Friend" }} />
+          {/* This screen points to our entire tab navigator */}
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+
+          {/* You can add other screens here that are NOT part of the tab bar,
+              like a modal settings screen or a game-playing screen. */}
+          {/* e.g., <Stack.Screen name="settings" options={{ presentation: 'modal' }} /> */}
         </Stack>
       </ThemeProvider>
     </SafeAreaProvider>

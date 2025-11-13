@@ -1,27 +1,27 @@
 /**
  * This file contains the color palette for the entire app.
- * Using the "Sunset" theme with light and dark variants.
+ * Using the "Rose" theme with light and dark variants.
  */
 
 export default {
-  // --- Light Theme Colors (Sunset Light) ---
+  // --- Light Theme Colors (Rose Light) ---
   light: {
     // --- Text ---
-    text: "#14120A", // from base-content-rgb (dark text on light background)
+    text: "#18181B", // from base-content-rgb (dark text on light background)
     textSecondary: "#4B5563", // A medium-dark gray for secondary text
 
     // --- Backgrounds ---
-    background: "#FFF7ED", // from base-100-rgb (light cream background)
-    card: "#FFFBF5", // from base-200-rgb (slightly darker card background)
+    background: "#FFF7FA", // from base-100-rgb (light pink background)
+    card: "#FEF2F5", // from base-200-rgb (lighter pink card background)
 
     // --- Brand & Accent Colors ---
-    tint: "#F97316", // from primary-rgb (orange primary color)
-    accent: "#FB923C", // from secondary-rgb (lighter orange secondary color)
+    tint: "#F43F5E", // from primary-rgb (rose primary color)
+    accent: "#FB7185", // from secondary-rgb (lighter rose secondary color)
 
     // --- Icons ---
     icon: "#4B5563", // Medium-dark color for icons
-    tabIconDefault: "#FED7AA", // from base-300-rgb
-    tabIconSelected: "#F97316", // from primary-rgb
+    tabIconDefault: "#FEE7EE", // from base-300-rgb
+    tabIconSelected: "#F43F5E", // from primary-rgb
 
     // --- State Colors ---
     success: "#10B981", // from success-rgb (green)
@@ -29,24 +29,24 @@ export default {
     warning: "#F59E0B", // from warning-rgb (amber)
     info: "#0EA5E9", // from info-rgb (blue)
   },
-  // --- Dark Theme Colors (Sunset Dark) ---
+  // --- Dark Theme Colors (Rose Dark) ---
   dark: {
     // --- Text ---
-    text: "#FBBF24", // from base-content-rgb (golden yellow text on dark)
-    textSecondary: "#F59E0B", // from warning-rgb (amber for secondary text)
+    text: "#F4F4F5", // from base-content-rgb (light text on dark)
+    textSecondary: "#D1D5DB", // Light gray for secondary text on dark
 
     // --- Backgrounds ---
-    background: "#14120A", // from base-100-rgb (very dark background)
-    card: "#282414", // from base-200-rgb (dark card background)
+    background: "#18181B", // from base-100-rgb (dark background)
+    card: "#27272A", // from base-200-rgb (medium-dark card background)
 
     // --- Brand & Accent Colors ---
-    tint: "#FB923C", // from primary-rgb (lighter orange primary)
-    accent: "#FDBA74", // from secondary-rgb (even lighter orange secondary)
+    tint: "#F472B6", // from primary-rgb (lighter rose primary)
+    accent: "#FBA6AA", // from secondary-rgb (lighter rose secondary)
 
     // --- Icons ---
-    icon: "#FED7AA", // from base-300-rgb (lighter color for icons)
-    tabIconDefault: "#4B5563", // Medium gray for unselected tabs
-    tabIconSelected: "#FB923C", // from primary-rgb
+    icon: "#D1D5DB", // Light color for icons on dark background
+    tabIconDefault: "#52525B", // Medium-dark gray for unselected tabs
+    tabIconSelected: "#F472B6", // from primary-rgb
 
     // --- State Colors ---
     success: "#4AED80", // from success-rgb (lighter green)

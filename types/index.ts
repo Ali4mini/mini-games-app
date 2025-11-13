@@ -3,17 +3,24 @@
  */
 import Colors from "@/constants/Colors";
 
+export type Game = {
+  id: string;
+  title: string;
+  image: string;
+  category?:
+    | "Puzzle"
+    | "Action"
+    | "Strategy"
+    | "Racing"
+    | "Sports"
+    | "Adventure"; // Add category
+};
+
 export type Theme = typeof Colors.light;
 
 export type User = {
   name: string;
   coins: number;
-};
-
-export type Game = {
-  id: string;
-  title: string;
-  image: string;
 };
 
 export type GameCardProps = {
