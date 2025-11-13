@@ -1,6 +1,43 @@
 // --- Type Definitions ---
 import { User, Game, HeroBannerItem } from "../types"; // Import your type definitions
 
+export const GAME_CATEGORIES: string[] = [
+  "All",
+  "Puzzle",
+  "Action",
+  "Strategy",
+  "Racing",
+  "Sports",
+  "Adventure",
+];
+
+// Add this new data array
+export const RECENTLY_PLAYED_GAMES: Game[] = [
+  {
+    id: "3",
+    title: "Moto X3M",
+    image: "https://picsum.photos/id/1/200/300",
+  },
+  {
+    id: "1",
+    title: "Bubble Shooter",
+    image:
+      "https://img.cdn.famobi.com/portal/html5games/images/tmp/BubbleShooterHDBig.jpg",
+  },
+  {
+    id: "2",
+    title: "Solitaire",
+    image:
+      "https://img.cdn.famobi.com/portal/html5games/images/tmp/SolitaireClassicBig.jpg",
+  },
+  {
+    id: "5",
+    title: "Mahjong",
+    image:
+      "https://img.cdn.famobi.com/portal/html5games/images/tmp/MahjongConnectBig.jpg",
+  },
+];
+
 export const HERO_BANNER_DATA: HeroBannerItem[] = [
   {
     id: "1",

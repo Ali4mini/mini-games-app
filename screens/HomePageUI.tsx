@@ -18,16 +18,29 @@ import { createStyles } from "./HomePageUI.styles";
 // --- Type Imports ---
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
-import { USER_DATA, FEATURED_GAMES, HERO_BANNER_DATA } from "../data/dummyData";
+import {
+  USER_DATA,
+  FEATURED_GAMES,
+  HERO_BANNER_DATA,
+  RECENTLY_PLAYED_GAMES,
+  GAME_CATEGORIES,
+} from "../data/dummyData";
 import { GameCard } from "../components/games/GameCard";
 import { HeroCarousel } from "@/components/home/HeroCarousel";
 import { AppTitleHeader } from "@/components/layout/AppTitleHeader";
+import { ContinuePlaying } from "@/components/games/ContinuePlaying";
+import { GameCategories } from "@/components/games/GameCategories";
 
 const HomePageUI: React.FC = () => {
   const theme = useTheme();
 
   // Create styles using the imported function, memoized for performance
   const styles = useMemo(() => createStyles(theme), [theme]);
+
+  // NOTE: In a real app, this state would be used to filter FEATURED_GAMES
+  const handleCategorySelect = (category: string) => {
+    console.log("Selected Category:", category);
+  };
 
   return (
     <SafeAreaProvider style={styles.container}>
@@ -69,9 +82,17 @@ const HomePageUI: React.FC = () => {
           </Link>
         </View>
 
+        {/* recently played Games Section */}
+        <ContinuePlaying data={RECENTLY_PLAYED_GAMES} />
+
         {/* Featured Games Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Featured Games</Text>
+          {/* === ADD THE NEW CATEGORIES COMPONENT HERE === */}
+          <GameCategories
+            categories={GAME_CATEGORIES}
+            onSelectCategory={handleCategorySelect}
+          />
           <FlatList
             data={FEATURED_GAMES}
             renderItem={({ item }) => (
@@ -83,13 +104,6 @@ const HomePageUI: React.FC = () => {
             contentContainerStyle={{ paddingLeft: 20 }}
           />
         </View>
-
-        {/* See All Games Button */}
-        <Link href="/games-list" asChild>
-          <TouchableOpacity style={styles.seeAllButton}>
-            <Text style={styles.seeAllButtonText}>Browse All Games</Text>
-          </TouchableOpacity>
-        </Link>
 
         {/* Refer a Friend CTA Section */}
         <Link href="/referral" asChild>
