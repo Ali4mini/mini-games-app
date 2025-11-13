@@ -1,5 +1,29 @@
 // --- Type Definitions ---
-import { User, Game } from "../types"; // Import your type definitions
+import { User, Game, HeroBannerItem } from "../types"; // Import your type definitions
+
+export const HERO_BANNER_DATA: HeroBannerItem[] = [
+  {
+    id: "1",
+    title: "Spin the Wheel!",
+    subtitle: "Win daily prizes and coins.",
+    image: "https://i.ibb.co/L5rR1yN/spin-banner.png",
+    href: "/lucky-spin",
+  },
+  {
+    id: "2",
+    title: "Invite a Friend",
+    subtitle: "Earn 500 coins for every friend you invite.",
+    image: "https://i.ibb.co/bFwqVGr/referral-banner.png", // A new generic banner image
+    href: "/referral",
+  },
+  {
+    id: "3",
+    title: "New Games Added!",
+    subtitle: "Check out the latest additions to our library.",
+    image: "https://i.ibb.co/Jqj8c7V/new-games-banner.png", // Another generic banner
+    href: "/games-list",
+  },
+];
 
 // --- Dummy Data ---
 export const USER_DATA: User = {

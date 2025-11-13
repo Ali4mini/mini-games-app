@@ -19,8 +19,9 @@ import { createStyles } from "./HomePageUI.styles";
 // --- Type Imports ---
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
-import { USER_DATA, FEATURED_GAMES } from "../data/dummyData"; // <-- IMPORT THE DATA
+import { USER_DATA, FEATURED_GAMES, HERO_BANNER_DATA } from "../data/dummyData"; // <-- IMPORT THE DATA
 import { GameCard } from "../components/games/GameCard";
+import { HeroCarousel } from "@/components/home/HeroCarousel";
 
 const HomePageUI: React.FC = () => {
   const theme = useTheme();
@@ -47,21 +48,7 @@ const HomePageUI: React.FC = () => {
         </View>
 
         {/* Hero Banner Section */}
-        <Link href="/lucky-spin" asChild>
-          <TouchableOpacity style={styles.heroBanner}>
-            <Image
-              source={{ uri: "https://i.ibb.co/L5rR1yN/spin-banner.png" }}
-              style={styles.heroImage}
-              resizeMode="cover"
-            />
-            <View style={styles.heroTextContainer}>
-              <Text style={styles.heroTitle}>Spin the Wheel!</Text>
-              <Text style={styles.heroSubtitle}>
-                Win daily prizes and coins.
-              </Text>
-            </View>
-          </TouchableOpacity>
-        </Link>
+        <HeroCarousel data={HERO_BANNER_DATA} />
 
         {/* Quick Actions Section */}
         <View style={styles.quickActionsContainer}>

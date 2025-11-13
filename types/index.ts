@@ -20,3 +20,11 @@ export type GameCardProps = {
   title: string;
   image: string;
 };
+
+export type HeroBannerItem = {
+  id: string;
+  title: string;
+  subtitle: string;
+  image: string;
+  href: "/lucky-spin" | "/referral" | "/games-list"; // Use specific routes for type safety
+};
