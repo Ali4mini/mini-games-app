@@ -1,59 +1,57 @@
 /**
  * This file contains the color palette for the entire app.
- * We are using the user-provided "Modern Blue" theme.
+ * Using the "Sunset" theme with light and dark variants.
  */
 
-// We don't need the tintColor variables anymore as the theme objects are self-contained.
-
 export default {
-  // --- Light Theme Colors ---
+  // --- Light Theme Colors (Sunset Light) ---
   light: {
     // --- Text ---
-    text: "#0F172A", // from base-content-rgb
-    textSecondary: "#334155", // from a slightly lighter gray in the same family (Slate 700)
+    text: "#14120A", // from base-content-rgb (dark text on light background)
+    textSecondary: "#4B5563", // A medium-dark gray for secondary text
 
     // --- Backgrounds ---
-    background: "#F8FAFC", // from base-100-rgb
-    card: "#FFFFFF", // Standard white for cards provides good contrast
+    background: "#FFF7ED", // from base-100-rgb (light cream background)
+    card: "#FFFBF5", // from base-200-rgb (slightly darker card background)
 
     // --- Brand & Accent Colors ---
-    tint: "#2563EB", // from primary-rgb
-    accent: "#3B82F6", // from secondary-rgb
+    tint: "#F97316", // from primary-rgb (orange primary color)
+    accent: "#FB923C", // from secondary-rgb (lighter orange secondary color)
 
     // --- Icons ---
-    icon: "#334155", // A good medium-dark color for icons
-    tabIconDefault: "#CBD5E1",
-    tabIconSelected: "#2563EB", // from primary-rgb
+    icon: "#4B5563", // Medium-dark color for icons
+    tabIconDefault: "#FED7AA", // from base-300-rgb
+    tabIconSelected: "#F97316", // from primary-rgb
 
     // --- State Colors ---
-    success: "#10B981", // from success-rgb
-    error: "#EF4444", // from error-rgb
-    warning: "#F59E0B", // from warning-rgb
-    info: "#0EA5E9", // from info-rgb
+    success: "#10B981", // from success-rgb (green)
+    error: "#EF4444", // from error-rgb (red)
+    warning: "#F59E0B", // from warning-rgb (amber)
+    info: "#0EA5E9", // from info-rgb (blue)
   },
-  // --- Dark Theme Colors ---
+  // --- Dark Theme Colors (Sunset Dark) ---
   dark: {
     // --- Text ---
-    text: "#CBD5E1", // from base-content-rgb
-    textSecondary: "#94A3B8", // from a slightly darker gray in the same family (Slate 400)
+    text: "#FBBF24", // from base-content-rgb (golden yellow text on dark)
+    textSecondary: "#F59E0B", // from warning-rgb (amber for secondary text)
 
     // --- Backgrounds ---
-    background: "#0F172A", // from base-100-rgb
-    card: "#1E293B", // from base-200-rgb
+    background: "#14120A", // from base-100-rgb (very dark background)
+    card: "#282414", // from base-200-rgb (dark card background)
 
     // --- Brand & Accent Colors ---
-    tint: "#3B82F6", // from primary-rgb
-    accent: "#60A5FA", // from secondary-rgb
+    tint: "#FB923C", // from primary-rgb (lighter orange primary)
+    accent: "#FDBA74", // from secondary-rgb (even lighter orange secondary)
 
     // --- Icons ---
-    icon: "#94A3B8", // A good medium-light color for icons
-    tabIconDefault: "#475569",
-    tabIconSelected: "#3B82F6", // from primary-rgb
+    icon: "#FED7AA", // from base-300-rgb (lighter color for icons)
+    tabIconDefault: "#4B5563", // Medium gray for unselected tabs
+    tabIconSelected: "#FB923C", // from primary-rgb
 
     // --- State Colors ---
-    success: "#4AED80", // from success-rgb
-    error: "#F87171", // from error-rgb
-    warning: "#FBBF24", // from warning-rgb
-    info: "#67E8F9", // from info-rgb
+    success: "#4AED80", // from success-rgb (lighter green)
+    error: "#F87171", // from error-rgb (lighter red)
+    warning: "#FBBF24", // from warning-rgb (golden yellow)
+    info: "#67E8F9", // from info-rgb (light blue)
   },
 };

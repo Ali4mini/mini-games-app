@@ -153,7 +153,7 @@ export const createStyles = (theme: Theme) => {
       color: theme.text,
     },
     referralContainer: {
-      backgroundColor: theme.background === "#0F172A" ? theme.card : "#E4F0FE", // Different bg for dark mode
+      backgroundColor: theme.background,
       margin: 20,
       borderRadius: 15,
       padding: 20,
