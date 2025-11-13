@@ -9,7 +9,7 @@ export const createStyles = (theme: Theme) => {
     },
     listContentContainer: {
       paddingHorizontal: 20,
-      paddingBottom: 20,
+      paddingBottom: 100,
     },
     columnWrapper: {
       justifyContent: "space-between", // This creates space between the two columns

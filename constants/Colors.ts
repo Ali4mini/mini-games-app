@@ -16,7 +16,9 @@ export default {
 
     // --- Brand & Accent Colors ---
     tint: "#F43F5E", // from primary-rgb (rose primary color)
-    accent: "#FB7185", // from secondary-rgb (lighter rose secondary color)
+    tintContent: "#FFFFFF", //
+    accent: "#F472B6", // A vibrant pink
+    accentButton: "#F59E0B", // <-- ADD THIS (A nice gold/orange)
 
     // --- Icons ---
     icon: "#4B5563", // Medium-dark color for icons
@@ -41,7 +43,9 @@ export default {
 
     // --- Brand & Accent Colors ---
     tint: "#F472B6", // from primary-rgb (lighter rose primary)
-    accent: "#FBA6AA", // from secondary-rgb (lighter rose secondary)
+    tintContent: "#FFFFFF", //
+    accent: "#F472B6", // A vibrant pink
+    accentButton: "#F59E0B", // <-- ADD THIS (A nice gold/orange)
 
     // --- Icons ---
     icon: "#D1D5DB", // Light color for icons on dark background

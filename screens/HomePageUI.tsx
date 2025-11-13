@@ -49,7 +49,10 @@ const HomePageUI: React.FC = () => {
         barStyle={theme === Colors.dark ? "light-content" : "dark-content"}
       />
       <AppTitleHeader appName="earnado" />
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 100 }}
+      >
         {/* Header Section */}
         <View style={styles.header}>
           <View>
