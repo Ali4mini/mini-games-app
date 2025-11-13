@@ -6,21 +6,21 @@ export const HERO_BANNER_DATA: HeroBannerItem[] = [
     id: "1",
     title: "Spin the Wheel!",
     subtitle: "Win daily prizes and coins.",
-    image: "https://i.ibb.co/L5rR1yN/spin-banner.png",
+    image: "https://picsum.photos/id/1/200/300",
     href: "/lucky-spin",
   },
   {
     id: "2",
     title: "Invite a Friend",
     subtitle: "Earn 500 coins for every friend you invite.",
-    image: "https://i.ibb.co/bFwqVGr/referral-banner.png", // A new generic banner image
+    image: "https://picsum.photos/id/27/3264/1836",
     href: "/referral",
   },
   {
     id: "3",
     title: "New Games Added!",
     subtitle: "Check out the latest additions to our library.",
-    image: "https://i.ibb.co/Jqj8c7V/new-games-banner.png", // Another generic banner
+    image: "https://picsum.photos/id/32/1/1", // A new generic banner image
     href: "/games-list",
   },
 ];
@@ -36,13 +36,12 @@ export const FEATURED_GAMES: Game[] = [
     id: "1",
     title: "Bubble Shooter",
     image:
-      "https://file-examples.com/wp-content/storage/2017/10/file_example_JPG_100kB.jpg", // TODO: the images won't show, fix that
+      "https://fastly.picsum.photos/id/22/4434/3729.jpg?hmac=fjZdkSMZJNFgsoDh8Qo5zdA_nSGUAWvKLyyqmEt2xs0", // TODO: the images won't show, fix that
   },
   {
     id: "2",
     title: "Solitaire",
-    image:
-      "https://img.cdn.famobi.com/portal/html5games/images/tmp/SolitaireClassicBig.jpg",
+    image: "https://picsum.photos/id/27/3264/1836", // A new generic banner image
   },
   {
     id: "3",

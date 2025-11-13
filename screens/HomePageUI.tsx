@@ -3,7 +3,6 @@ import {
   Text,
   View,
   ScrollView,
-  Image,
   TouchableOpacity,
   FlatList,
   StatusBar,
@@ -19,9 +18,10 @@ import { createStyles } from "./HomePageUI.styles";
 // --- Type Imports ---
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
-import { USER_DATA, FEATURED_GAMES, HERO_BANNER_DATA } from "../data/dummyData"; // <-- IMPORT THE DATA
+import { USER_DATA, FEATURED_GAMES, HERO_BANNER_DATA } from "../data/dummyData";
 import { GameCard } from "../components/games/GameCard";
 import { HeroCarousel } from "@/components/home/HeroCarousel";
+import { AppTitleHeader } from "@/components/layout/AppTitleHeader";
 
 const HomePageUI: React.FC = () => {
   const theme = useTheme();
@@ -32,8 +32,10 @@ const HomePageUI: React.FC = () => {
   return (
     <SafeAreaProvider style={styles.container}>
       <StatusBar
+        animated={true}
         barStyle={theme === Colors.dark ? "light-content" : "dark-content"}
       />
+      <AppTitleHeader appName="earnado" />
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Header Section */}
         <View style={styles.header}>
