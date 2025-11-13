@@ -1,15 +1,12 @@
-import { Text, View } from "react-native";
+import React from "react";
+import HomePageUI from "../screens/HomePageUI";
 
-export default function Index() {
-  return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <Text>Edit app/index.tsx to edit this screen.</Text>
-    </View>
-  );
-}
+/**
+ * This is the route file for the root URL ('/').
+ * It renders the main UI component for the home page.
+ */
+const HomePageRoute: React.FC = () => {
+  return <HomePageUI />;
+};
+
+export default HomePageRoute;
