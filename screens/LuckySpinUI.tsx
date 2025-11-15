@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef } from "react";
-import { View, Text, TouchableOpacity, Alert, Dimensions } from "react-native";
+import { View, Text, TouchableOpacity, Dimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import ConfettiCannon from "react-native-confetti-cannon";
@@ -16,6 +16,7 @@ import { createStyles } from "./LuckySpinUI.styles";
 import { SPIN_WHEEL_PRIZES } from "@/data/dummyData";
 import { SvgSpinWheel } from "@/components/lucky-spin/SvgSpinWheel";
 import { SvgSpinPointer } from "@/components/lucky-spin/SvgSpinPointer";
+import { WinModal } from "@/components/lucky-spin/WinModal";
 
 const WHEEL_SEGMENTS = SPIN_WHEEL_PRIZES.length;
 const WHEEL_SIZE = 300;
@@ -40,6 +41,10 @@ export const LuckySpinUI: React.FC = () => {
   const [isSpinning, setIsSpinning] = useState(false);
   const [spinsLeft, setSpinsLeft] = useState(1); //BUG: the speed of the spinner is very slow for more other spins except the first one
   const [showConfetti, setShowConfetti] = useState(false);
+  const [showWinModal, setShowWinModal] = useState(false);
+  const [winningPrize, setWinningPrize] = useState<string | number | null>(
+    null,
+  );
   const confettiRef = useRef<ConfettiCannon>(null);
 
   const animatedStyle = useAnimatedStyle(() => {
@@ -50,7 +55,8 @@ export const LuckySpinUI: React.FC = () => {
 
   // Helper function to be called from worklet context
   const onSpinComplete = (prize: string | number) => {
-    // Show confetti first
+    // Set the winning prize and show confetti
+    setWinningPrize(prize);
     setShowConfetti(true);
 
     // Start the confetti immediately
@@ -60,15 +66,10 @@ export const LuckySpinUI: React.FC = () => {
       }
     }, 100);
 
-    // Show the alert after a short delay to let confetti start
+    // Show the win modal after a short delay to let confetti start
     setTimeout(() => {
-      Alert.alert("Congratulations!", `You won: ${prize}`);
-
-      // Hide confetti after the alert has been shown
-      setTimeout(() => {
-        setShowConfetti(false);
-      }, 2000);
-    }, 500); // Show alert after 500ms to let confetti start
+      setShowWinModal(true);
+    }, 500); // Show modal after 500ms to let confetti start
 
     setIsSpinning(false);
   };
@@ -114,6 +115,16 @@ export const LuckySpinUI: React.FC = () => {
         }
       },
     );
+  };
+
+  const handleModalClose = () => {
+    setShowWinModal(false);
+    setWinningPrize(null);
+
+    // Hide confetti after modal closes
+    setTimeout(() => {
+      setShowConfetti(false);
+    }, 500);
   };
 
   const countdown = "Next free spin in: 23:59:59";
@@ -186,6 +197,16 @@ export const LuckySpinUI: React.FC = () => {
             theme.success,
             theme.info,
           ]}
+        />
+      )}
+
+      {/* Win Modal */}
+      {winningPrize && (
+        <WinModal
+          visible={showWinModal}
+          prize={winningPrize}
+          onClose={handleModalClose}
+          theme={theme}
         />
       )}
     </LinearGradient>
