@@ -1,0 +1,35 @@
+{
+  "appName": "Earnado",
+  "home": {
+    "welcomeBack": "Bienvenido de vuelta,",
+    "dailyCheckIn": "Check-in Diario",
+    "luckySpin": "Giro de la Suerte",
+    "continuePlaying": "Continuar Jugando",
+    "featuredGames": "Juegos Destacados",
+    "referralTitle": "¡Recomienda a un Amigo!",
+    "referralSubtitle": "Gana {{count}} monedas por cada amigo que invites."
+  },
+  "luckySpin": {
+    "title": "Giro de la Suerte",
+    "spinButton": "GIRAR",
+    "spinning": "GIRANDO",
+    "noSpins": "SIN GIROS",
+    "spinsLeft": "{{count}} Giro Gratis Restante",
+    "spinsLeft_plural": "{{count}} Giros Gratis Restantes",
+    "noSpinsLeft": "No Quedan Giros Gratis",
+    "nextFreeSpin": "Próximo giro gratis en: {{time}}",
+    "congratulations": "¡Felicidades!",
+    "youWon": "Ganaste: {{prize}}",
+    "great": "¡Genial!"
+  },
+  "common": {
+    "home": "Inicio",
+    "games": "Juegos",
+    "dailyCheck": "Recompensa",
+    "referral": "Recomendar",
+    "luckySpin": "Girar"
+  },
+  "gamesList": {
+    "searchPlaceholder": "Buscar un juego..."
+  }
+}

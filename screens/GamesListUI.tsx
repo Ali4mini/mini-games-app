@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { View, FlatList } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next"; // Add translation hook
 import { useTheme } from "../context/ThemeContext";
 import { createStyles } from "./GamesListUI.styles";
 import { Game } from "../types";
@@ -11,6 +12,7 @@ import { ALL_GAMES, GAME_CATEGORIES } from "@/data/dummyData";
 
 export const GamesListUI: React.FC = () => {
   const theme = useTheme();
+  const { t } = useTranslation(); // Add translation hook
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   // State for managing user filters
@@ -40,7 +42,7 @@ export const GamesListUI: React.FC = () => {
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
       <SearchBar
-        placeholder="Search for a game..."
+        placeholder={t("gamesList.searchPlaceholder", "Search for a game...")} // Add translation
         value={searchQuery}
         onChangeText={setSearchQuery}
       />

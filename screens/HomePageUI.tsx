@@ -9,54 +9,53 @@ import {
 } from "react-native";
 import { Feather, FontAwesome5 } from "@expo/vector-icons";
 import { Link } from "expo-router";
+import { useTranslation } from "react-i18next"; // <-- 1. Import the hook
+import { SafeAreaView } from "react-native-safe-area-context"; // <-- Corrected import
 
 // --- Local Imports ---
-import { useTheme } from "../context/ThemeContext";
-import Colors from "../constants/Colors";
+import { useTheme } from "@/context/ThemeContext";
+import Colors from "@/constants/Colors";
 import { createStyles } from "./HomePageUI.styles";
 
-// --- Type Imports ---
-import { SafeAreaProvider } from "react-native-safe-area-context";
-
+// --- Data & Component Imports ---
 import {
   USER_DATA,
   FEATURED_GAMES,
   HERO_BANNER_DATA,
   RECENTLY_PLAYED_GAMES,
   GAME_CATEGORIES,
-} from "../data/dummyData";
-import { GameCard } from "../components/games/GameCard";
+} from "@/data/dummyData";
+import { GameCard } from "@/components/games/GameCard";
 import { HeroCarousel } from "@/components/home/HeroCarousel";
 import { AppTitleHeader } from "@/components/layout/AppTitleHeader";
 import { ContinuePlaying } from "@/components/games/ContinuePlaying";
 import { GameCategories } from "@/components/games/GameCategories";
 
 const HomePageUI: React.FC = () => {
+  const { t } = useTranslation(); // <-- 2. Initialize the hook
   const theme = useTheme();
-
-  // Create styles using the imported function, memoized for performance
   const styles = useMemo(() => createStyles(theme), [theme]);
 
-  // NOTE: In a real app, this state would be used to filter FEATURED_GAMES
   const handleCategorySelect = (category: string) => {
     console.log("Selected Category:", category);
   };
 
   return (
-    <SafeAreaProvider style={styles.container}>
+    // Corrected to use SafeAreaView. The Provider should only be in the root layout.
+    <SafeAreaView style={styles.container} edges={["top"]}>
       <StatusBar
         animated={true}
         barStyle={theme === Colors.dark ? "light-content" : "dark-content"}
       />
-      <AppTitleHeader appName="earnado" />
+      <AppTitleHeader appName={t("appName")} />
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 100 }}
+        contentContainerStyle={{ paddingBottom: 110 }} // Adjusted padding for new navbar
       >
         {/* Header Section */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.headerWelcome}>Welcome back,</Text>
+            <Text style={styles.headerWelcome}>{t("home.welcomeBack")}</Text>
             <Text style={styles.headerUsername}>{USER_DATA.name}</Text>
           </View>
           <View style={styles.coinsContainer}>
@@ -73,14 +72,16 @@ const HomePageUI: React.FC = () => {
           <Link href="/daily-check" asChild>
             <TouchableOpacity style={styles.quickAction}>
               <Feather name="calendar" size={24} color="#FFF" />
-              <Text style={styles.quickActionText}>Daily Check-in</Text>
+              <Text style={styles.quickActionText}>
+                {t("home.dailyCheckIn")}
+              </Text>
             </TouchableOpacity>
           </Link>
 
           <Link href="/lucky-spin" asChild>
             <TouchableOpacity style={styles.quickAction}>
               <FontAwesome5 name="compact-disc" size={24} color="#FFF" />
-              <Text style={styles.quickActionText}>Lucky Spin</Text>
+              <Text style={styles.quickActionText}>{t("home.luckySpin")}</Text>
             </TouchableOpacity>
           </Link>
         </View>
@@ -90,8 +91,7 @@ const HomePageUI: React.FC = () => {
 
         {/* Featured Games Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Featured Games</Text>
-          {/* === ADD THE NEW CATEGORIES COMPONENT HERE === */}
+          <Text style={styles.sectionTitle}>{t("home.featuredGames")}</Text>
           <GameCategories
             categories={GAME_CATEGORIES}
             onSelectCategory={handleCategorySelect}
@@ -113,16 +113,18 @@ const HomePageUI: React.FC = () => {
           <TouchableOpacity style={styles.referralContainer}>
             <FontAwesome5 name="user-friends" size={30} color={theme.tint} />
             <View style={styles.referralText}>
-              <Text style={styles.referralTitle}>Refer a Friend!</Text>
+              <Text style={styles.referralTitle}>
+                {t("home.referralTitle")}
+              </Text>
               <Text style={styles.referralSubtitle}>
-                Earn 500 coins for every friend you invite.
+                {t("home.referralSubtitle", { count: 500 })}
               </Text>
             </View>
             <Feather name="chevron-right" size={24} color={theme.tint} />
           </TouchableOpacity>
         </Link>
       </ScrollView>
-    </SafeAreaProvider>
+    </SafeAreaView>
   );
 };
 

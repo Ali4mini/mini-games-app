@@ -1,0 +1,35 @@
+{
+  "appName": "Earnado",
+  "home": {
+    "welcomeBack": "Bon retour,",
+    "dailyCheckIn": "Bonus Quotidien",
+    "luckySpin": "Roue de la Fortune",
+    "continuePlaying": "Continuer à Jouer",
+    "featuredGames": "Jeux en Vedette",
+    "referralTitle": "Parrainez un ami !",
+    "referralSubtitle": "Gagnez {{count}} pièces pour chaque ami que vous invitez."
+  },
+  "luckySpin": {
+    "title": "Roue de la Fortune",
+    "spinButton": "LANCER",
+    "spinning": "EN COURS",
+    "noSpins": "PAS DE TOURS",
+    "spinsLeft": "{{count}} Tour Gratuit Restant",
+    "spinsLeft_plural": "{{count}} Tours Gratuits Restants",
+    "noSpinsLeft": "Aucun Tour Gratuit Restant",
+    "nextFreeSpin": "Prochain tour gratuit dans : {{time}}",
+    "congratulations": "Félicitations !",
+    "youWon": "Vous avez gagné : {{prize}}",
+    "great": "Super !"
+  },
+  "common": {
+    "home": "Accueil",
+    "games": "Jeux",
+    "dailyCheck": "Bonus",
+    "referral": "Parrainer",
+    "luckySpin": "Roue"
+  },
+  "gamesList": {
+    "searchPlaceholder": "Rechercher un jeu..."
+  }
+}

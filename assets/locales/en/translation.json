@@ -1,0 +1,35 @@
+{
+  "appName": "Earnado",
+  "home": {
+    "welcomeBack": "Welcome back,",
+    "dailyCheckIn": "Daily Check-in",
+    "luckySpin": "Lucky Spin",
+    "continuePlaying": "Continue Playing",
+    "featuredGames": "Featured Games",
+    "referralTitle": "Refer a Friend!",
+    "referralSubtitle": "Earn {{count}} coins for every friend you invite."
+  },
+  "luckySpin": {
+    "title": "Lucky Spin",
+    "spinButton": "SPIN",
+    "spinning": "SPINNING",
+    "noSpins": "NO SPINS",
+    "spinsLeft": "{{count}} Free Spin Left",
+    "spinsLeft_plural": "{{count}} Free Spins Left",
+    "noSpinsLeft": "No Free Spins Left",
+    "nextFreeSpin": "Next free spin in: {{time}}",
+    "congratulations": "Congratulations!",
+    "youWon": "You won: {{prize}}",
+    "great": "Great!"
+  },
+  "common": {
+    "home": "Home",
+    "games": "Games",
+    "dailyCheck": "Daily Check",
+    "referral": "Referral",
+    "luckySpin": "Lucky Spin"
+  },
+  "gamesList": {
+    "searchPlaceholder": "Search for a game..."
+  }
+}

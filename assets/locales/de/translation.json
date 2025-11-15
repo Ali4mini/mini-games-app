@@ -1,0 +1,35 @@
+{
+  "appName": "Earnado",
+  "home": {
+    "welcomeBack": "Willkommen zurück,",
+    "dailyCheckIn": "Täglicher Check-in",
+    "luckySpin": "Glücksrad",
+    "continuePlaying": "Weiterspielen",
+    "featuredGames": "Empfohlene Spiele",
+    "referralTitle": "Freund einladen!",
+    "referralSubtitle": "Verdiene {{count}} Münzen für jeden eingeladenen Freund."
+  },
+  "luckySpin": {
+    "title": "Glücksrad",
+    "spinButton": "DREHEN",
+    "spinning": "DREHT",
+    "noSpins": "KEINE DREHS",
+    "spinsLeft": "{{count}} Gratis-Drehung übrig",
+    "spinsLeft_plural": "{{count}} Gratis-Drehungen übrig",
+    "noSpinsLeft": "Keine Gratis-Drehungen übrig",
+    "nextFreeSpin": "Nächste Gratis-Drehung in: {{time}}",
+    "congratulations": "Herzlichen Glückwunsch!",
+    "youWon": "Du hast gewonnen: {{prize}}",
+    "great": "Großartig!"
+  },
+  "common": {
+    "home": "Start",
+    "games": "Spiele",
+    "dailyCheck": "Bonus",
+    "referral": "Einladen",
+    "luckySpin": "Rad"
+  },
+  "gamesList": {
+    "searchPlaceholder": "Suche nach einem Spiel..."
+  }
+}

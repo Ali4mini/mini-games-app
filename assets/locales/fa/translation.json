@@ -1,0 +1,35 @@
+{
+  "appName": "ارنادو",
+  "home": {
+    "welcomeBack": "خوش آمدید،",
+    "dailyCheckIn": "ورود روزانه",
+    "luckySpin": "گردونه شانس",
+    "continuePlaying": "ادامه بازی",
+    "featuredGames": "بازی‌های ویژه",
+    "referralTitle": "معرفی به دوستان!",
+    "referralSubtitle": "به ازای هر دوستی که دعوت می‌کنید، {{count}} سکه دریافت کنید."
+  },
+  "luckySpin": {
+    "title": "چرخ خوشبختی",
+    "spinButton": "چرخاندن",
+    "spinning": "در حال چرخاندن",
+    "noSpins": "چرخشی ندارد",
+    "spinsLeft": "{{count}} چرخش رایگان باقی مانده",
+    "spinsLeft_plural": "{{count}} چرخش رایگان باقی مانده",
+    "noSpinsLeft": "چرخش رایگانی ندارید",
+    "nextFreeSpin": "چرخش رایگان بعدی در: {{time}}",
+    "congratulations": "تبریک!",
+    "youWon": "شما برنده شدید: {{prize}}",
+    "great": "عالی!"
+  },
+  "common": {
+    "home": "خانه",
+    "games": "بازی‌ها",
+    "dailyCheck": "بررسی روزانه",
+    "referral": "معرفی",
+    "luckySpin": "چرخ خوشبختی"
+  },
+  "gamesList": {
+    "searchPlaceholder": "جستجوی یک بازی..."
+  }
+}

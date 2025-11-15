@@ -1,6 +1,7 @@
 // components/lucky-spin/WinModal.tsx
 import React from "react";
 import { View, Text, TouchableOpacity, Modal, StyleSheet } from "react-native";
+import { useTranslation } from "react-i18next"; // Add translation hook
 import Animated, {
   useAnimatedStyle,
   withSpring,
@@ -21,6 +22,7 @@ export const WinModal: React.FC<WinModalProps> = ({
   onClose,
   theme,
 }) => {
+  const { t } = useTranslation(); // Add translation hook
   const scale = useSharedValue(0);
   const opacity = useSharedValue(0);
 
@@ -60,19 +62,16 @@ export const WinModal: React.FC<WinModalProps> = ({
         >
           <Animated.View style={[styles.content, modalStyle]}>
             <Text style={[styles.title, { color: theme.tint }]}>
-              🎉 Congratulations! 🎉
+              🎉 {t("luckySpin.congratulations")} 🎉
             </Text>
             <Text style={[styles.prizeText, { color: theme.text }]}>
-              You won:{" "}
-              <Text style={{ fontWeight: "bold", color: theme.tint }}>
-                {prize}
-              </Text>
+              {t("luckySpin.youWon", { prize })}
             </Text>
             <TouchableOpacity
               style={[styles.closeButton, { backgroundColor: theme.tint }]}
               onPress={onClose}
             >
-              <Text style={styles.closeButtonText}>Great!</Text>
+              <Text style={styles.closeButtonText}>{t("luckySpin.great")}</Text>
             </TouchableOpacity>
           </Animated.View>
         </TouchableOpacity>

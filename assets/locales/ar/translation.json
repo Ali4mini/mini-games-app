@@ -1,0 +1,35 @@
+{
+  "appName": "إيرنادو",
+  "home": {
+    "welcomeBack": "أهلاً بعودتك،",
+    "dailyCheckIn": "تسجيل الدخول اليومي",
+    "luckySpin": "عجلة الحظ",
+    "continuePlaying": "متابعة اللعب",
+    "featuredGames": "الألعاب المميزة",
+    "referralTitle": "ادع صديقاً!",
+    "referralSubtitle": "اربح {{count}} قطعة نقدية عن كل صديق تدعوه."
+  },
+  "luckySpin": {
+    "title": "عجلة الحظ",
+    "spinButton": "أَدِر",
+    "spinning": "جاري الدوران",
+    "noSpins": "لا توجد لفات",
+    "spinsLeft": "لديك {{count}} لفة مجانية متبقية",
+    "spinsLeft_plural": "لديك {{count}} لفات مجانية متبقية",
+    "noSpinsLeft": "لا توجد لفات مجانية متبقية",
+    "nextFreeSpin": "لفة مجانية تالية خلال: {{time}}",
+    "congratulations": "تهانينا!",
+    "youWon": "لقد فزت بـ: {{prize}}",
+    "great": "رائع!"
+  },
+  "common": {
+    "home": "الرئيسية",
+    "games": "الألعاب",
+    "dailyCheck": "المكافآت",
+    "referral": "دعوة",
+    "luckySpin": "العجلة"
+  },
+  "gamesList": {
+    "searchPlaceholder": "ابحث عن لعبة..."
+  }
+}

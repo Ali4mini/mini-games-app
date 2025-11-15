@@ -10,6 +10,7 @@ import Animated, {
   Easing,
   runOnJS,
 } from "react-native-reanimated";
+import { useTranslation } from "react-i18next"; // Add translation hook
 
 import { useTheme } from "@/context/ThemeContext";
 import { createStyles } from "./LuckySpinUI.styles";
@@ -35,6 +36,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export const LuckySpinUI: React.FC = () => {
   const theme = useTheme();
+  const { t } = useTranslation(); // Add translation hook
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   const rotation = useSharedValue(0);
@@ -127,7 +129,8 @@ export const LuckySpinUI: React.FC = () => {
     }, 500);
   };
 
-  const countdown = "Next free spin in: 23:59:59";
+  // Use translations for countdown text
+  const countdown = t("luckySpin.nextFreeSpin", { time: "23:59:59" });
 
   return (
     <LinearGradient
@@ -141,7 +144,7 @@ export const LuckySpinUI: React.FC = () => {
       style={styles.container}
     >
       <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
-        <Text style={styles.title}>Lucky Spin</Text>
+        <Text style={styles.title}>{t("luckySpin.title")}</Text>
 
         <View style={styles.wheelContainer}>
           <TouchableOpacity
@@ -174,8 +177,8 @@ export const LuckySpinUI: React.FC = () => {
         <View style={styles.infoContainer}>
           <Text style={styles.spinsLeftText}>
             {spinsLeft > 0
-              ? `${spinsLeft} Free Spin Left`
-              : "No Free Spins Left"}
+              ? t("luckySpin.spinsLeft", { count: spinsLeft })
+              : t("luckySpin.noSpinsLeft")}
           </Text>
           {spinsLeft === 0 && (
             <Text style={styles.countdownText}>{countdown}</Text>

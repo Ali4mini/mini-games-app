@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from "react-native"; // <-- Import StyleSheet
+import { useTranslation } from "react-i18next"; // Add translation hook
 import { useTheme } from "../../context/ThemeContext";
 import { createStyles } from "./ContinuePlaying.styles";
 import { Game } from "../../types";
@@ -44,6 +45,7 @@ type ContinuePlayingProps = {
 
 export const ContinuePlaying: React.FC<ContinuePlayingProps> = ({ data }) => {
   const theme = useTheme();
+  const { t } = useTranslation(); // Add translation hook
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   if (!data || data.length === 0) {
@@ -52,7 +54,9 @@ export const ContinuePlaying: React.FC<ContinuePlayingProps> = ({ data }) => {
 
   return (
     <View style={styles.sectionContainer}>
-      <Text style={styles.title}>Continue Playing</Text>
+      <Text style={styles.title}>
+        {t("home.continuePlaying", "Continue Playing")}
+      </Text>
       <FlatList
         data={data}
         renderItem={({ item }) => <RecentGameCard game={item} />}
