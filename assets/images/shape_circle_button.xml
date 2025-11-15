@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+
+    <size
+        android:width="@dimen/btn_circle_height"
+        android:height="@dimen/btn_circle_height"/>
+
+    <solid android:color="@color/white"/>
+
+</shape>
