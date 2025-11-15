@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { View, Text, TouchableOpacity, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -64,11 +65,6 @@ export const LuckySpinUI: React.FC = () => {
       currentRotation < 0 ? currentRotation + 360 : currentRotation;
 
     // The center of the winning segment should end up at 0 degrees (top, where the pointer is)
-    // The center of the winning segment is currently at: normalizedCurrentRotation + (winnerIndex * segmentAngle + segmentAngle/2)
-    // We need to rotate it so that it ends up at 0 degrees
-    // So: normalizedCurrentRotation + additionalRotation + (winnerIndex * segmentAngle + segmentAngle/2) = 0 (or 360)
-    // additionalRotation = -normalizedCurrentRotation - (winnerIndex * segmentAngle + segmentAngle/2)
-
     const winningSegmentCenterOffset =
       winnerIndex * segmentAngle + segmentAngle / 2;
     let additionalRotation =
@@ -99,45 +95,58 @@ export const LuckySpinUI: React.FC = () => {
   const countdown = "Next free spin in: 23:59:59";
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
-      <Text style={styles.title}>Lucky Spin</Text>
+    <LinearGradient
+      colors={[
+        theme.tint, // Primary rose color at top
+        theme.background, // Background color at bottom
+        theme.background, // Background color at bottom
+      ]}
+      start={{ x: 0.5, y: 0 }} // Start at top center
+      end={{ x: 0.5, y: 1 }} // End at bottom center
+      style={styles.container}
+    >
+      <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
+        <Text style={styles.title}>Lucky Spin</Text>
 
-      <View style={styles.wheelContainer}>
-        <TouchableOpacity
-          onPress={handleSpin}
-          disabled={isSpinning || spinsLeft === 0}
-          activeOpacity={0.7}
-        >
-          <Animated.View style={[animatedStyle]}>
-            <SvgSpinWheel
-              size={WHEEL_SIZE}
-              segments={SPIN_WHEEL_PRIZES}
-              colors={SEGMENT_COLORS}
-              isSpinning={isSpinning}
-              spinsLeft={spinsLeft}
-              theme={theme}
+        <View style={styles.wheelContainer}>
+          <TouchableOpacity
+            onPress={handleSpin}
+            disabled={isSpinning || spinsLeft === 0}
+            activeOpacity={0.7}
+          >
+            <Animated.View style={[animatedStyle]}>
+              <SvgSpinWheel
+                size={WHEEL_SIZE}
+                segments={SPIN_WHEEL_PRIZES}
+                colors={SEGMENT_COLORS}
+                isSpinning={isSpinning}
+                spinsLeft={spinsLeft}
+                theme={theme}
+              />
+            </Animated.View>
+          </TouchableOpacity>
+
+          <View style={styles.pointer}>
+            <SvgSpinPointer
+              size={40}
+              color={theme.tint}
+              strokeColor={theme.background}
             />
-          </Animated.View>
-        </TouchableOpacity>
-
-        <View style={styles.pointer}>
-          <SvgSpinPointer
-            size={40}
-            color={theme.primary}
-            strokeColor={theme.background}
-          />
+          </View>
         </View>
-      </View>
 
-      {/* Information container below the wheel */}
-      <View style={styles.infoContainer}>
-        <Text style={styles.spinsLeftText}>
-          {spinsLeft > 0 ? `${spinsLeft} Free Spin Left` : "No Free Spins Left"}
-        </Text>
-        {spinsLeft === 0 && (
-          <Text style={styles.countdownText}>{countdown}</Text>
-        )}
-      </View>
-    </SafeAreaView>
+        {/* Information container below the wheel */}
+        <View style={styles.infoContainer}>
+          <Text style={styles.spinsLeftText}>
+            {spinsLeft > 0
+              ? `${spinsLeft} Free Spin Left`
+              : "No Free Spins Left"}
+          </Text>
+          {spinsLeft === 0 && (
+            <Text style={styles.countdownText}>{countdown}</Text>
+          )}
+        </View>
+      </SafeAreaView>
+    </LinearGradient>
   );
 };

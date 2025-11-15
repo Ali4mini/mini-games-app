@@ -6,10 +6,15 @@ export const createStyles = (theme: Theme) => {
   return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: theme.background,
       alignItems: "center",
       justifyContent: "space-between",
       paddingVertical: 20,
+    },
+    safeArea: {
+      flex: 1,
+      width: "100%",
+      alignItems: "center",
+      justifyContent: "space-between",
     },
     title: {
       fontSize: 32,
@@ -34,7 +39,7 @@ export const createStyles = (theme: Theme) => {
       width: "100%",
       alignItems: "center",
       paddingHorizontal: 20,
-      marginBottom: 90, // Add margin to account for tab bar
+      marginBottom: 90,
       paddingTop: 10,
     },
     spinsLeftText: {
