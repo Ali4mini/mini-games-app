@@ -1,5 +1,16 @@
 import { User, Game, HeroBannerItem } from "../types";
 
+export const SPIN_WHEEL_PRIZES: (string | number)[] = [
+  100, // Prize for segment 0
+  "Try Again",
+  500,
+  25,
+  250,
+  "No Prize",
+  1000,
+  50,
+];
+
 // A longer list of games for the all games page with working images
 export const ALL_GAMES: Game[] = [
   {

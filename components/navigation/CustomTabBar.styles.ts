@@ -8,7 +8,7 @@ export const createStyles = (theme: Theme, bottomInset: number) => {
       bottom: 0,
       left: 0,
       right: 0,
-      height: 70 + bottomInset,
+      height: 70 + bottomInset, // Total height including safe area
       flexDirection: "row",
       justifyContent: "space-around",
       alignItems: "flex-start",

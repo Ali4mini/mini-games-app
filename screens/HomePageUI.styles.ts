@@ -139,6 +139,11 @@ export const createStyles = (theme: Theme) => {
       textAlign: "center",
       color: theme.textSecondary,
     },
+    iconImage: {
+      width: 24, // Adjust size as needed
+      height: 24, // Adjust size as needed
+      tintColor: "#FFF", // To match the original white color
+    },
     seeAllButton: {
       marginHorizontal: 20,
       marginTop: 20,
