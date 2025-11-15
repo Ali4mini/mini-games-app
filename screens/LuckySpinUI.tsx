@@ -50,20 +50,25 @@ export const LuckySpinUI: React.FC = () => {
 
   // Helper function to be called from worklet context
   const onSpinComplete = (prize: string | number) => {
-    Alert.alert("Congratulations!", `You won: ${prize}`);
-
-    // Show confetti
+    // Show confetti first
     setShowConfetti(true);
+
+    // Start the confetti immediately
     setTimeout(() => {
       if (confettiRef.current) {
         confettiRef.current.start();
       }
     }, 100);
 
-    // Hide confetti after it's done
+    // Show the alert after a short delay to let confetti start
     setTimeout(() => {
-      setShowConfetti(false);
-    }, 3000);
+      Alert.alert("Congratulations!", `You won: ${prize}`);
+
+      // Hide confetti after the alert has been shown
+      setTimeout(() => {
+        setShowConfetti(false);
+      }, 2000);
+    }, 500); // Show alert after 500ms to let confetti start
 
     setIsSpinning(false);
   };
