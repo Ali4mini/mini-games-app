@@ -1,7 +1,8 @@
-import React, { useState, useMemo } from "react";
-import { View, Text, TouchableOpacity, Alert } from "react-native";
+import React, { useState, useMemo, useRef } from "react";
+import { View, Text, TouchableOpacity, Alert, Dimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
+import ConfettiCannon from "react-native-confetti-cannon";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -29,6 +30,8 @@ const SEGMENT_COLORS = [
   "#6366F1",
 ];
 
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+
 export const LuckySpinUI: React.FC = () => {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -36,6 +39,8 @@ export const LuckySpinUI: React.FC = () => {
   const rotation = useSharedValue(0);
   const [isSpinning, setIsSpinning] = useState(false);
   const [spinsLeft, setSpinsLeft] = useState(1); //BUG: the speed of the spinner is very slow for more other spins except the first one
+  const [showConfetti, setShowConfetti] = useState(false);
+  const confettiRef = useRef<ConfettiCannon>(null);
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
@@ -46,6 +51,20 @@ export const LuckySpinUI: React.FC = () => {
   // Helper function to be called from worklet context
   const onSpinComplete = (prize: string | number) => {
     Alert.alert("Congratulations!", `You won: ${prize}`);
+
+    // Show confetti
+    setShowConfetti(true);
+    setTimeout(() => {
+      if (confettiRef.current) {
+        confettiRef.current.start();
+      }
+    }, 100);
+
+    // Hide confetti after it's done
+    setTimeout(() => {
+      setShowConfetti(false);
+    }, 3000);
+
     setIsSpinning(false);
   };
 
@@ -147,6 +166,23 @@ export const LuckySpinUI: React.FC = () => {
           )}
         </View>
       </SafeAreaView>
+
+      {/* Confetti Cannon */}
+      {showConfetti && (
+        <ConfettiCannon
+          ref={confettiRef}
+          count={200}
+          origin={{ x: -50, y: 0 }}
+          fallSpeed={3000}
+          colors={[
+            theme.tint,
+            theme.accent,
+            theme.warning,
+            theme.success,
+            theme.info,
+          ]}
+        />
+      )}
     </LinearGradient>
   );
 };
