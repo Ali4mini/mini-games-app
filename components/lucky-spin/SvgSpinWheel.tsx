@@ -5,10 +5,9 @@ type SvgSpinWheelProps = {
   size: number;
   segments: (string | number)[];
   colors: string[];
-  onSpinPress?: () => void;
   isSpinning?: boolean;
   spinsLeft?: number;
-  theme?: any; // Pass theme object
+  theme?: any;
 };
 
 const WheelSegment = ({ size, index, angle, color }: any) => {
@@ -19,8 +18,22 @@ const WheelSegment = ({ size, index, angle, color }: any) => {
   const startY = radius + radius * Math.sin(startAngleRad);
   const endX = radius + radius * Math.cos(endAngleRad);
   const endY = radius + radius * Math.sin(endAngleRad);
+
+  // Create a path with a border
   const d = `M${radius},${radius} L${startX},${startY} A${radius},${radius} 0 0 1 ${endX},${endY} Z`;
-  return <Path d={d} fill={color} />;
+
+  return (
+    <G>
+      <Path d={d} fill={color} stroke="#FFFFFF" strokeWidth="2" />
+      {/* Add a subtle inner highlight for 3D effect */}
+      <Path
+        d={`M${radius},${radius} L${startX * 0.95 + radius * 0.05},${startY * 0.95 + radius * 0.05} A${radius * 0.95},${radius * 0.95} 0 0 1 ${endX * 0.95 + radius * 0.05},${endY * 0.95 + radius * 0.05} Z`}
+        fill="none"
+        stroke="rgba(255,255,255,0.3)"
+        strokeWidth="1"
+      />
+    </G>
+  );
 };
 
 export const SvgSpinWheel: React.FC<SvgSpinWheelProps> = ({
@@ -40,7 +53,7 @@ export const SvgSpinWheel: React.FC<SvgSpinWheelProps> = ({
   const buttonColor =
     !hasSpins || isSpinning
       ? theme?.textSecondary || "#CCCCCC"
-      : theme?.primary || "#FFA500";
+      : theme?.tint || "#F43F5E";
 
   // Determine text
   const buttonText = isSpinning ? "SPINNING" : !hasSpins ? "NO SPINS" : "SPIN";
@@ -48,7 +61,18 @@ export const SvgSpinWheel: React.FC<SvgSpinWheelProps> = ({
   return (
     <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
       <G>
-        {/* Layer 1: The colored segments */}
+        {/* Outer glow/shadow effect */}
+        <Circle
+          cx={radius}
+          cy={radius}
+          r={radius}
+          fill="none"
+          stroke="rgba(0,0,0,0.1)"
+          strokeWidth="10"
+          opacity={0.3}
+        />
+
+        {/* Layer 1: The colored segments with borders */}
         {segments.map((_, index) => (
           <WheelSegment
             key={`segment-${index}`}
@@ -59,15 +83,15 @@ export const SvgSpinWheel: React.FC<SvgSpinWheelProps> = ({
           />
         ))}
 
-        {/* Layer 2: The prize text */}
+        {/* Layer 2: The prize text with better positioning */}
         {segments.map((prize, index) => {
           // Calculate the center angle of this segment (in radians)
           const centerAngle =
             (index * segmentAngle + segmentAngle / 2 - 90) * (Math.PI / 180);
 
-          // Position the text at 65% of the radius to center it in the segment
-          const textX = radius + radius * 0.65 * Math.cos(centerAngle);
-          const textY = radius + radius * 0.65 * Math.sin(centerAngle);
+          // Position the text at 60% of the radius to center it in the segment (more conservative)
+          const textX = radius + radius * 0.6 * Math.cos(centerAngle);
+          const textY = radius + radius * 0.6 * Math.sin(centerAngle);
 
           // Calculate the rotation for the text to make it readable
           let textRotation = (index * segmentAngle + segmentAngle / 2) % 360;
@@ -91,25 +115,28 @@ export const SvgSpinWheel: React.FC<SvgSpinWheelProps> = ({
               textAnchor="middle"
               alignmentBaseline="central"
               transform={`rotate(${textRotation}, ${textX}, ${textY})`}
+              // Add subtle shadow for better readability
+              stroke="#000000"
+              strokeWidth="0.2"
             >
               {prize}
             </SvgText>
           );
         })}
 
-        {/* Layer 3: The center spin button with glow effect */}
-        {/* Glow effect - multiple layers for better glow */}
+        {/* Layer 3: The center spin button with enhanced glow effect */}
+        {/* Multiple glow layers for better effect */}
         <Circle
           cx={radius}
           cy={radius}
-          r={centerButtonRadius + 8} // Larger than the button for glow
+          r={centerButtonRadius + 10}
           fill={buttonColor}
           opacity={0.1}
         />
         <Circle
           cx={radius}
           cy={radius}
-          r={centerButtonRadius + 6}
+          r={centerButtonRadius + 7}
           fill={buttonColor}
           opacity={0.2}
         />
@@ -128,14 +155,14 @@ export const SvgSpinWheel: React.FC<SvgSpinWheelProps> = ({
           opacity={0.5}
         />
 
-        {/* Main button */}
+        {/* Main button with border */}
         <Circle
           cx={radius}
           cy={radius}
           r={centerButtonRadius}
           fill={buttonColor}
           stroke={theme?.background || "#FFFFFF"}
-          strokeWidth="2"
+          strokeWidth="1"
         />
 
         {/* Text in the center button */}
@@ -150,6 +177,14 @@ export const SvgSpinWheel: React.FC<SvgSpinWheelProps> = ({
         >
           {buttonText}
         </SvgText>
+
+        {/* Add a subtle inner circle for depth */}
+        <Circle
+          cx={radius}
+          cy={radius}
+          r={centerButtonRadius * 0.7}
+          fill="none"
+        />
       </G>
     </Svg>
   );

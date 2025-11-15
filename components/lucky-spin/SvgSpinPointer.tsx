@@ -10,62 +10,59 @@ type SvgSpinPointerProps = {
 
 export const SvgSpinPointer: React.FC<SvgSpinPointerProps> = ({
   size = 40,
-  color = "#FFA500",
+  color = "#F43F5E",
   strokeColor = "#FFFFFF",
 }) => {
-  // Create a triangular pointer pointing UPWARD (away from the wheel)
+  // Create a pointer pointing DOWNWARD (toward the wheel)
   const pointerPath = `
-    M ${size / 2} ${size} 
-    L ${size * 0.7} ${size * 0.2}
-    L ${size * 0.3} ${size * 0.2}
+    M ${size / 2} ${size}
+    L ${size * 0.8} ${size * 0.4}
+    L ${size * 0.6} ${size * 0.4}
+    L ${size * 0.6} 0
+    L ${size * 0.4} 0
+    L ${size * 0.4} ${size * 0.4}
+    L ${size * 0.2} ${size * 0.4}
     Z
   `;
 
-  // Create a smaller inner triangle for depth effect
-  const innerPath = `
-    M ${size / 2} ${size * 0.9}
-    L ${size * 0.65} ${size * 0.25}
-    L ${size * 0.35} ${size * 0.25}
+  // Create a highlight effect
+  const highlightPath = `
+    M ${size / 2} ${size - 2}
+    L ${size * 0.75} ${size * 0.45}
+    L ${size * 0.55} ${size * 0.45}
+    L ${size * 0.55} 2
+    L ${size * 0.45} 2
+    L ${size * 0.45} ${size * 0.45}
+    L ${size * 0.25} ${size * 0.45}
     Z
   `;
 
   return (
     <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
       <G>
-        {/* Outer pointer with stroke */}
+        {/* Shadow/outline */}
+        <Path
+          d={pointerPath}
+          fill={strokeColor}
+          opacity="0.3"
+          transform={`translate(0, -2)`}
+        />
+
+        {/* Main pointer */}
         <Path
           d={pointerPath}
           fill={color}
           stroke={strokeColor}
-          strokeWidth="2"
-          strokeLinejoin="round"
-        />
-
-        {/* Inner pointer for depth effect */}
-        <Path
-          d={innerPath}
-          fill="none"
-          stroke={strokeColor}
-          strokeWidth="1"
-          strokeLinejoin="round"
-        />
-
-        {/* Add a small circle at the tip for a polished look */}
-        <Path
-          d={`M ${size / 2} ${size} A ${size * 0.05} ${size * 0.05} 0 1 1 ${size / 2} ${size}`}
-          fill={strokeColor}
-          stroke={strokeColor}
           strokeWidth="1"
         />
 
-        {/* Add a subtle glow effect using a larger transparent path */}
+        {/* Highlight for 3D effect */}
+        <Path d={highlightPath} fill="rgba(255,255,255,0.3)" />
+
+        {/* Add a small shine effect at the tip */}
         <Path
-          d={pointerPath}
-          fill="none"
-          stroke={color}
-          strokeWidth="6"
-          opacity="0.3"
-          strokeLinejoin="round"
+          d={`M ${size * 0.45} ${size - 3} L ${size * 0.55} ${size - 3} L ${size / 2} ${size - 8} Z`}
+          fill="rgba(255,255,255,0.6)"
         />
       </G>
     </Svg>
