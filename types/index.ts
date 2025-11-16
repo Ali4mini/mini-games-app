@@ -1,7 +1,12 @@
 /**
  * This file contains shared TypeScript type definitions for the application.
  */
-import Colors from "@/constants/Colors";
+
+export type DailyReward = {
+  day: number;
+  reward: number;
+  claimed: boolean;
+};
 
 export type Game = {
   id: string;
@@ -16,7 +21,24 @@ export type Game = {
     | "Adventure"; // Add category
 };
 
-export type Theme = typeof Colors.light;
+export type Theme = {
+  text: string;
+  textSecondary: string;
+  background: string;
+  card: string;
+  tint: string;
+  tintContent: string;
+  accent: string;
+  accentButton: string;
+  accentButtonGradient: readonly string[]; // Use a more general type here
+  icon: string;
+  tabIconDefault: string;
+  tabIconSelected: string;
+  success: string;
+  error: string;
+  warning: string;
+  info: string;
+};
 
 export type User = {
   name: string;

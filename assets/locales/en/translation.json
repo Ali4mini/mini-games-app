@@ -31,5 +31,13 @@
   },
   "gamesList": {
     "searchPlaceholder": "Search for a game..."
+  },
+  "dailyCheckIn": {
+    "title": "Daily Check-in",
+    "subtitle": "Come back every day to claim your reward and keep your streak!",
+    "day": "Day {{day}}",
+    "claimButton": "Claim {{reward}} Coins",
+    "claimedButton": "Claimed!",
+    "comeBackTomorrow": "Come Back Tomorrow"
   }
 }

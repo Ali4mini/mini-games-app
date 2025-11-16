@@ -1,4 +1,16 @@
-import { User, Game, HeroBannerItem } from "../types";
+import { User, Game, HeroBannerItem, DailyReward } from "../types";
+
+// Data for the 7-day check-in calendar
+// In a real app, 'claimed' status would come from a user's profile
+export const DAILY_REWARDS: DailyReward[] = [
+  { day: 1, reward: 50, claimed: true },
+  { day: 2, reward: 75, claimed: true },
+  { day: 3, reward: 100, claimed: true },
+  { day: 4, reward: 125, claimed: false }, // Today's reward, not yet claimed
+  { day: 5, reward: 150, claimed: false },
+  { day: 6, reward: 200, claimed: false },
+  { day: 7, reward: 500, claimed: false }, // Big reward for a full week streak
+];
 
 export const SPIN_WHEEL_PRIZES: (string | number)[] = [
   100, // Prize for segment 0

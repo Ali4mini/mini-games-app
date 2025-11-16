@@ -19,6 +19,7 @@ export default {
     tintContent: "#FFFFFF", //
     accent: "#F472B6", // A vibrant pink
     accentButton: "#F59E0B", // <-- ADD THIS (A nice gold/orange)
+    accentButtonGradient: ["#FBBF24", "#F59E0B"] as const, // <-- ADD THIS LINE
 
     // --- Icons ---
     icon: "#4B5563", // Medium-dark color for icons
@@ -46,6 +47,7 @@ export default {
     tintContent: "#FFFFFF", //
     accent: "#F472B6", // A vibrant pink
     accentButton: "#F59E0B", // <-- ADD THIS (A nice gold/orange)
+    accentButtonGradient: ["#FCD34D", "#FBBF24"] as const, // <-- ADD THIS LINE
 
     // --- Icons ---
     icon: "#D1D5DB", // Light color for icons on dark background
