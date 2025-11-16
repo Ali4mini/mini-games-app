@@ -18,6 +18,7 @@ export default {
     tint: "#F43F5E", // from primary-rgb (rose primary color)
     tintContent: "#FFFFFF", //
     accent: "#F472B6", // A vibrant pink
+    accentContent: "#4d4949", // A vibrant pink
     accentButton: "#F59E0B", // <-- ADD THIS (A nice gold/orange)
     accentButtonGradient: ["#FBBF24", "#F59E0B"] as const, // <-- ADD THIS LINE
 
