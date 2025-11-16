@@ -40,5 +40,12 @@
     "claimedButton": "Claimed!",
     "comeBackTomorrow": "Come Back Tomorrow",
     "progress": "Progress"
+  },
+  "leaderboard": {
+    "title": "Leaderboard",
+    "subtitle": "Top players this week",
+    "days": "days",
+    "games": "games",
+    "yourRank": "Your rank: #{rank}"
   }
 }

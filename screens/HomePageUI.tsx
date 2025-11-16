@@ -78,6 +78,14 @@ const HomePageUI: React.FC = () => {
             </TouchableOpacity>
           </Link>
 
+          <Link href="/leaderboard" asChild>
+            <TouchableOpacity style={styles.quickAction}>
+              <FontAwesome5 name="leaderboard" size={24} color="#FFF" />
+              <Text style={styles.quickActionText}>
+                {t("leaderboard.title")}
+              </Text>
+            </TouchableOpacity>
+          </Link>
           <Link href="/lucky-spin" asChild>
             <TouchableOpacity style={styles.quickAction}>
               <FontAwesome5 name="compact-disc" size={24} color="#FFF" />

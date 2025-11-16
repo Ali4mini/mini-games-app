@@ -2,6 +2,17 @@
  * This file contains shared TypeScript type definitions for the application.
  */
 
+export interface LeaderboardUser {
+  id: string;
+  username: string;
+  avatar: string;
+  coins: number;
+  rank: number;
+  dailyStreak: number;
+  totalGamesPlayed: number;
+  isOnline?: boolean;
+}
+
 export type DailyReward = {
   day: number;
   reward: number;
