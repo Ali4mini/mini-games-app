@@ -29,6 +29,7 @@ export type Theme = {
   tint: string;
   tintContent: string;
   accent: string;
+  accentContent: string;
   accentButton: string;
   accentButtonGradient: readonly string[]; // Use a more general type here
   icon: string;

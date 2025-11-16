@@ -46,8 +46,9 @@ export default {
     tint: "#F472B6", // from primary-rgb (lighter rose primary)
     tintContent: "#FFFFFF", //
     accent: "#F472B6", // A vibrant pink
+    accentContent: "#4d4949", // A vibrant pink
     accentButton: "#F59E0B", // <-- ADD THIS (A nice gold/orange)
-    accentButtonGradient: ["#FCD34D", "#FBBF24"] as const, // <-- ADD THIS LINE
+    accentButtonGradient: ["#F472B6", "#FBBF24"] as const, // <-- ADD THIS LINE
 
     // --- Icons ---
     icon: "#D1D5DB", // Light color for icons on dark background

@@ -90,7 +90,7 @@ export const createStyles = (theme: Theme) => {
       color: theme.tintContent,
     },
     buttonContainer: {
-      paddingBottom: 90,
+      paddingBottom: 120,
     },
     gradient: {
       paddingVertical: 15,
@@ -102,11 +102,45 @@ export const createStyles = (theme: Theme) => {
       backgroundColor: theme.textSecondary,
       borderRadius: 30,
     },
+    buttonDisabledText: {
+      color: theme.accentContent,
+      fontSize: 20,
+      fontWeight: "bold",
+    },
     buttonText: {
-      color: theme.tintContent,
+      color: theme.accentContent,
       fontSize: 20,
       fontWeight: "bold",
       letterSpacing: 1,
+    },
+    progressBarContainer: {
+      width: "90%",
+      marginBottom: 40,
+    },
+    progressBarHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 8,
+    },
+    progressText: {
+      fontSize: 14,
+      color: theme.textSecondary,
+      fontWeight: "500",
+    },
+    progressPercentage: {
+      fontSize: 14,
+      color: theme.accentButton,
+      fontWeight: "bold",
+    },
+    progressBarBackground: {
+      height: 8,
+      borderRadius: 4,
+      overflow: "hidden",
+    },
+    progressBarFill: {
+      height: "100%",
+      borderRadius: 4,
     },
   });
 };

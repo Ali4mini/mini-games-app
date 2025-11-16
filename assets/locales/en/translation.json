@@ -38,6 +38,7 @@
     "day": "Day {{day}}",
     "claimButton": "Claim {{reward}} Coins",
     "claimedButton": "Claimed!",
-    "comeBackTomorrow": "Come Back Tomorrow"
+    "comeBackTomorrow": "Come Back Tomorrow",
+    "progress": "Progress"
   }
 }

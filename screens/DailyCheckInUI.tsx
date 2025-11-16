@@ -1,9 +1,15 @@
-import React, { useState, useMemo, useRef } from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import React, { useState, useMemo, useRef, useEffect } from "react";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { LinearGradient } from "expo-linear-gradient";
 import ConfettiCannon from "react-native-confetti-cannon";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  Easing,
+} from "react-native-reanimated";
 
 import { useTheme } from "@/context/ThemeContext";
 import { createStyles } from "./DailyCheckInUI.styles";
@@ -19,6 +25,21 @@ export const DailyCheckInUI: React.FC = () => {
   const confettiRef = useRef<ConfettiCannon>(null);
 
   const [rewards, setRewards] = useState<DailyReward[]>(DAILY_REWARDS);
+
+  // Calculate progress based on claimed days
+  const claimedCount = rewards.filter((reward) => reward.claimed).length;
+  const progressPercentage = (claimedCount / rewards.length) * 100;
+
+  // Animated progress value
+  const animatedProgress = useSharedValue(0);
+
+  useEffect(() => {
+    // Animate the progress bar when rewards change
+    animatedProgress.value = withTiming(progressPercentage, {
+      duration: 800,
+      easing: Easing.out(Easing.quad),
+    });
+  }, [progressPercentage, animatedProgress]);
 
   const todayReward = rewards[TODAY_INDEX];
   const canClaim = todayReward && !todayReward.claimed;
@@ -41,6 +62,13 @@ export const DailyCheckInUI: React.FC = () => {
       }
     }, 300);
   };
+
+  // Animated style for the progress bar fill
+  const animatedProgressBarStyle = useAnimatedStyle(() => {
+    return {
+      width: `${animatedProgress.value}%`,
+    };
+  });
 
   const renderDayCell = (item: DailyReward, index: number) => {
     const isToday = index === TODAY_INDEX;
@@ -86,6 +114,35 @@ export const DailyCheckInUI: React.FC = () => {
       <View style={styles.header}>
         <Text style={styles.title}>{t("dailyCheckIn.title")}</Text>
         <Text style={styles.subtitle}>{t("dailyCheckIn.subtitle")}</Text>
+
+        {/* Progress Bar Section */}
+        <View style={styles.progressBarContainer}>
+          <View style={styles.progressBarHeader}>
+            <Text style={styles.progressText}>
+              {t("dailyCheckIn.progress", {
+                claimed: claimedCount,
+                total: rewards.length,
+              })}
+            </Text>
+            <Text style={styles.progressPercentage}>
+              {Math.round(progressPercentage)}%
+            </Text>
+          </View>
+          <View
+            style={[
+              styles.progressBarBackground,
+              { backgroundColor: theme.card },
+            ]}
+          >
+            <Animated.View
+              style={[
+                styles.progressBarFill,
+                animatedProgressBarStyle,
+                { backgroundColor: theme.accentButton },
+              ]}
+            />
+          </View>
+        </View>
       </View>
 
       <View style={styles.gridContainer}>
@@ -109,7 +166,7 @@ export const DailyCheckInUI: React.FC = () => {
             </LinearGradient>
           ) : (
             <View style={[styles.gradient, styles.buttonDisabled]}>
-              <Text style={styles.buttonText}>
+              <Text style={styles.buttonDisabledText}>
                 {todayReward.claimed
                   ? t("dailyCheckIn.claimedButton")
                   : t("dailyCheckIn.comeBackTomorrow")}
