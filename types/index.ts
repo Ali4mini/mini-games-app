@@ -52,11 +52,6 @@ export type Theme = {
   info: string;
 };
 
-export type User = {
-  name: string;
-  coins: number;
-};
-
 export type GameCardProps = {
   title: string;
   image: string;
@@ -67,5 +62,46 @@ export type HeroBannerItem = {
   title: string;
   subtitle: string;
   image: string;
-  href: "/lucky-spin" | "/referral" | "/games-list"; // Use specific routes for type safety
+  href: "/lucky-spin" | "/profile" | "/games-list" | "/leaderboard"; // Use specific routes for type safety
+};
+
+export interface ReferralStats {
+  totalReferrals: number;
+  activeReferrals: number;
+  earnedCoins: number;
+  pendingRewards: number;
+}
+
+export interface UserProfile {
+  id: string;
+  username: string;
+  avatar: string;
+  joinDate: string;
+  level: number;
+  coins: number;
+  referralCode: string;
+}
+
+export interface ProfileProps {
+  theme: Theme;
+  user: UserProfile;
+  referralStats: ReferralStats;
+}
+
+// Add new properties to the User type
+export type User = {
+  id: string; // Add a user ID
+  name: string;
+  coins: number;
+  avatarUrl: string;
+  joinDate: string; // Will be a string like "2023-10-27"
+  referralCode: string;
+};
+
+// Create a new type for leaderboard entries
+export type LeaderboardEntry = {
+  rank: number;
+  name: string;
+  coins: number;
+  isCurrentUser?: boolean; // Optional flag for the current user
 };

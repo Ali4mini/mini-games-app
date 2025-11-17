@@ -20,7 +20,7 @@ export default function TabLayout() {
       <Tabs.Screen name="daily-check" />
       <Tabs.Screen name="games-list" />
       <Tabs.Screen name="lucky-spin" />
-      <Tabs.Screen name="referral" />
+      <Tabs.Screen name="profile" />
     </Tabs>
   );
 }

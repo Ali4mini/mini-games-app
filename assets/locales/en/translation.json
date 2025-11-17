@@ -47,5 +47,13 @@
     "days": "days",
     "games": "games",
     "yourRank": "Your rank: #{rank}"
+  },
+  "profile": {
+    "joinDate": "Joined {{date}}",
+    "yourReferralCode": "Your Referral Code",
+    "copyCode": "Copy",
+    "copied": "Copied!",
+    "leaderboard": "Leaderboard",
+    "yourRank": "Your Rank"
   }
 }

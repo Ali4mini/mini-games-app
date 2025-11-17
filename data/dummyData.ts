@@ -4,6 +4,7 @@ import {
   HeroBannerItem,
   DailyReward,
   LeaderboardUser,
+  LeaderboardEntry,
 } from "@/types";
 
 // Data for the 7-day check-in calendar
@@ -139,7 +140,7 @@ export const HERO_BANNER_DATA: HeroBannerItem[] = [
     title: "Invite a Friend",
     subtitle: "Earn 500 coins for every friend you invite.",
     image: "https://picsum.photos/seed/friend/800/450",
-    href: "/referral",
+    href: "/profile",
   },
   {
     id: "3",
@@ -149,11 +150,6 @@ export const HERO_BANNER_DATA: HeroBannerItem[] = [
     href: "/games-list",
   },
 ];
-
-export const USER_DATA: User = {
-  name: "PlayerOne",
-  coins: 1250,
-};
 
 // Corrected featured games with working images and the required 'category' property
 export const FEATURED_GAMES: Game[] = [
@@ -289,5 +285,29 @@ export const LEADERBOARD_USERS: LeaderboardUser[] = [
     dailyStreak: 5,
     totalGamesPlayed: 42,
     isOnline: false,
+  },
+];
+
+// UPDATE the USER_DATA object to match the new User type
+export const USER_DATA: User = {
+  id: "user_123",
+  name: "PlayerOne",
+  coins: 1250,
+  avatarUrl: "https://picsum.photos/seed/avatar/200",
+  joinDate: "2023-10-27",
+  referralCode: "EARN-A2B4C6",
+};
+
+// ADD new data for the leaderboard preview
+export const LEADERBOARD_DATA: LeaderboardEntry[] = [
+  { rank: 1, name: "ProGamerX", coins: 54320 },
+  { rank: 2, name: "CoinMaster", coins: 48910 },
+  { rank: 3, name: "PixelQueen", coins: 45100 },
+  // ... more users would be here in a real API response
+  {
+    rank: 127,
+    name: USER_DATA.name,
+    coins: USER_DATA.coins,
+    isCurrentUser: true,
   },
 ];
