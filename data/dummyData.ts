@@ -189,7 +189,7 @@ export const LEADERBOARD_USERS: LeaderboardUser[] = [
   {
     id: "1",
     username: "TopGamer",
-    avatar: "https://via.placeholder.com/40x40/FF6B6B/FFFFFF?text=TG",
+    avatar: "https://via.placeholder.com/40x40/FF6B6B/FFFFFF?textPrimary=TG",
     coins: 15420,
     rank: 1,
     dailyStreak: 28,
@@ -199,7 +199,7 @@ export const LEADERBOARD_USERS: LeaderboardUser[] = [
   {
     id: "2",
     username: "CoinCollector",
-    avatar: "https://via.placeholder.com/40x40/4ECDC4/FFFFFF?text=CC",
+    avatar: "https://via.placeholder.com/40x40/4ECDC4/FFFFFF?textPrimary=CC",
     coins: 14230,
     rank: 2,
     dailyStreak: 25,
@@ -209,7 +209,7 @@ export const LEADERBOARD_USERS: LeaderboardUser[] = [
   {
     id: "3",
     username: "DailyMaster",
-    avatar: "https://via.placeholder.com/40x40/45B7D1/FFFFFF?text=DM",
+    avatar: "https://via.placeholder.com/40x40/45B7D1/FFFFFF?textPrimary=DM",
     coins: 12890,
     rank: 3,
     dailyStreak: 30,
@@ -219,7 +219,7 @@ export const LEADERBOARD_USERS: LeaderboardUser[] = [
   {
     id: "4",
     username: "LuckyWinner",
-    avatar: "https://via.placeholder.com/40x40/96CEB4/FFFFFF?text=LW",
+    avatar: "https://via.placeholder.com/40x40/96CEB4/FFFFFF?textPrimary=LW",
     coins: 11560,
     rank: 4,
     dailyStreak: 18,
@@ -229,7 +229,7 @@ export const LEADERBOARD_USERS: LeaderboardUser[] = [
   {
     id: "5",
     username: "GameChamp",
-    avatar: "https://via.placeholder.com/40x40/FFEAA7/000000?text=GC",
+    avatar: "https://via.placeholder.com/40x40/FFEAA7/000000?textPrimary=GC",
     coins: 10890,
     rank: 5,
     dailyStreak: 22,
@@ -239,7 +239,7 @@ export const LEADERBOARD_USERS: LeaderboardUser[] = [
   {
     id: "6",
     username: "WeeklyWinner",
-    avatar: "https://via.placeholder.com/40x40/DDA0DD/FFFFFF?text=WW",
+    avatar: "https://via.placeholder.com/40x40/DDA0DD/FFFFFF?textPrimary=WW",
     coins: 9870,
     rank: 6,
     dailyStreak: 15,
@@ -249,7 +249,7 @@ export const LEADERBOARD_USERS: LeaderboardUser[] = [
   {
     id: "7",
     username: "CoinKing",
-    avatar: "https://via.placeholder.com/40x40/98D8C8/FFFFFF?text=CK",
+    avatar: "https://via.placeholder.com/40x40/98D8C8/FFFFFF?textPrimary=CK",
     coins: 8950,
     rank: 7,
     dailyStreak: 12,
@@ -259,7 +259,7 @@ export const LEADERBOARD_USERS: LeaderboardUser[] = [
   {
     id: "8",
     username: "GameMaster",
-    avatar: "https://via.placeholder.com/40x40/F7DC6F/000000?text=GM",
+    avatar: "https://via.placeholder.com/40x40/F7DC6F/000000?textPrimary=GM",
     coins: 7890,
     rank: 8,
     dailyStreak: 10,
@@ -269,7 +269,7 @@ export const LEADERBOARD_USERS: LeaderboardUser[] = [
   {
     id: "9",
     username: "DailyWinner",
-    avatar: "https://via.placeholder.com/40x40/BB8FCE/FFFFFF?text=DW",
+    avatar: "https://via.placeholder.com/40x40/BB8FCE/FFFFFF?textPrimary=DW",
     coins: 6750,
     rank: 9,
     dailyStreak: 8,
@@ -279,7 +279,7 @@ export const LEADERBOARD_USERS: LeaderboardUser[] = [
   {
     id: "10",
     username: "NewPlayer",
-    avatar: "https://via.placeholder.com/40x40/85C1E9/FFFFFF?text=NP",
+    avatar: "https://via.placeholder.com/40x40/85C1E9/FFFFFF?textPrimary=NP",
     coins: 5430,
     rank: 10,
     dailyStreak: 5,

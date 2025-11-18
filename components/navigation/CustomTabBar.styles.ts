@@ -32,10 +32,10 @@ export const createStyles = (theme: Theme, bottomInset: number) => {
       borderRadius: 32,
       justifyContent: "center",
       alignItems: "center",
-      backgroundColor: theme.accentButton,
+      backgroundColor: theme.buttonSecondary,
       top: -38,
       // Shadow for the center button
-      shadowColor: theme.accentButton,
+      shadowColor: theme.buttonSecondary,
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.3,
       shadowRadius: 5,
@@ -45,7 +45,7 @@ export const createStyles = (theme: Theme, bottomInset: number) => {
       width: 48,
       height: 48,
       borderRadius: 24,
-      backgroundColor: theme.tint, // White background for active side button
+      backgroundColor: theme.primary, // White background for active side button
       justifyContent: "center",
       alignItems: "center",
     },

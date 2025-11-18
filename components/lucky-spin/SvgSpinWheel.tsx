@@ -55,7 +55,7 @@ export const SvgSpinWheel: React.FC<SvgSpinWheelProps> = ({
       ? theme?.textSecondary || "#CCCCCC"
       : theme?.tint || "#F43F5E";
 
-  // Determine text
+  // Determine textPrimary
   const buttonText = isSpinning ? "SPINNING" : !hasSpins ? "NO SPINS" : "SPIN";
 
   return (
@@ -83,25 +83,25 @@ export const SvgSpinWheel: React.FC<SvgSpinWheelProps> = ({
           />
         ))}
 
-        {/* Layer 2: The prize text with better positioning */}
+        {/* Layer 2: The prize textPrimary with better positioning */}
         {segments.map((prize, index) => {
           // Calculate the center angle of this segment (in radians)
           const centerAngle =
             (index * segmentAngle + segmentAngle / 2 - 90) * (Math.PI / 180);
 
-          // Position the text at 60% of the radius to center it in the segment (more conservative)
+          // Position the textPrimary at 60% of the radius to center it in the segment (more conservative)
           const textX = radius + radius * 0.6 * Math.cos(centerAngle);
           const textY = radius + radius * 0.6 * Math.sin(centerAngle);
 
-          // Calculate the rotation for the text to make it readable
+          // Calculate the rotation for the textPrimary to make it readable
           let textRotation = (index * segmentAngle + segmentAngle / 2) % 360;
 
-          // For segments where text would be upside down, rotate 180 degrees
+          // For segments where textPrimary would be upside down, rotate 180 degrees
           if (textRotation > 90 && textRotation <= 270) {
             textRotation += 180;
           }
 
-          // Ensure text is always upright relative to the wheel
+          // Ensure textPrimary is always upright relative to the wheel
           textRotation = textRotation % 360;
 
           return (

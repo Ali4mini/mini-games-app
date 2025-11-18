@@ -33,19 +33,34 @@ export type Game = {
 };
 
 export type Theme = {
-  text: string;
+  // --- Text Colors ---
+  textPrimary: string;
   textSecondary: string;
-  background: string;
-  card: string;
-  tint: string;
-  tintContent: string;
-  accent: string;
-  accentContent: string;
-  accentButton: string;
-  accentButtonGradient: readonly string[]; // Use a more general type here
-  icon: string;
-  tabIconDefault: string;
-  tabIconSelected: string;
+  textTertiary: string;
+  textInverted: string;
+
+  // --- Background Colors ---
+  backgroundPrimary: string;
+  backgroundSecondary: string;
+  backgroundTertiary: string;
+
+  // --- Brand Colors ---
+  primary: string;
+  primaryContent: string;
+  secondary: string;
+  secondaryContent: string;
+
+  // --- Interactive Elements ---
+  buttonPrimary: string;
+  buttonSecondary: string;
+  buttonGradient: readonly string[];
+
+  // --- Navigation & UI Elements ---
+  tabBarInactive: string;
+  tabBarActive: string;
+  iconDefault: string;
+
+  // --- Status Colors ---
   success: string;
   error: string;
   warning: string;

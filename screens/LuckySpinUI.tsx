@@ -129,15 +129,15 @@ export const LuckySpinUI: React.FC = () => {
     }, 500);
   };
 
-  // Use translations for countdown text
+  // Use translations for countdown textPrimary
   const countdown = t("luckySpin.nextFreeSpin", { time: "23:59:59" });
 
   return (
     <LinearGradient
       colors={[
-        theme.tint, // Primary rose color at top
-        theme.background, // Background color at bottom
-        theme.background, // Background color at bottom
+        theme.primary, // Primary rose color at top
+        theme.backgroundPrimary, // Background color at bottom
+        theme.backgroundPrimary, // Background color at bottom
       ]}
       start={{ x: 0.5, y: 0 }} // Start at top center
       end={{ x: 0.5, y: 1 }} // End at bottom center
@@ -167,8 +167,8 @@ export const LuckySpinUI: React.FC = () => {
           <View style={styles.pointer}>
             <SvgSpinPointer
               size={40}
-              color={theme.tint}
-              strokeColor={theme.background}
+              color={theme.primary}
+              strokeColor={theme.backgroundPrimary}
             />
           </View>
         </View>
@@ -194,8 +194,8 @@ export const LuckySpinUI: React.FC = () => {
           origin={{ x: -50, y: 0 }}
           fallSpeed={3000}
           colors={[
-            theme.tint,
-            theme.accent,
+            theme.primary,
+            theme.secondary,
             theme.warning,
             theme.success,
             theme.info,

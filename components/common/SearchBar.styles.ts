@@ -6,13 +6,16 @@ export const createStyles = (theme: Theme) => {
     container: {
       flexDirection: "row",
       alignItems: "center",
-      backgroundColor: theme.card,
+      backgroundColor: theme.backgroundSecondary,
       borderRadius: 12,
       paddingHorizontal: 15,
       marginHorizontal: 20,
       marginTop: 10,
       borderWidth: 1,
-      borderColor: theme.card === "#FFFFFF" ? "#E2E8F0" : theme.card,
+      borderColor:
+        theme.backgroundSecondary === "#FFFFFF"
+          ? "#E2E8F0"
+          : theme.backgroundSecondary,
     },
     icon: {
       marginRight: 10,
@@ -21,7 +24,7 @@ export const createStyles = (theme: Theme) => {
       flex: 1,
       height: 48,
       fontSize: 16,
-      color: theme.text,
+      color: theme.textPrimary,
     },
   });
 };

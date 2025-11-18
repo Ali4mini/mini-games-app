@@ -71,7 +71,7 @@ export const CustomTabBar: React.FC<BottomTabBarProps> = ({
                   <Ionicons
                     name={iconName as any}
                     size={32}
-                    color={theme.tintContent}
+                    color={theme.primaryContent}
                   />
                 </View>
               </TouchableOpacity>
@@ -88,7 +88,7 @@ export const CustomTabBar: React.FC<BottomTabBarProps> = ({
               <Ionicons
                 name={iconName as any}
                 size={28}
-                color={isFocused ? theme.tint : theme.textSecondary}
+                color={isFocused ? theme.primary : theme.textSecondary}
               />
             </TouchableOpacity>
           );

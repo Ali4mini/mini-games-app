@@ -7,7 +7,7 @@ export const createStyles = (theme: Theme) => {
       width: 120,
       marginRight: 15,
       borderRadius: 10,
-      backgroundColor: theme.card,
+      backgroundColor: theme.backgroundSecondary,
       shadowColor: "#000",
       shadowOffset: { width: 0, height: 1 },
       shadowOpacity: 0.1,

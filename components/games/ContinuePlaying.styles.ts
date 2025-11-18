@@ -9,7 +9,7 @@ export const createStyles = (theme: Theme) => {
     title: {
       fontSize: 20,
       fontWeight: "bold",
-      color: theme.text,
+      color: theme.textPrimary,
       marginLeft: 20,
       marginBottom: 15,
     },
@@ -20,7 +20,7 @@ export const createStyles = (theme: Theme) => {
       borderRadius: 10,
       marginRight: 12,
       overflow: "hidden", // Ensures the image corners are rounded
-      justifyContent: "flex-end", // Aligns the text overlay to the bottom
+      justifyContent: "flex-end", // Aligns the textPrimary overlay to the bottom
     },
     image: {
       width: "100%",

@@ -19,7 +19,7 @@ export const createStyles = (theme: Theme) => {
     title: {
       fontSize: 32,
       fontWeight: "bold",
-      color: theme.text,
+      color: theme.textPrimary,
       marginBottom: 10,
     },
     wheelContainer: {
@@ -50,7 +50,7 @@ export const createStyles = (theme: Theme) => {
     },
     spinsLeftText: {
       fontSize: 16,
-      color: theme.text,
+      color: theme.textPrimary,
       marginBottom: 5,
     },
     countdownText: {

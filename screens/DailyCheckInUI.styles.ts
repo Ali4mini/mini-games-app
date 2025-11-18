@@ -5,7 +5,7 @@ export const createStyles = (theme: Theme) => {
   return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: theme.background,
+      backgroundColor: theme.backgroundPrimary,
       justifyContent: "space-between",
       padding: 20,
     },
@@ -15,7 +15,7 @@ export const createStyles = (theme: Theme) => {
     title: {
       fontSize: 32,
       fontFamily: "LilitaOne",
-      color: theme.text,
+      color: theme.textPrimary,
       marginBottom: 8,
     },
     subtitle: {
@@ -46,28 +46,28 @@ export const createStyles = (theme: Theme) => {
       width: "30%", // Use percentage instead of fixed width
       aspectRatio: 1,
       borderRadius: 15,
-      backgroundColor: theme.card,
+      backgroundColor: theme.backgroundSecondary,
       alignItems: "center",
       justifyContent: "center",
       borderWidth: 2,
       borderColor: "transparent",
     },
     dayCellToday: {
-      borderColor: theme.accentButton,
-      shadowColor: theme.accentButton,
+      borderColor: theme.buttonSecondary,
+      shadowColor: theme.buttonSecondary,
       shadowOffset: { width: 0, height: 0 },
       shadowOpacity: 0.5,
       shadowRadius: 10,
       elevation: 10,
     },
     dayCellClaimed: {
-      backgroundColor: theme.tint,
+      backgroundColor: theme.primary,
     },
     dayCellFuture: {
       opacity: 0.5,
     },
     dayCellGrandPrize: {
-      borderColor: theme.accentButton,
+      borderColor: theme.buttonSecondary,
       borderWidth: 2,
       width: "60%",
       aspectRatio: 0.9,
@@ -78,16 +78,16 @@ export const createStyles = (theme: Theme) => {
       color: theme.textSecondary,
     },
     dayTextClaimed: {
-      color: theme.tintContent,
+      color: theme.primaryContent,
     },
     rewardText: {
       fontSize: 20,
       fontWeight: "bold",
       marginTop: 8,
-      color: theme.accentButton,
+      color: theme.buttonSecondary,
     },
     rewardTextClaimed: {
-      color: theme.tintContent,
+      color: theme.primaryContent,
     },
     buttonContainer: {
       paddingBottom: 120,
@@ -103,12 +103,12 @@ export const createStyles = (theme: Theme) => {
       borderRadius: 30,
     },
     buttonDisabledText: {
-      color: theme.accentContent,
+      color: theme.secondaryContent,
       fontSize: 20,
       fontWeight: "bold",
     },
     buttonText: {
-      color: theme.accentContent,
+      color: theme.secondaryContent,
       fontSize: 20,
       fontWeight: "bold",
       letterSpacing: 1,
@@ -130,7 +130,7 @@ export const createStyles = (theme: Theme) => {
     },
     progressPercentage: {
       fontSize: 14,
-      color: theme.accentButton,
+      color: theme.buttonSecondary,
       fontWeight: "bold",
     },
     progressBarBackground: {

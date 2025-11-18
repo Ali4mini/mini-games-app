@@ -15,7 +15,7 @@ export const LeaderboardUI: React.FC = () => {
   const currentUser: LeaderboardUser = {
     id: "current-user",
     username: "You",
-    avatar: "https://via.placeholder.com/40x40/FF6B6B/FFFFFF?text=Y",
+    avatar: "https://via.placeholder.com/40x40/FF6B6B/FFFFFF?textPrimary=Y",
     coins: 4250,
     rank: 25,
     dailyStreak: 7,

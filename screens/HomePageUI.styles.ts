@@ -9,7 +9,7 @@ export const createStyles = (theme: Theme) => {
   return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: theme.background,
+      backgroundColor: theme.backgroundPrimary,
     },
     header: {
       flexDirection: "row",
@@ -26,12 +26,12 @@ export const createStyles = (theme: Theme) => {
     headerUsername: {
       fontSize: 24,
       fontWeight: "bold",
-      color: theme.text,
+      color: theme.textPrimary,
     },
     coinsContainer: {
       flexDirection: "row",
       alignItems: "center",
-      backgroundColor: theme.card,
+      backgroundColor: theme.backgroundSecondary,
       paddingHorizontal: 15,
       paddingVertical: 8,
       borderRadius: 20,
@@ -45,7 +45,7 @@ export const createStyles = (theme: Theme) => {
       fontSize: 18,
       fontWeight: "bold",
       marginLeft: 8,
-      color: theme.text,
+      color: theme.textPrimary,
     },
     heroBanner: {
       marginHorizontal: 20,
@@ -89,7 +89,7 @@ export const createStyles = (theme: Theme) => {
       marginTop: 20,
     },
     quickAction: {
-      backgroundColor: theme.tint,
+      backgroundColor: theme.primary,
       paddingVertical: 15,
       paddingHorizontal: 10,
       borderRadius: 15,
@@ -111,7 +111,7 @@ export const createStyles = (theme: Theme) => {
     sectionTitle: {
       fontSize: 20,
       fontWeight: "bold",
-      color: theme.text,
+      color: theme.textPrimary,
       marginLeft: 20,
       marginBottom: 15,
     },
@@ -119,7 +119,7 @@ export const createStyles = (theme: Theme) => {
       width: 120,
       marginRight: 15,
       borderRadius: 10,
-      backgroundColor: theme.card,
+      backgroundColor: theme.backgroundSecondary,
       shadowColor: "#000",
       shadowOffset: { width: 0, height: 1 },
       shadowOpacity: 0.1,
@@ -142,12 +142,12 @@ export const createStyles = (theme: Theme) => {
     iconImage: {
       width: 24, // Adjust size as needed
       height: 24, // Adjust size as needed
-      tintColor: "#FFF", // To match the original white color
+      backgroundColor: "#FFF", // To match the original white color
     },
     seeAllButton: {
       marginHorizontal: 20,
       marginTop: 20,
-      backgroundColor: theme.card,
+      backgroundColor: theme.backgroundSecondary,
       paddingVertical: 12,
       borderRadius: 25,
       alignItems: "center",
@@ -155,10 +155,10 @@ export const createStyles = (theme: Theme) => {
     seeAllButtonText: {
       fontSize: 16,
       fontWeight: "bold",
-      color: theme.text,
+      color: theme.textPrimary,
     },
     referralContainer: {
-      backgroundColor: theme.background,
+      backgroundColor: theme.backgroundPrimary,
       margin: 20,
       borderRadius: 15,
       padding: 20,
@@ -166,7 +166,7 @@ export const createStyles = (theme: Theme) => {
       alignItems: "center",
       justifyContent: "space-between",
       borderWidth: 1,
-      borderColor: theme.tint,
+      borderColor: theme.primary,
     },
     referralText: {
       flex: 1,
@@ -176,11 +176,11 @@ export const createStyles = (theme: Theme) => {
     referralTitle: {
       fontSize: 18,
       fontWeight: "bold",
-      color: theme.tint,
+      color: theme.primary,
     },
     referralSubtitle: {
       fontSize: 14,
-      color: theme.tint,
+      color: theme.primary,
       marginTop: 2,
     },
   });

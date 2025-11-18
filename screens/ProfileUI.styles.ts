@@ -5,7 +5,7 @@ export const createStyles = (theme: Theme) => {
   return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: theme.background,
+      backgroundColor: theme.backgroundPrimary,
     },
     scrollViewContent: {
       padding: 20,
@@ -22,12 +22,12 @@ export const createStyles = (theme: Theme) => {
       borderRadius: 50,
       marginBottom: 15,
       borderWidth: 3,
-      borderColor: theme.tint,
+      borderColor: theme.primary,
     },
     username: {
       fontSize: 24,
       fontWeight: "bold",
-      color: theme.text,
+      color: theme.textPrimary,
     },
     coinsContainer: {
       flexDirection: "row",
@@ -37,7 +37,7 @@ export const createStyles = (theme: Theme) => {
     coinsText: {
       fontSize: 18,
       fontWeight: "600",
-      color: theme.accentButton,
+      color: theme.buttonPrimary,
       marginLeft: 8,
     },
     joinDate: {
@@ -47,7 +47,7 @@ export const createStyles = (theme: Theme) => {
     },
     // Referral Section
     referralSection: {
-      backgroundColor: theme.card,
+      backgroundColor: theme.backgroundSecondary,
       borderRadius: 15,
       padding: 20,
       marginBottom: 30,
@@ -63,7 +63,7 @@ export const createStyles = (theme: Theme) => {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      backgroundColor: theme.background,
+      backgroundColor: theme.backgroundPrimary,
       borderRadius: 10,
       borderWidth: 2,
       borderStyle: "dashed",
@@ -74,17 +74,17 @@ export const createStyles = (theme: Theme) => {
     referralCodeText: {
       fontSize: 18,
       fontWeight: "bold",
-      color: theme.text,
+      color: theme.textPrimary,
       letterSpacing: 1,
     },
     copyButton: {
-      backgroundColor: theme.tint,
+      backgroundColor: theme.primary,
       paddingHorizontal: 15,
       paddingVertical: 8,
       borderRadius: 8,
     },
     copyButtonText: {
-      color: theme.tintContent,
+      color: theme.primaryContent,
       fontWeight: "bold",
     },
   });

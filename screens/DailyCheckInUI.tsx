@@ -131,14 +131,14 @@ export const DailyCheckInUI: React.FC = () => {
           <View
             style={[
               styles.progressBarBackground,
-              { backgroundColor: theme.card },
+              { backgroundColor: theme.backgroundSecondary },
             ]}
           >
             <Animated.View
               style={[
                 styles.progressBarFill,
                 animatedProgressBarStyle,
-                { backgroundColor: theme.accentButton },
+                { backgroundColor: theme.buttonSecondary },
               ]}
             />
           </View>
@@ -155,7 +155,7 @@ export const DailyCheckInUI: React.FC = () => {
         <TouchableOpacity onPress={handleClaimReward} disabled={!canClaim}>
           {canClaim ? (
             <LinearGradient
-              colors={theme.accentButtonGradient}
+              colors={theme.buttonGradient}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.gradient}

@@ -1,5 +1,5 @@
 import { StyleSheet } from "react-native";
-import { Theme } from "../../types/index";
+import { Theme } from "@/types";
 
 export const createStyles = (theme: Theme) => {
   return StyleSheet.create({
@@ -12,8 +12,11 @@ export const createStyles = (theme: Theme) => {
       paddingHorizontal: 16,
       borderRadius: 20,
       borderWidth: 1,
-      borderColor: theme.card === "#FFFFFF" ? "#E2E8F0" : theme.card,
-      backgroundColor: theme.card,
+      borderColor:
+        theme.backgroundSecondary === "#FFFFFF"
+          ? "#E2E8F0"
+          : theme.backgroundSecondary,
+      backgroundColor: theme.backgroundSecondary,
       marginRight: 10,
     },
     tagActive: {
@@ -21,8 +24,8 @@ export const createStyles = (theme: Theme) => {
       paddingHorizontal: 16,
       borderRadius: 20,
       borderWidth: 1,
-      borderColor: theme.tint,
-      backgroundColor: theme.tint,
+      borderColor: theme.primary,
+      backgroundColor: theme.primary,
       marginRight: 10,
     },
     tagText: {

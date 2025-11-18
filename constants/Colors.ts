@@ -6,60 +6,72 @@
 export default {
   // --- Light Theme Colors (Rose Light) ---
   light: {
-    // --- Text ---
-    text: "#18181B", // from base-content-rgb (dark text on light background)
-    textSecondary: "#4B5563", // A medium-dark gray for secondary text
+    // --- Text Colors ---
+    textPrimary: "#18181B", // Main textPrimary color (dark)
+    textSecondary: "#4B5563", // Secondary textPrimary (medium-dark gray)
+    textTertiary: "#6B7280", // Tertiary/placeholder textPrimary
+    textInverted: "#FFFFFF", // Text on dark backgrounds
 
-    // --- Backgrounds ---
-    background: "#FFF7FA", // from base-100-rgb (light pink background)
-    card: "#FEF2F5", // from base-200-rgb (lighter pink card background)
+    // --- Background Colors ---
+    backgroundPrimary: "#FFF7FA", // Main app background (light pink)
+    backgroundSecondary: "#FEF2F5", // Card backgrounds, secondary surfaces
+    backgroundTertiary: "#FEE7EE", // Minor background elements
 
-    // --- Brand & Accent Colors ---
-    tint: "#F43F5E", // from primary-rgb (rose primary color)
-    tintContent: "#FFFFFF", //
-    accent: "#F472B6", // A vibrant pink
-    accentContent: "#4d4949", // A vibrant pink
-    accentButton: "#F59E0B", // <-- ADD THIS (A nice gold/orange)
-    accentButtonGradient: ["#FBBF24", "#F59E0B"] as const, // <-- ADD THIS LINE
+    // --- Brand Colors ---
+    primary: "#F43F5E", // Main brand color (rose)
+    primaryContent: "#FFFFFF", // Content on primary background
+    secondary: "#F472B6", // Secondary brand color (lighter rose/pink)
+    secondaryContent: "#4d4949", // Content on secondary background
 
-    // --- Icons ---
-    icon: "#4B5563", // Medium-dark color for icons
-    tabIconDefault: "#FEE7EE", // from base-300-rgb
-    tabIconSelected: "#F43F5E", // from primary-rgb
+    // --- Interactive Elements ---
+    buttonPrimary: "#F43F5E", // Primary action buttons
+    buttonSecondary: "#F59E0B", // Secondary action buttons
+    buttonGradient: ["#FBBF24", "#F59E0B"] as const, // Gradient button
 
-    // --- State Colors ---
-    success: "#10B981", // from success-rgb (green)
-    error: "#EF4444", // from error-rgb (red)
-    warning: "#F59E0B", // from warning-rgb (amber)
-    info: "#0EA5E9", // from info-rgb (blue)
+    // --- Navigation & UI Elements ---
+    tabBarInactive: "#FEE7EE", // Inactive tab icons
+    tabBarActive: "#F43F5E", // Active tab icons
+    iconDefault: "#4B5563", // Default icon color
+
+    // --- Status Colors ---
+    success: "#10B981", // Success states (green)
+    error: "#EF4444", // Error states (red)
+    warning: "#F59E0B", // Warning states (amber)
+    info: "#0EA5E9", // Info states (blue)
   },
   // --- Dark Theme Colors (Rose Dark) ---
   dark: {
-    // --- Text ---
-    text: "#F4F4F5", // from base-content-rgb (light text on dark)
-    textSecondary: "#D1D5DB", // Light gray for secondary text on dark
+    // --- Text Colors ---
+    textPrimary: "#F4F4F5", // Main textPrimary color (light)
+    textSecondary: "#D1D5DB", // Secondary textPrimary (light gray)
+    textTertiary: "#9CA3AF", // Tertiary/placeholder textPrimary
+    textInverted: "#18181B", // Text on light backgrounds
 
-    // --- Backgrounds ---
-    background: "#18181B", // from base-100-rgb (dark background)
-    card: "#27272A", // from base-200-rgb (medium-dark card background)
+    // --- Background Colors ---
+    backgroundPrimary: "#18181B", // Main app background (dark)
+    backgroundSecondary: "#27272A", // Card backgrounds, secondary surfaces
+    backgroundTertiary: "#2D2D2D", // Minor background elements
 
-    // --- Brand & Accent Colors ---
-    tint: "#F472B6", // from primary-rgb (lighter rose primary)
-    tintContent: "#FFFFFF", //
-    accent: "#F472B6", // A vibrant pink
-    accentContent: "#4d4949", // A vibrant pink
-    accentButton: "#F59E0B", // <-- ADD THIS (A nice gold/orange)
-    accentButtonGradient: ["#F472B6", "#FBBF24"] as const, // <-- ADD THIS LINE
+    // --- Brand Colors ---
+    primary: "#F472B6", // Main brand color (lighter rose for dark theme)
+    primaryContent: "#FFFFFF", // Content on primary background
+    secondary: "#F472B6", // Secondary brand color
+    secondaryContent: "#4d4949", // Content on secondary background
 
-    // --- Icons ---
-    icon: "#D1D5DB", // Light color for icons on dark background
-    tabIconDefault: "#52525B", // Medium-dark gray for unselected tabs
-    tabIconSelected: "#F472B6", // from primary-rgb
+    // --- Interactive Elements ---
+    buttonPrimary: "#F472B6", // Primary action buttons
+    buttonSecondary: "#F59E0B", // Secondary action buttons
+    buttonGradient: ["#F472B6", "#FBBF24"] as const, // Gradient button
 
-    // --- State Colors ---
-    success: "#4AED80", // from success-rgb (lighter green)
-    error: "#F87171", // from error-rgb (lighter red)
-    warning: "#FBBF24", // from warning-rgb (golden yellow)
-    info: "#67E8F9", // from info-rgb (light blue)
+    // --- Navigation & UI Elements ---
+    tabBarInactive: "#52525B", // Inactive tab icons
+    tabBarActive: "#F472B6", // Active tab icons
+    iconDefault: "#D1D5DB", // Default icon color
+
+    // --- Status Colors ---
+    success: "#4AED80", // Success states (lighter green)
+    error: "#F87171", // Error states (lighter red)
+    warning: "#FBBF24", // Warning states (golden yellow)
+    info: "#67E8F9", // Info states (light blue)
   },
 };

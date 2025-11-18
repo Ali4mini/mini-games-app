@@ -35,7 +35,7 @@ export const TabBarBackground: React.FC<TabBarBackgroundProps> = ({
       height={height}
       style={{ position: "absolute", bottom: 0 }}
     >
-      <Path d={path} fill={theme.card} />
+      <Path d={path} fill={theme.backgroundSecondary} />
     </Svg>
   );
 };

@@ -57,10 +57,12 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
     : -1;
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
+    <View
+      style={[styles.container, { backgroundColor: theme.backgroundPrimary }]}
+    >
       {/* Header */}
       <View style={styles.header}>
-        <Text style={[styles.title, { color: theme.text }]}>
+        <Text style={[styles.title, { color: theme.textPrimary }]}>
           {t("leaderboard.title")}
         </Text>
         <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
@@ -84,8 +86,8 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={[theme.accentButton]}
-            tintColor={theme.accentButton}
+            colors={[theme.buttonSecondary]}
+            tintColor={theme.buttonSecondary}
           />
         }
       />
@@ -114,7 +116,10 @@ const UserRow: React.FC<{
     if (rank === 1) return { backgroundColor: "#FFD700", color: "#000" }; // Gold
     if (rank === 2) return { backgroundColor: "#C0C0C0", color: "#000" }; // Silver
     if (rank === 3) return { backgroundColor: "#CD7F32", color: "#FFF" }; // Bronze
-    return { backgroundColor: theme.card, color: theme.text };
+    return {
+      backgroundColor: theme.backgroundSecondary,
+      color: theme.textPrimary,
+    };
   };
 
   return (
@@ -122,7 +127,11 @@ const UserRow: React.FC<{
       style={[
         styles.userRow,
         isCurrentUser && styles.currentUserRow,
-        { backgroundColor: isCurrentUser ? theme.tint : theme.card },
+        {
+          backgroundColor: isCurrentUser
+            ? theme.primary
+            : theme.backgroundSecondary,
+        },
       ]}
     >
       {/* Rank */}
@@ -150,7 +159,7 @@ const UserRow: React.FC<{
         <Text
           style={[
             styles.username,
-            { color: theme.text },
+            { color: theme.textPrimary },
             isCurrentUser && styles.currentUserText,
           ]}
         >
@@ -168,7 +177,7 @@ const UserRow: React.FC<{
 
       {/* Coins */}
       <View style={styles.coinsContainer}>
-        <Text style={[styles.coins, { color: theme.accentButton }]}>
+        <Text style={[styles.coins, { color: theme.buttonSecondary }]}>
           💰 {user.coins.toLocaleString()}
         </Text>
         {user.isOnline && <View style={styles.onlineIndicator} />}
@@ -185,12 +194,17 @@ const CurrentUserCard: React.FC<{
   const theme = useTheme();
 
   return (
-    <View style={[styles.currentUserCard, { backgroundColor: theme.card }]}>
-      <Text style={[styles.currentUserCardText, { color: theme.text }]}>
+    <View
+      style={[
+        styles.currentUserCard,
+        { backgroundColor: theme.backgroundSecondary },
+      ]}
+    >
+      <Text style={[styles.currentUserCardText, { color: theme.textPrimary }]}>
         {t("leaderboard.yourRank", { rank: user.rank })}
       </Text>
       <Text
-        style={[styles.currentUserCardCoins, { color: theme.accentButton }]}
+        style={[styles.currentUserCardCoins, { color: theme.buttonSecondary }]}
       >
         💰 {user.coins.toLocaleString()}
       </Text>

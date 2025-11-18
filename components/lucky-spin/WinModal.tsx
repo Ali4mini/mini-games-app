@@ -61,14 +61,14 @@ export const WinModal: React.FC<WinModalProps> = ({
           onPress={() => {}} // Prevent closing when clicking inside modal
         >
           <Animated.View style={[styles.content, modalStyle]}>
-            <Text style={[styles.title, { color: theme.tint }]}>
+            <Text style={[styles.title, { color: theme.primary }]}>
               🎉 {t("luckySpin.congratulations")} 🎉
             </Text>
-            <Text style={[styles.prizeText, { color: theme.text }]}>
+            <Text style={[styles.prizeText, { color: theme.textPrimary }]}>
               {t("luckySpin.youWon", { prize })}
             </Text>
             <TouchableOpacity
-              style={[styles.closeButton, { backgroundColor: theme.tint }]}
+              style={[styles.closeButton, { backgroundColor: theme.primary }]}
               onPress={onClose}
             >
               <Text style={styles.closeButtonText}>{t("luckySpin.great")}</Text>

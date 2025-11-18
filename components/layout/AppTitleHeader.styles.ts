@@ -6,16 +6,19 @@ export const createStyles = (theme: Theme) => {
     container: {
       paddingVertical: 12,
       paddingHorizontal: 20,
-      backgroundColor: theme.background,
+      backgroundColor: theme.backgroundPrimary,
       alignItems: "center",
       justifyContent: "center",
       borderBottomWidth: 1,
-      borderBottomColor: theme.card === "#FFFFFF" ? "#E2E8F0" : theme.card, // Use light gray border in light mode
+      borderBottomColor:
+        theme.backgroundSecondary === "#FFFFFF"
+          ? "#E2E8F0"
+          : theme.backgroundSecondary, // Use light gray border in light mode
     },
     title: {
       fontFamily: "LilitaOne", // Use the custom font
       fontSize: 32,
-      color: theme.tint, // Use the primary brand color
+      color: theme.primary, // Use the primary brand color
       letterSpacing: 1.5,
     },
   });

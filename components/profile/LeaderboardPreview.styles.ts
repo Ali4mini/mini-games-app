@@ -5,13 +5,13 @@ export const createStyles = (theme: Theme) => {
   return StyleSheet.create({
     container: {
       padding: 20,
-      backgroundColor: theme.card,
+      backgroundColor: theme.backgroundSecondary,
       borderRadius: 15,
     },
     title: {
       fontSize: 20,
       fontWeight: "bold",
-      color: theme.text,
+      color: theme.textPrimary,
       marginBottom: 15,
     },
     row: {
@@ -20,7 +20,7 @@ export const createStyles = (theme: Theme) => {
       paddingVertical: 10,
     },
     userRow: {
-      backgroundColor: theme.background, // Highlight the user's row
+      backgroundColor: theme.backgroundPrimary, // Highlight the user's row
       borderRadius: 10,
       marginTop: 10,
     },
@@ -34,13 +34,13 @@ export const createStyles = (theme: Theme) => {
     name: {
       flex: 1,
       fontSize: 16,
-      color: theme.text,
+      color: theme.textPrimary,
       marginLeft: 10,
     },
     coins: {
       fontSize: 16,
       fontWeight: "bold",
-      color: theme.accentButton,
+      color: theme.buttonSecondary,
     },
   });
 };
