@@ -3,37 +3,55 @@ import {
   View,
   Text,
   FlatList,
-  ImageBackground,
+  Image,
   TouchableOpacity,
   StyleSheet,
-} from "react-native"; // <-- Import StyleSheet
-import { useTranslation } from "react-i18next"; // Add translation hook
+} from "react-native";
+import { useTranslation } from "react-i18next";
+import { LinearGradient } from "expo-linear-gradient"; // ✨ NEW
+import { Ionicons } from "@expo/vector-icons"; // ✨ NEW
+import { Link } from "expo-router";
+
 import { useTheme } from "../../context/ThemeContext";
 import { createStyles } from "./ContinuePlaying.styles";
 import { Game } from "../../types";
-import { Link } from "expo-router";
 
-// The corrected self-contained card component
 const RecentGameCard: React.FC<{ game: Game }> = ({ game }) => {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   return (
+    // TODO: Ideally, this link should go to `/game/${game.id}` to resume directly
     <Link href="/games-list" asChild>
-      <TouchableOpacity style={styles.card}>
-        <ImageBackground
+      <TouchableOpacity activeOpacity={0.8} style={styles.card}>
+        {/* 1. Background Image */}
+        <Image
           source={{ uri: game.image }}
-          // ADDED this to make the image fill the TouchableOpacity
-          style={StyleSheet.absoluteFill}
-          imageStyle={{ borderRadius: 10 }} // Apply borderRadius to the image itself
+          style={styles.image}
           resizeMode="cover"
-        >
-          <View style={styles.textOverlay}>
-            <Text style={styles.cardTitle} numberOfLines={1}>
-              {game.title}
-            </Text>
+        />
+
+        {/* 2. Center Play Icon (Visual feedback) */}
+        <View style={styles.playIconContainer}>
+          <View style={styles.playButtonBubble}>
+            <Ionicons
+              name="play"
+              size={14}
+              color="#fff"
+              style={{ marginLeft: 2 }}
+            />
           </View>
-        </ImageBackground>
+        </View>
+
+        {/* 3. Gradient Fade + Text at bottom */}
+        <LinearGradient
+          colors={["transparent", "rgba(0,0,0,0.9)"]}
+          style={styles.gradientOverlay}
+        >
+          <Text style={styles.cardTitle} numberOfLines={1}>
+            {game.title}
+          </Text>
+        </LinearGradient>
       </TouchableOpacity>
     </Link>
   );
@@ -45,7 +63,7 @@ type ContinuePlayingProps = {
 
 export const ContinuePlaying: React.FC<ContinuePlayingProps> = ({ data }) => {
   const theme = useTheme();
-  const { t } = useTranslation(); // Add translation hook
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   if (!data || data.length === 0) {
@@ -63,7 +81,8 @@ export const ContinuePlaying: React.FC<ContinuePlayingProps> = ({ data }) => {
         keyExtractor={(item) => item.id}
         horizontal={true}
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingLeft: 20 }}
+        // Add padding inside the list so the first item isn't flush with the screen edge
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 10 }}
       />
     </View>
   );
