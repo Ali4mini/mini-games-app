@@ -39,7 +39,11 @@ const HomePageUI: React.FC = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        <HomeHeader userName={USER_DATA.name} coins={USER_DATA.coins} />
+        <HomeHeader
+          userName={USER_DATA.name}
+          coins={USER_DATA.coins}
+          avatarUrl={USER_DATA.avatarUrl}
+        />
         <HeroCarousel data={HERO_BANNER_DATA} />
         <QuickActions />
         <ContinuePlaying data={RECENTLY_PLAYED_GAMES} />

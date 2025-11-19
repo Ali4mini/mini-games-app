@@ -55,7 +55,7 @@ export default {
     // --- Brand Colors ---
     primary: "#F472B6", // Main brand color (lighter rose for dark theme)
     primaryContent: "#FFFFFF", // Content on primary background
-    secondary: "#F472B6", // Secondary brand color
+    secondary: "#A855F7", // Secondary brand color
     secondaryContent: "#4d4949", // Content on secondary background
 
     // --- Interactive Elements ---

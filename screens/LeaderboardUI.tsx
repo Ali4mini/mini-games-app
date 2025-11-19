@@ -33,7 +33,7 @@ export const LeaderboardUI: React.FC = () => {
 
   return (
     <SafeAreaView
-      style={[styles.container, { backgroundColor: theme.background }]}
+      style={[styles.container, { backgroundColor: theme.backgroundSecondary }]}
     >
       <View style={styles.content}>
         <Leaderboard

@@ -2,6 +2,13 @@
  * This file contains shared TypeScript type definitions for the application.
  */
 
+export type ValidRoutes =
+  | "/lucky-spin"
+  | "/profile"
+  | "/games-list"
+  | "/daily-check"
+  | "/leaderboard"; // Use specific routes for type safety
+
 export interface LeaderboardUser {
   id: string;
   username: string;
@@ -77,7 +84,7 @@ export type HeroBannerItem = {
   title: string;
   subtitle: string;
   image: string;
-  href: "/lucky-spin" | "/profile" | "/games-list" | "/leaderboard"; // Use specific routes for type safety
+  href: ValidRoutes;
 };
 
 export interface ReferralStats {
