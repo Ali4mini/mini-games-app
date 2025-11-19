@@ -47,8 +47,8 @@ const HomePageUI: React.FC = () => {
         <HeroCarousel data={HERO_BANNER_DATA} />
         <QuickActions />
         <ContinuePlaying data={RECENTLY_PLAYED_GAMES} />
-        <FeaturedGames />
         <ReferralCTA />
+        <FeaturedGames />
       </ScrollView>
     </SafeAreaView>
   );
