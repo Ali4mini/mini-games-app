@@ -9,6 +9,7 @@ export const createStyles = (theme: Theme) => {
       backgroundColor: theme.backgroundSecondary,
       borderRadius: 12,
       paddingHorizontal: 15,
+      marginBottom: 15,
       marginHorizontal: 20,
       marginTop: 10,
       borderWidth: 1,
