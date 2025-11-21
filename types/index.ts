@@ -30,6 +30,8 @@ export type Game = {
   id: string;
   title: string;
   image: string;
+  url: string;
+  orientation: "landscape" | "portrait";
   category?:
     | "Puzzle"
     | "Action"

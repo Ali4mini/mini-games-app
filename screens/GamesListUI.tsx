@@ -1,12 +1,5 @@
 import React, { useState, useMemo } from "react";
-import {
-  View,
-  FlatList,
-  Text,
-  TouchableOpacity,
-  Image,
-  Dimensions,
-} from "react-native";
+import { View, FlatList, Text, TouchableOpacity, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { Link } from "expo-router";
@@ -22,9 +15,10 @@ import { createStyles } from "./GamesListUI.styles";
 import { GameCategories } from "@/components/games/GameCategories";
 import { SearchBar } from "@/components/common/SearchBar";
 import { ALL_GAMES, GAME_CATEGORIES } from "@/data/dummyData";
+import { Game } from "@/types";
 
 // --- 1. DEFINE POSTER CARD LOCALLY TO ENSURE VERTICAL LOOK ---
-const LibraryGameCard = ({ item, styles }: { item: any; styles: any }) => {
+const LibraryGameCard = ({ item, styles }: { item: Game; styles: any }) => {
   const scale = useSharedValue(1);
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -33,8 +27,20 @@ const LibraryGameCard = ({ item, styles }: { item: any; styles: any }) => {
   const onPressIn = () => (scale.value = withSpring(0.95));
   const onPressOut = () => (scale.value = withSpring(1));
 
+  console.log(item.url);
   return (
-    <Link href="/games-list" asChild>
+    <Link
+      href={{
+        pathname: "/game-player", // <--- Navigate to the WebView Screen
+        params: {
+          // Pass these details to the next screen
+          url: item.url || "https://play.famobi.com/om-nom-run", // Fallback URL for testing
+          title: item.title,
+          orientation: item.orientation || "portrait", // 'landscape' or 'portrait'
+        },
+      }}
+      asChild
+    >
       <TouchableOpacity
         activeOpacity={1}
         onPressIn={onPressIn}

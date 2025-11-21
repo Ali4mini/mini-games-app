@@ -34,26 +34,34 @@ export const SPIN_WHEEL_PRIZES: (string | number)[] = [
 export const ALL_GAMES: Game[] = [
   {
     id: "1",
-    title: "Bubble Shooter",
+    title: "Neon tower",
     image: "https://picsum.photos/200",
+    url: "https://gamesnacks.com/games/2mk3ok3s7jl88#sc=1763720759541903263-2922803",
+    orientation: "portrait",
     category: "Puzzle",
   },
   {
     id: "2",
-    title: "Solitaire",
+    title: "canon",
     image: "https://picsum.photos/seed/solitaire/400/600",
+    url: "https://play.famobi.com/cannon-balls-3d",
+    orientation: "portrait",
     category: "Strategy",
   },
   {
     id: "3",
     title: "Moto X3M",
     image: "https://picsum.photos/seed/moto/400/600",
+    url: "",
+    orientation: "portrait",
     category: "Racing",
   },
   {
     id: "4",
     title: "8 Ball Pool",
     image: "https://picsum.photos/seed/pool/400/600",
+    url: "",
+    orientation: "portrait",
     category: "Sports",
   },
   {
@@ -102,26 +110,32 @@ export const GAME_CATEGORIES: string[] = [
 export const RECENTLY_PLAYED_GAMES: Game[] = [
   {
     id: "3",
-    title: "Moto X3M",
-    image: "https://picsum.photos/seed/moto/400/600",
+    title: "Om Nom Run",
+    image:
+      "https://img.cdn.famobi.com/portal/html5games/images/tmp/OmNomRunTeaser.jpg",
+    url: "https://gamesnacks.com/games/2mk3ok3s7jl88#sc=1763720759541903263-2922803",
+
     category: "Racing",
   },
   {
     id: "1",
     title: "Bubble Shooter",
     image: "https://picsum.photos/seed/bubble/400/600",
+    url: "https://gamesnacks.com/games/2mk3ok3s7jl88#sc=1763720759541903263-2922803",
     category: "Puzzle",
   },
   {
     id: "2",
     title: "Solitaire",
     image: "https://picsum.photos/seed/solitaire/400/600",
+    url: "https://gamesnacks.com/games/2mk3ok3s7jl88#sc=1763720759541903263-2922803",
     category: "Strategy",
   },
   {
     id: "5",
     title: "Mahjong",
     image: "https://picsum.photos/seed/mahjong/400/600",
+    url: "https://gamesnacks.com/games/2mk3ok3s7jl88#sc=1763720759541903263-2922803",
     category: "Puzzle",
   },
 ];
