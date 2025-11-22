@@ -32,6 +32,7 @@ export type Game = {
   image: string;
   url: string;
   orientation: "landscape" | "portrait";
+  description?: string;
   category?:
     | "Puzzle"
     | "Action"

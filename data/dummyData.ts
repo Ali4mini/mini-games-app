@@ -50,11 +50,14 @@ export const ALL_GAMES: Game[] = [
   },
   {
     id: "3",
-    title: "Moto X3M",
-    image: "https://picsum.photos/seed/moto/400/600",
-    url: "",
-    orientation: "portrait",
+    title: "glass break",
+    image:
+      "https://img.cdn.famobi.com/portal/html5games/images/tmp/GlassBreakTeaser.jpg",
+    url: "https://play.famobi.com/glass-break",
+    orientation: "landscape",
     category: "Racing",
+    description:
+      "Smash your way through a world of motion and momentum where every throw counts. Feel the rush as you time each shot perfectly, shattering obstacles and pushing your skills to the limit. With intuitive touch controls and fluid, physics-driven gameplay, Glass Break challenges you to stay sharp and react fast. Each hit feels powerful, each miss raises the stakes, and every moment keeps you on edge. Perfect your timing, master your rhythm, and break your way to the top. Whether you’re chasing your high score or simply lost in the flow, Glass Break delivers nonstop action, smooth performance, and the pure satisfaction of every perfectly aimed throw. ",
   },
   {
     id: "4",

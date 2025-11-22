@@ -18,7 +18,7 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { useTheme } from "@/context/ThemeContext";
-import { Theme } from "@/types";
+import { Game, Theme } from "@/types";
 import { GameCategories } from "@/components/games/GameCategories";
 import { GAME_CATEGORIES, FEATURED_GAMES } from "@/data/dummyData";
 
@@ -28,8 +28,7 @@ const GAP = 15;
 // Width = (Screen - PaddingLeft - PaddingRight - Gap) / 2
 const ITEM_WIDTH = (width - 20 - 20 - GAP) / 2;
 
-// --- SUB-COMPONENT: Poster Style Card ---
-const FeaturedGameCard = ({ item, styles }: { item: any; styles: any }) => {
+const FeaturedGameCard = ({ item, styles }: { item: Game; styles: any }) => {
   const scale = useSharedValue(1);
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -39,7 +38,21 @@ const FeaturedGameCard = ({ item, styles }: { item: any; styles: any }) => {
   const onPressOut = () => (scale.value = withSpring(1));
 
   return (
-    <Link href="/games-list" asChild>
+    <Link
+      href={{
+        pathname: "/game-details",
+        params: {
+          id: item.id,
+          title: item.title,
+          image: item.image,
+          category: item.category,
+          url: item.url,
+          orientation: item.orientation,
+          description: item.description || "This is a super fun game...", // Pass description if you have it
+        },
+      }}
+      asChild
+    >
       <TouchableOpacity
         activeOpacity={1}
         onPressIn={onPressIn}

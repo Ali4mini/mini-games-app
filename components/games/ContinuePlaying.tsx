@@ -1,15 +1,8 @@
 import React, { useMemo } from "react";
-import {
-  View,
-  Text,
-  FlatList,
-  Image,
-  TouchableOpacity,
-  StyleSheet,
-} from "react-native";
+import { View, Text, FlatList, Image, TouchableOpacity } from "react-native";
 import { useTranslation } from "react-i18next";
-import { LinearGradient } from "expo-linear-gradient"; // ✨ NEW
-import { Ionicons } from "@expo/vector-icons"; // ✨ NEW
+import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
 import { Link } from "expo-router";
 
 import { useTheme } from "../../context/ThemeContext";
@@ -21,8 +14,17 @@ const RecentGameCard: React.FC<{ game: Game }> = ({ game }) => {
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   return (
-    // TODO: Ideally, this link should go to `/game/${game.id}` to resume directly
-    <Link href="/games-list" asChild>
+    <Link
+      href={{
+        pathname: "/game-player",
+        params: {
+          url: game.url,
+          title: game.title,
+          orientation: game.orientation,
+        },
+      }}
+      asChild
+    >
       <TouchableOpacity activeOpacity={0.8} style={styles.card}>
         {/* 1. Background Image */}
         <Image

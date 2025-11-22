@@ -31,12 +31,15 @@ const LibraryGameCard = ({ item, styles }: { item: Game; styles: any }) => {
   return (
     <Link
       href={{
-        pathname: "/game-player", // <--- Navigate to the WebView Screen
+        pathname: "/game-details", // Point to the details page
         params: {
-          // Pass these details to the next screen
-          url: item.url || "https://play.famobi.com/om-nom-run", // Fallback URL for testing
+          id: item.id,
           title: item.title,
-          orientation: item.orientation || "portrait", // 'landscape' or 'portrait'
+          image: item.image,
+          category: item.category,
+          url: item.url,
+          orientation: item.orientation,
+          description: item.description || "This is a super fun game...", // Pass description if you have it
         },
       }}
       asChild
