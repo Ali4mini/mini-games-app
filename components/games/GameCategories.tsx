@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
-import { View, Text, FlatList, TouchableOpacity } from "react-native";
-import { MaterialCommunityIcons } from "@expo/vector-icons"; // Best for game icons
+import { View, Text, FlatList, Pressable, Platform } from "react-native";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -15,32 +15,29 @@ type GameCategoriesProps = {
   onSelectCategory: (category: string) => void;
 };
 
-// --- 1. ICON MAPPING HELPER ---
-// Returns an icon name and a specific "Identity Color" for that genre
 const getCategoryData = (category: string) => {
   switch (category.toLowerCase()) {
     case "all":
-      return { icon: "view-grid", color: "#4facfe" }; // Blue
+      return { icon: "view-grid", color: "#4facfe" };
     case "action":
-      return { icon: "sword", color: "#ff4b1f" }; // Red
+      return { icon: "sword", color: "#ff4b1f" };
     case "puzzle":
-      return { icon: "puzzle", color: "#00b09b" }; // Teal
+      return { icon: "puzzle", color: "#00b09b" };
     case "strategy":
-      return { icon: "chess-rook", color: "#8E2DE2" }; // Purple
+      return { icon: "chess-rook", color: "#8E2DE2" };
     case "racing":
-      return { icon: "flag-checkered", color: "#f7971e" }; // Orange
+      return { icon: "flag-checkered", color: "#f7971e" };
     case "arcade":
-      return { icon: "controller-classic", color: "#fc00ff" }; // Pink
+      return { icon: "controller-classic", color: "#fc00ff" };
     case "sports":
-      return { icon: "soccer", color: "#2af598" }; // Green
+      return { icon: "soccer", color: "#2af598" };
     case "adventure":
-      return { icon: "compass", color: "#F4D03F" }; // Yellow
+      return { icon: "compass", color: "#F4D03F" };
     default:
-      return { icon: "gamepad-variant", color: "#bdc3c7" }; // Grey default
+      return { icon: "gamepad-variant", color: "#bdc3c7" };
   }
 };
 
-// --- 2. CHIP COMPONENT ---
 const CategoryChip = ({
   item,
   isActive,
@@ -53,8 +50,6 @@ const CategoryChip = ({
   styles: any;
 }) => {
   const scale = useSharedValue(1);
-
-  // Get the icon and specific color for this genre
   const { icon, color } = getCategoryData(item);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -67,39 +62,47 @@ const CategoryChip = ({
 
   const handlePressOut = () => {
     scale.value = withSpring(1);
+  };
+
+  // Only trigger selection on actual press completion
+  const handlePress = () => {
     onPress();
   };
 
   return (
     <Animated.View style={[styles.tagContainer, animatedStyle]}>
-      <TouchableOpacity
-        activeOpacity={1}
+      <Pressable
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
-        style={isActive ? styles.tagActive : styles.tag}
+        onPress={handlePress}
+        android_ripple={{
+          color: isActive ? "#00000040" : `${color}40`,
+          borderless: true,
+          radius: 30,
+        }}
+        style={({ pressed }) => [
+          isActive ? styles.tagActive : styles.tag,
+          Platform.OS === "ios" && pressed && { opacity: 0.7 },
+        ]}
       >
-        {/* ICON LOGIC:
-            - Active: Icon turns Black/White (depending on theme primary)
-            - Inactive: Icon shows its specific 'Genre Color' (e.g., Red for Action)
-        */}
-        <MaterialCommunityIcons
-          name={icon as any}
-          size={18}
-          // If active, use Black to contrast with Gold background.
-          // If inactive, use the genre's specific color.
-          color={isActive ? "#000" : color}
-          style={{ marginRight: 6 }}
-        />
-
-        <Text style={isActive ? styles.tagTextActive : styles.tagText}>
-          {item}
-        </Text>
-      </TouchableOpacity>
+        {({ pressed }) => (
+          <>
+            <MaterialCommunityIcons
+              name={icon as any}
+              size={18}
+              color={isActive ? "#000" : color}
+              style={{ marginRight: 6 }}
+            />
+            <Text style={isActive ? styles.tagTextActive : styles.tagText}>
+              {item}
+            </Text>
+          </>
+        )}
+      </Pressable>
     </Animated.View>
   );
 };
 
-// --- 3. MAIN COMPONENT ---
 export const GameCategories: React.FC<GameCategoriesProps> = ({
   categories,
   onSelectCategory,
@@ -129,6 +132,11 @@ export const GameCategories: React.FC<GameCategoriesProps> = ({
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 20 }}
+        // Prevent accidental touches during scroll
+        scrollEnabled={true}
+        bounces={false}
+        alwaysBounceHorizontal={false}
+        directionalLockEnabled={true}
       />
     </View>
   );
