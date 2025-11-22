@@ -55,5 +55,10 @@
     "copied": "Copied!",
     "leaderboard": "Leaderboard",
     "yourRank": "Your Rank"
+  },
+  "airdrop": {
+    "title": "Airdrop",
+    "subtitle": "Coming Soon!",
+    "description": "Get ready for exciting rewards and exclusive tokens. Follow us for updates on our upcoming airdrop event."
   }
 }

@@ -17,7 +17,7 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen name="index" />
-      <Tabs.Screen name="daily-check" />
+      <Tabs.Screen name="airdrop" />
       <Tabs.Screen name="games-list" />
       <Tabs.Screen name="lucky-spin" />
       <Tabs.Screen name="profile" />
