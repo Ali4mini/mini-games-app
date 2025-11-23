@@ -7,6 +7,7 @@ export type ValidRoutes =
   | "/profile"
   | "/games-list"
   | "/daily-check"
+  | "airdrop"
   | "/leaderboard"; // Use specific routes for type safety
 
 export interface LeaderboardUser {
