@@ -10,6 +10,16 @@ export type ValidRoutes =
   | "airdrop"
   | "/leaderboard"; // Use specific routes for type safety
 
+export type GameCategories =
+  | "Puzzle"
+  | "Action"
+  | "Strategy"
+  | "Racing"
+  | "Sports"
+  | "Adventure"
+  | "Casual"
+  | "Arcade"; // Add category
+
 export interface LeaderboardUser {
   id: string;
   username: string;
@@ -34,13 +44,7 @@ export type Game = {
   url: string;
   orientation: "landscape" | "portrait";
   description?: string;
-  category?:
-    | "Puzzle"
-    | "Action"
-    | "Strategy"
-    | "Racing"
-    | "Sports"
-    | "Adventure"; // Add category
+  category?: GameCategories;
 };
 
 export type Theme = {

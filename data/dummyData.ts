@@ -34,78 +34,113 @@ export const SPIN_WHEEL_PRIZES: (string | number)[] = [
 export const ALL_GAMES: Game[] = [
   {
     id: "1",
-    title: "Neon tower",
-    image: "https://picsum.photos/200",
-    url: "https://gamesnacks.com/games/2mk3ok3s7jl88#sc=1763720759541903263-2922803",
-    orientation: "portrait",
-    category: "Puzzle",
+    title: "Om Nom Run",
+    image:
+      "https://img.cdn.famobi.com/portal/html5games/images/tmp/OmNomRunTeaser.jpg",
+    url: "https://play.famobi.com/om-nom-run",
+    orientation: "landscape",
+    category: "Action",
+    description:
+      "Join Om Nom in an exciting running adventure through the dangerous streets of Nomville! Dodge obstacles, collect coins, and perform stunts to unlock new characters in this high-speed endless runner.",
   },
   {
     id: "2",
-    title: "canon",
-    image: "https://picsum.photos/seed/solitaire/400/600",
-    url: "https://play.famobi.com/cannon-balls-3d",
-    orientation: "portrait",
-    category: "Strategy",
-  },
-  {
-    id: "3",
-    title: "glass break",
+    title: "Moto X3M Pool Party",
     image:
-      "https://img.cdn.famobi.com/portal/html5games/images/tmp/GlassBreakTeaser.jpg",
-    url: "https://play.famobi.com/glass-break",
+      "https://img.cdn.famobi.com/portal/html5games/images/tmp/MotoX3mPoolPartyTeaser.jpg",
+    url: "https://play.famobi.com/moto-x3m-pool-party",
     orientation: "landscape",
     category: "Racing",
     description:
-      "Smash your way through a world of motion and momentum where every throw counts. Feel the rush as you time each shot perfectly, shattering obstacles and pushing your skills to the limit. With intuitive touch controls and fluid, physics-driven gameplay, Glass Break challenges you to stay sharp and react fast. Each hit feels powerful, each miss raises the stakes, and every moment keeps you on edge. Perfect your timing, master your rhythm, and break your way to the top. Whether you’re chasing your high score or simply lost in the flow, Glass Break delivers nonstop action, smooth performance, and the pure satisfaction of every perfectly aimed throw. ",
+      "Grab your motorbike, strap on your helmet and grab some airtime over obstacles and beat the clock on amazing off-road circuits. The Pool Party edition brings splashing fun to the extreme racing series.",
+  },
+  {
+    id: "3",
+    title: "Cars Arena",
+    image:
+      "https://img.cdn.famobi.com/portal/html5games/images/tmp/CarsArenaTeaser.jpg",
+    url: "https://play.famobi.com/cars-arena",
+    orientation: "portrait",
+    category: "Arcade",
+    description:
+      "Chop, slice, and dice your way to the top! A satisfying ASMR experience where you must slice vegetables while avoiding the obstacles. Perfect for quick, stress-relieving gameplay.",
   },
   {
     id: "4",
-    title: "8 Ball Pool",
-    image: "https://picsum.photos/seed/pool/400/600",
-    url: "",
-    orientation: "portrait",
-    category: "Sports",
+    title: "Bubble Tower 3D",
+    image:
+      "https://img.cdn.famobi.com/portal/html5games/images/tmp/BubbleTower3dTeaser.jpg",
+    url: "https://play.famobi.com/bubble-tower-3d",
+    orientation: "landscape",
+    category: "Puzzle",
+    description:
+      "Experience the classic bubble shooter in a whole new dimension. Rotate the tower to find the perfect angle and pop matching bubbles before they reach the bottom.",
   },
   {
     id: "5",
-    title: "Mahjong",
-    image: "https://picsum.photos/seed/mahjong/400/600",
-    url: "",
-    orientation: "portrait",
-    category: "Puzzle",
+    title: "Table Tennis World Tour",
+    image:
+      "https://img.cdn.famobi.com/portal/html5games/images/tmp/TableTennisWorldTourTeaser.jpg",
+    url: "https://play.famobi.com/table-tennis-world-tour",
+    orientation: "landscape",
+    category: "Sports",
+    description:
+      "Pick your nation and battle your way through the World Tour. Master the paddle with precise swipes to spin and smash the ball past your opponent.",
   },
   {
     id: "6",
-    title: "Knife Rain",
-    image: "https://picsum.photos/seed/knife/400/600",
+    title: "Color Road",
+    image:
+      "https://img.cdn.famobi.com/portal/html5games/images/tmp/ColorRoadTeaser.jpg",
+    url: "https://play.famobi.com/color-road",
     orientation: "portrait",
-    category: "Action",
-    url: "",
+    category: "Arcade",
+    description:
+      "Control a rolling ball along a winding track in space. Your mission is simple: only hit balls that match your color. Hit a different color, and it's game over!",
   },
   {
     id: "7",
-    title: "Penalty Kick",
-    image: "https://picsum.photos/seed/penalty/400/600",
-    url: "",
+    title: "Cannon Surfer",
+    image:
+      "https://img.cdn.famobi.com/portal/html5games/images/tmp/CannonSurferTeaser.jpg",
+    url: "https://play.famobi.com/cannon-surfer",
     orientation: "portrait",
-    category: "Sports",
+    category: "Action",
+    description:
+      "Blast your way through obstacles while surfing! Use your cannon to clear the path ahead in this addictive, high-octane action game.",
   },
   {
     id: "8",
-    url: "",
-    title: "Tower Crash 3D",
-    image: "https://picsum.photos/seed/tower/400/600",
+    title: "Smarty Bubbles",
+    image:
+      "https://img.cdn.famobi.com/portal/html5games/images/tmp/SmartyBubblesTeaser.jpg",
+    url: "https://play.famobi.com/smarty-bubbles",
     orientation: "portrait",
-    category: "Action",
+    category: "Casual",
+    description:
+      "One of the most popular bubble shooters in the world. Simple, addictive, and perfect for high-score chasing. Match 3 bubbles to pop them and clear the field.",
   },
   {
     id: "9",
     title: "Gold Miner Tom",
-    url: "",
-    image: "https://picsum.photos/seed/gold/400/600",
+    image:
+      "https://img.cdn.famobi.com/portal/html5games/images/tmp/GoldMinerTomTeaser.jpg",
+    url: "https://play.famobi.com/gold-miner-tom",
+    orientation: "landscape",
     category: "Adventure",
+    description:
+      "Help Tom use his claw to mine for gold, diamonds, and other treasures. Time your throws carefully to grab the most valuable items before the time runs out.",
+  },
+  {
+    id: "10",
+    title: "Diamond Rush",
+    image:
+      "https://img.cdn.famobi.com/portal/html5games/images/tmp/DiamondRushTeaser.jpg",
+    url: "https://play.famobi.com/diamond-rush",
     orientation: "portrait",
+    category: "Puzzle",
+    description:
+      "A fast-paced match-3 game. Be quick! You have limited time to match as many colorful diamonds as possible and trigger explosive chain reactions.",
   },
 ];
 
@@ -120,42 +155,7 @@ export const GAME_CATEGORIES: string[] = [
 ];
 
 // Corrected recently played games with working images and the required 'category' property
-export const RECENTLY_PLAYED_GAMES: Game[] = [
-  {
-    id: "3",
-    title: "Om Nom Run",
-    image:
-      "https://img.cdn.famobi.com/portal/html5games/images/tmp/OmNomRunTeaser.jpg",
-    url: "https://gamesnacks.com/games/2mk3ok3s7jl88#sc=1763720759541903263-2922803",
-
-    orientation: "portrait",
-    category: "Racing",
-  },
-  {
-    id: "1",
-    title: "Bubble Shooter",
-    image: "https://picsum.photos/seed/bubble/400/600",
-    orientation: "portrait",
-    url: "https://gamesnacks.com/games/2mk3ok3s7jl88#sc=1763720759541903263-2922803",
-    category: "Puzzle",
-  },
-  {
-    id: "2",
-    title: "Solitaire",
-    image: "https://picsum.photos/seed/solitaire/400/600",
-    url: "https://gamesnacks.com/games/2mk3ok3s7jl88#sc=1763720759541903263-2922803",
-    category: "Strategy",
-    orientation: "portrait",
-  },
-  {
-    id: "5",
-    title: "Mahjong",
-    image: "https://picsum.photos/seed/mahjong/400/600",
-    url: "https://gamesnacks.com/games/2mk3ok3s7jl88#sc=1763720759541903263-2922803",
-    orientation: "portrait",
-    category: "Puzzle",
-  },
-];
+export const RECENTLY_PLAYED_GAMES: Game[] = ALL_GAMES.slice(0, 5);
 
 // Corrected hero banner data with properly sized, working images
 export const HERO_BANNER_DATA: HeroBannerItem[] = [
@@ -183,48 +183,7 @@ export const HERO_BANNER_DATA: HeroBannerItem[] = [
 ];
 
 // Corrected featured games with working images and the required 'category' property
-export const FEATURED_GAMES: Game[] = [
-  {
-    id: "1",
-    title: "Bubble Shooter",
-    image: "https://picsum.photos/seed/bubble/400/600",
-    orientation: "portrait",
-    url: "",
-    category: "Puzzle",
-  },
-  {
-    id: "2",
-    title: "Solitaire",
-    image: "https://picsum.photos/seed/solitaire/400/600",
-    orientation: "portrait",
-    url: "",
-    category: "Strategy",
-  },
-  {
-    id: "3",
-    title: "Moto X3M",
-    image: "https://picsum.photos/seed/moto/400/600",
-    category: "Racing",
-    orientation: "portrait",
-    url: "",
-  },
-  {
-    id: "4",
-    title: "8 Ball Pool",
-    image: "https://picsum.photos/seed/pool/400/600",
-    category: "Sports",
-    orientation: "portrait",
-    url: "",
-  },
-  {
-    id: "5",
-    title: "Mahjong",
-    image: "https://picsum.photos/seed/mahjong/400/600",
-    category: "Puzzle",
-    orientation: "portrait",
-    url: "",
-  },
-];
+export const FEATURED_GAMES: Game[] = ALL_GAMES.slice(0, 5);
 
 export const LEADERBOARD_USERS: LeaderboardUser[] = [
   {

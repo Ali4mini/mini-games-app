@@ -1,77 +1,67 @@
 /**
- * This file contains the color palette for the entire app.
- * Using the "Rose" theme with light and dark variants.
+ * Theme: Neon Arcade
+ * Vibe: Cyberpunk, Gaming, High Energy
+ * Colors: Violet, Electric Blue, Slate
  */
 
 export default {
-  // --- Light Theme Colors (Rose Light) ---
+  // --- Light Theme (Clean & Digital) ---
   light: {
-    // --- Text Colors ---
-    textPrimary: "#18181B", // Main textPrimary color (dark)
-    textSecondary: "#4B5563", // Secondary textPrimary (medium-dark gray)
-    textTertiary: "#6B7280", // Tertiary/placeholder textPrimary
-    textInverted: "#FFFFFF", // Text on dark backgrounds
+    textPrimary: "#111827", // Gray 900
+    textSecondary: "#4B5563", // Gray 600
+    textTertiary: "#9CA3AF", // Gray 400
+    textInverted: "#FFFFFF",
 
-    // --- Background Colors ---
-    backgroundPrimary: "#FFF7FA", // Main app background (light pink)
-    backgroundSecondary: "#FEF2F5", // Card backgrounds, secondary surfaces
-    backgroundTertiary: "#FEE7EE", // Minor background elements
+    backgroundPrimary: "#F5F3FF", // Light Violet tint
+    backgroundSecondary: "#FFFFFF", // Pure White cards
+    backgroundTertiary: "#EDE9FE", // Violet 100
 
-    // --- Brand Colors ---
-    primary: "#F43F5E", // Main brand color (rose)
-    primaryContent: "#FFFFFF", // Content on primary background
-    secondary: "#F472B6", // Secondary brand color (lighter rose/pink)
-    secondaryContent: "#4d4949", // Content on secondary background
+    primary: "#7C3AED", // Violet 600
+    primaryContent: "#FFFFFF",
+    secondary: "#06B6D4", // Cyan 500 (Pop color)
+    secondaryContent: "#FFFFFF",
 
-    // --- Interactive Elements ---
-    buttonPrimary: "#F43F5E", // Primary action buttons
-    buttonSecondary: "#F59E0B", // Secondary action buttons
-    buttonGradient: ["#FBBF24", "#F59E0B"] as const, // Gradient button
+    buttonPrimary: "#7C3AED",
+    buttonSecondary: "#06B6D4",
+    buttonGradient: ["#8B5CF6", "#2DD4BF"] as const, // Violet to Teal
 
-    // --- Navigation & UI Elements ---
-    tabBarInactive: "#FEE7EE", // Inactive tab icons
-    tabBarActive: "#F43F5E", // Active tab icons
-    iconDefault: "#4B5563", // Default icon color
+    tabBarInactive: "#C4B5FD",
+    tabBarActive: "#7C3AED",
+    iconDefault: "#6B7280",
 
-    // --- Status Colors ---
-    success: "#10B981", // Success states (green)
-    error: "#EF4444", // Error states (red)
-    warning: "#F59E0B", // Warning states (amber)
-    info: "#0EA5E9", // Info states (blue)
+    success: "#059669",
+    error: "#DC2626",
+    warning: "#D97706",
+    info: "#2563EB",
   },
-  // --- Dark Theme Colors (Rose Dark) ---
+
+  // --- Dark Theme (Immersive Gaming Mode) ---
   dark: {
-    // --- Text Colors ---
-    textPrimary: "#F4F4F5", // Main textPrimary color (light)
-    textSecondary: "#D1D5DB", // Secondary textPrimary (light gray)
-    textTertiary: "#9CA3AF", // Tertiary/placeholder textPrimary
-    textInverted: "#18181B", // Text on light backgrounds
+    textPrimary: "#F9FAFB", // Gray 50
+    textSecondary: "#D1D5DB", // Gray 300
+    textTertiary: "#6B7280", // Gray 500
+    textInverted: "#000000",
 
-    // --- Background Colors ---
-    backgroundPrimary: "#18181B", // Main app background (dark)
-    backgroundSecondary: "#27272A", // Card backgrounds, secondary surfaces
-    backgroundTertiary: "#2D2D2D", // Minor background elements
+    backgroundPrimary: "#0F172A", // Slate 900 (Deep Blue-Black)
+    backgroundSecondary: "#1E293B", // Slate 800
+    backgroundTertiary: "#334155", // Slate 700
 
-    // --- Brand Colors ---
-    primary: "#F472B6", // Main brand color (lighter rose for dark theme)
-    primaryContent: "#FFFFFF", // Content on primary background
-    secondary: "#A855F7", // Secondary brand color
-    secondaryContent: "#4d4949", // Content on secondary background
+    primary: "#A78BFA", // Violet 400 (Lighter for dark mode)
+    primaryContent: "#FFFFFF",
+    secondary: "#22D3EE", // Cyan 400
+    secondaryContent: "#0F172A", // Dark text on bright button
 
-    // --- Interactive Elements ---
-    buttonPrimary: "#F472B6", // Primary action buttons
-    buttonSecondary: "#F59E0B", // Secondary action buttons
-    buttonGradient: ["#F472B6", "#FBBF24"] as const, // Gradient button
+    buttonPrimary: "#8B5CF6",
+    buttonSecondary: "#0EA5E9",
+    buttonGradient: ["#7C3AED", "#22D3EE"] as const,
 
-    // --- Navigation & UI Elements ---
-    tabBarInactive: "#52525B", // Inactive tab icons
-    tabBarActive: "#F472B6", // Active tab icons
-    iconDefault: "#D1D5DB", // Default icon color
+    tabBarInactive: "#475569",
+    tabBarActive: "#A78BFA",
+    iconDefault: "#94A3B8",
 
-    // --- Status Colors ---
-    success: "#4AED80", // Success states (lighter green)
-    error: "#F87171", // Error states (lighter red)
-    warning: "#FBBF24", // Warning states (golden yellow)
-    info: "#67E8F9", // Info states (light blue)
+    success: "#34D399",
+    error: "#F87171",
+    warning: "#FBBF24",
+    info: "#60A5FA",
   },
 };
