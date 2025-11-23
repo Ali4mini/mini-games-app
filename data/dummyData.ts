@@ -38,7 +38,7 @@ export const ALL_GAMES: Game[] = [
     image:
       "https://img.cdn.famobi.com/portal/html5games/images/tmp/OmNomRunTeaser.jpg",
     url: "https://play.famobi.com/om-nom-run",
-    orientation: "landscape",
+    orientation: "portrait",
     category: "Action",
     description:
       "Join Om Nom in an exciting running adventure through the dangerous streets of Nomville! Dodge obstacles, collect coins, and perform stunts to unlock new characters in this high-speed endless runner.",
@@ -163,21 +163,21 @@ export const HERO_BANNER_DATA: HeroBannerItem[] = [
     id: "1",
     title: "Spin the Wheel!",
     subtitle: "Win daily prizes and coins.",
-    image: "http://192.168.1.106:8000/1763795753.png",
+    image: require("../assets/images/banner1.png"),
     href: "/lucky-spin",
   },
   {
     id: "2",
     title: "Invite a Friend",
     subtitle: "Earn 500 coins for every friend you invite.",
-    image: "http://192.168.1.106:8000/1763795679.png",
+    image: require("../assets/images/banner2.png"),
     href: "/profile",
   },
   {
     id: "3",
     title: "New Games Added!",
     subtitle: "Check out the latest additions to our library.",
-    image: "http://192.168.1.106:8000/1763795603.png",
+    image: require("../assets/images/banner3.png"),
     href: "/games-list",
   },
 ];

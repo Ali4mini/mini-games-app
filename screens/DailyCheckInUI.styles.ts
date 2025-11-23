@@ -90,7 +90,7 @@ export const createStyles = (theme: Theme) => {
       color: theme.primaryContent,
     },
     buttonContainer: {
-      paddingBottom: 120,
+      paddingBottom: 3,
     },
     gradient: {
       paddingVertical: 15,

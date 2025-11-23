@@ -31,11 +31,7 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ data }) => {
     <Link href={item.href} asChild>
       <TouchableOpacity activeOpacity={0.9} style={styles.cardContainer}>
         {/* 1. The Game Art */}
-        <Image
-          source={{ uri: item.image }}
-          style={styles.image}
-          resizeMode="cover"
-        />
+        <Image source={item.image} style={styles.image} resizeMode="cover" />
 
         {/* 2. Gradient Overlay for Text Readability */}
         <LinearGradient
