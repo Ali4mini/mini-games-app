@@ -3,20 +3,20 @@
   "home": {
     "welcomeBack": "Bon retour,",
     "dailyCheckIn": "Bonus Quotidien",
-    "luckySpin": "Roue de la Fortune",
-    "continuePlaying": "Continuer à Jouer",
-    "featuredGames": "Jeux en Vedette",
+    "luckySpin": "Roue de la Chance",
+    "continuePlaying": "Continuer à jouer",
+    "featuredGames": "Jeux en vedette",
     "referralTitle": "Parrainez un ami !",
-    "referralSubtitle": "Gagnez {{count}} pièces pour chaque ami que vous invitez."
+    "referralSubtitle": "Gagnez {{count}} pièces pour chaque ami invité."
   },
   "luckySpin": {
-    "title": "Roue de la Fortune",
-    "spinButton": "LANCER",
+    "title": "Roue de la Chance",
+    "spinButton": "TOURNER",
     "spinning": "EN COURS",
-    "noSpins": "PAS DE TOURS",
-    "spinsLeft": "{{count}} Tour Gratuit Restant",
-    "spinsLeft_plural": "{{count}} Tours Gratuits Restants",
-    "noSpinsLeft": "Aucun Tour Gratuit Restant",
+    "noSpins": "0 TOUR",
+    "spinsLeft": "{{count}} tour gratuit restant",
+    "spinsLeft_plural": "{{count}} tours gratuits restants",
+    "noSpinsLeft": "Aucun tour gratuit restant",
     "nextFreeSpin": "Prochain tour gratuit dans : {{time}}",
     "congratulations": "Félicitations !",
     "youWon": "Vous avez gagné : {{prize}}",
@@ -25,11 +25,40 @@
   "common": {
     "home": "Accueil",
     "games": "Jeux",
-    "dailyCheck": "Bonus",
-    "referral": "Parrainer",
+    "dailyCheck": "Quotidien",
+    "referral": "Parrainage",
     "luckySpin": "Roue"
   },
   "gamesList": {
     "searchPlaceholder": "Rechercher un jeu..."
+  },
+  "dailyCheckIn": {
+    "title": "Bonus Quotidien",
+    "subtitle": "Revenez chaque jour pour réclamer votre récompense et garder votre série !",
+    "day": "Jour {{day}}",
+    "claimButton": "Réclamer {{reward}} Pièces",
+    "claimedButton": "Réclamé !",
+    "comeBackTomorrow": "Revenez Demain",
+    "progress": "Progression"
+  },
+  "leaderboard": {
+    "title": "Classement",
+    "subtitle": "Meilleurs joueurs cette semaine",
+    "days": "jours",
+    "games": "jeux",
+    "yourRank": "Votre rang : #{{rank}}"
+  },
+  "profile": {
+    "joinDate": "Rejoint le {{date}}",
+    "yourReferralCode": "Votre code de parrainage",
+    "copyCode": "Copier",
+    "copied": "Copié !",
+    "leaderboard": "Classement",
+    "yourRank": "Votre Rang"
+  },
+  "airdrop": {
+    "title": "Airdrop",
+    "subtitle": "Bientôt disponible !",
+    "description": "Préparez-vous pour des récompenses excitantes et des jetons exclusifs. Suivez-nous pour les mises à jour sur notre prochain événement airdrop."
   }
 }

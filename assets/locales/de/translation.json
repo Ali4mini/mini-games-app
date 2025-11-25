@@ -4,32 +4,61 @@
     "welcomeBack": "Willkommen zurück,",
     "dailyCheckIn": "Täglicher Check-in",
     "luckySpin": "Glücksrad",
-    "continuePlaying": "Weiterspielen",
-    "featuredGames": "Empfohlene Spiele",
-    "referralTitle": "Freund einladen!",
+    "continuePlaying": "Weiter spielen",
+    "featuredGames": "Top-Spiele",
+    "referralTitle": "Freunde werben!",
     "referralSubtitle": "Verdiene {{count}} Münzen für jeden eingeladenen Freund."
   },
   "luckySpin": {
     "title": "Glücksrad",
     "spinButton": "DREHEN",
-    "spinning": "DREHT",
+    "spinning": "DREHT...",
     "noSpins": "KEINE DREHS",
-    "spinsLeft": "{{count}} Gratis-Drehung übrig",
-    "spinsLeft_plural": "{{count}} Gratis-Drehungen übrig",
-    "noSpinsLeft": "Keine Gratis-Drehungen übrig",
-    "nextFreeSpin": "Nächste Gratis-Drehung in: {{time}}",
-    "congratulations": "Herzlichen Glückwunsch!",
+    "spinsLeft": "{{count}} Freidreh übrig",
+    "spinsLeft_plural": "{{count}} Freidrehs übrig",
+    "noSpinsLeft": "Keine Freidrehs mehr",
+    "nextFreeSpin": "Nächster Freidreh in: {{time}}",
+    "congratulations": "Glückwunsch!",
     "youWon": "Du hast gewonnen: {{prize}}",
-    "great": "Großartig!"
+    "great": "Super!"
   },
   "common": {
-    "home": "Start",
+    "home": "Home",
     "games": "Spiele",
-    "dailyCheck": "Bonus",
-    "referral": "Einladen",
-    "luckySpin": "Rad"
+    "dailyCheck": "Täglich",
+    "referral": "Empfehlen",
+    "luckySpin": "Glücksrad"
   },
   "gamesList": {
     "searchPlaceholder": "Suche nach einem Spiel..."
+  },
+  "dailyCheckIn": {
+    "title": "Täglicher Check-in",
+    "subtitle": "Komm jeden Tag zurück, um deine Belohnung abzuholen und deine Serie zu halten!",
+    "day": "Tag {{day}}",
+    "claimButton": "{{reward}} Münzen beanspruchen",
+    "claimedButton": "Abgeholt!",
+    "comeBackTomorrow": "Komm morgen wieder",
+    "progress": "Fortschritt"
+  },
+  "leaderboard": {
+    "title": "Bestenliste",
+    "subtitle": "Top-Spieler diese Woche",
+    "days": "Tage",
+    "games": "Spiele",
+    "yourRank": "Dein Rang: #{{rank}}"
+  },
+  "profile": {
+    "joinDate": "Beigetreten am {{date}}",
+    "yourReferralCode": "Dein Empfehlungscode",
+    "copyCode": "Kopieren",
+    "copied": "Kopiert!",
+    "leaderboard": "Bestenliste",
+    "yourRank": "Dein Rang"
+  },
+  "airdrop": {
+    "title": "Airdrop",
+    "subtitle": "Demnächst!",
+    "description": "Mach dich bereit für spannende Belohnungen und exklusive Token. Folge uns für Updates zu unserem kommenden Airdrop-Event."
   }
 }

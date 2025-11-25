@@ -1,12 +1,12 @@
 {
   "appName": "Earnado",
   "home": {
-    "welcomeBack": "Bienvenido de vuelta,",
-    "dailyCheckIn": "Check-in Diario",
+    "welcomeBack": "Bienvenido de nuevo,",
+    "dailyCheckIn": "Registro Diario",
     "luckySpin": "Giro de la Suerte",
-    "continuePlaying": "Continuar Jugando",
+    "continuePlaying": "Seguir Jugando",
     "featuredGames": "Juegos Destacados",
-    "referralTitle": "¡Recomienda a un Amigo!",
+    "referralTitle": "¡Invita a un amigo!",
     "referralSubtitle": "Gana {{count}} monedas por cada amigo que invites."
   },
   "luckySpin": {
@@ -14,9 +14,9 @@
     "spinButton": "GIRAR",
     "spinning": "GIRANDO",
     "noSpins": "SIN GIROS",
-    "spinsLeft": "{{count}} Giro Gratis Restante",
-    "spinsLeft_plural": "{{count}} Giros Gratis Restantes",
-    "noSpinsLeft": "No Quedan Giros Gratis",
+    "spinsLeft": "Queda {{count}} giro gratis",
+    "spinsLeft_plural": "Quedan {{count}} giros gratis",
+    "noSpinsLeft": "No quedan giros gratis",
     "nextFreeSpin": "Próximo giro gratis en: {{time}}",
     "congratulations": "¡Felicidades!",
     "youWon": "Ganaste: {{prize}}",
@@ -25,11 +25,40 @@
   "common": {
     "home": "Inicio",
     "games": "Juegos",
-    "dailyCheck": "Recompensa",
-    "referral": "Recomendar",
-    "luckySpin": "Girar"
+    "dailyCheck": "Diario",
+    "referral": "Invitar",
+    "luckySpin": "Suerte"
   },
   "gamesList": {
     "searchPlaceholder": "Buscar un juego..."
+  },
+  "dailyCheckIn": {
+    "title": "Registro Diario",
+    "subtitle": "¡Vuelve todos los días para reclamar tu recompensa y mantener tu racha!",
+    "day": "Día {{day}}",
+    "claimButton": "Reclamar {{reward}} Monedas",
+    "claimedButton": "¡Reclamado!",
+    "comeBackTomorrow": "Vuelve Mañana",
+    "progress": "Progreso"
+  },
+  "leaderboard": {
+    "title": "Clasificación",
+    "subtitle": "Mejores jugadores de la semana",
+    "days": "días",
+    "games": "juegos",
+    "yourRank": "Tu rango: #{{rank}}"
+  },
+  "profile": {
+    "joinDate": "Se unió el {{date}}",
+    "yourReferralCode": "Tu Código de Referido",
+    "copyCode": "Copiar",
+    "copied": "¡Copiado!",
+    "leaderboard": "Clasificación",
+    "yourRank": "Tu Rango"
+  },
+  "airdrop": {
+    "title": "Airdrop",
+    "subtitle": "¡Próximamente!",
+    "description": "Prepárate para recompensas emocionantes y tokens exclusivos. Síguenos para recibir actualizaciones sobre nuestro próximo evento de airdrop."
   }
 }

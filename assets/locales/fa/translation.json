@@ -1,22 +1,22 @@
 {
-  "appName": "ارنادو",
+  "appName": "Earnado",
   "home": {
     "welcomeBack": "خوش آمدید،",
     "dailyCheckIn": "ورود روزانه",
     "luckySpin": "گردونه شانس",
     "continuePlaying": "ادامه بازی",
-    "featuredGames": "بازی‌های ویژه",
+    "featuredGames": "بازی‌های منتخب",
     "referralTitle": "معرفی به دوستان!",
-    "referralSubtitle": "به ازای هر دوستی که دعوت می‌کنید، {{count}} سکه دریافت کنید."
+    "referralSubtitle": "برای دعوت هر دوست {{count}} سکه دریافت کنید."
   },
   "luckySpin": {
-    "title": "چرخ خوشبختی",
-    "spinButton": "چرخاندن",
-    "spinning": "در حال چرخاندن",
-    "noSpins": "چرخشی ندارد",
-    "spinsLeft": "{{count}} چرخش رایگان باقی مانده",
-    "spinsLeft_plural": "{{count}} چرخش رایگان باقی مانده",
-    "noSpinsLeft": "چرخش رایگانی ندارید",
+    "title": "گردونه شانس",
+    "spinButton": "چرخش",
+    "spinning": "در حال چرخش",
+    "noSpins": "بدون چرخش",
+    "spinsLeft": "{{count}} چرخش رایگان باقی‌مانده",
+    "spinsLeft_plural": "{{count}} چرخش رایگان باقی‌مانده",
+    "noSpinsLeft": "چرخش رایگانی باقی نمانده",
     "nextFreeSpin": "چرخش رایگان بعدی در: {{time}}",
     "congratulations": "تبریک!",
     "youWon": "شما برنده شدید: {{prize}}",
@@ -25,11 +25,40 @@
   "common": {
     "home": "خانه",
     "games": "بازی‌ها",
-    "dailyCheck": "بررسی روزانه",
+    "dailyCheck": "روزانه",
     "referral": "معرفی",
-    "luckySpin": "چرخ خوشبختی"
+    "luckySpin": "گردونه"
   },
   "gamesList": {
-    "searchPlaceholder": "جستجوی یک بازی..."
+    "searchPlaceholder": "جستجوی بازی..."
+  },
+  "dailyCheckIn": {
+    "title": "ورود روزانه",
+    "subtitle": "هر روز سر بزنید تا پاداش خود را بگیرید و زنجیره حضور را حفظ کنید!",
+    "day": "روز {{day}}",
+    "claimButton": "دریافت {{reward}} سکه",
+    "claimedButton": "دریافت شد!",
+    "comeBackTomorrow": "فردا برگردید",
+    "progress": "پیشرفت"
+  },
+  "leaderboard": {
+    "title": "جدول امتیازات",
+    "subtitle": "بازیکنان برتر هفته",
+    "days": "روز",
+    "games": "بازی",
+    "yourRank": "رتبه شما: #{{rank}}"
+  },
+  "profile": {
+    "joinDate": "عضویت در {{date}}",
+    "yourReferralCode": "کد معرف شما",
+    "copyCode": "کپی",
+    "copied": "کپی شد!",
+    "leaderboard": "جدول امتیازات",
+    "yourRank": "رتبه شما"
+  },
+  "airdrop": {
+    "title": "ایردراپ",
+    "subtitle": "به زودی!",
+    "description": "برای پاداش‌های هیجان‌انگیز و توکن‌های اختصاصی آماده باشید. برای اطلاع از رویداد ایردراپ آینده، ما را دنبال کنید."
   }
 }

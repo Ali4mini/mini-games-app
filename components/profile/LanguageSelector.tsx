@@ -6,8 +6,7 @@ import {
   Modal, 
   FlatList, 
   StyleSheet, 
-  I18nManager,
-  Platform
+  I18nManager
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
@@ -26,52 +25,31 @@ export const LanguageSelector = () => {
     await i18n.changeLanguage(langCode);
     setModalVisible(false);
 
-    // Optional: Handle RTL layout changes
     if (isRTL !== I18nManager.isRTL) {
       I18nManager.allowRTL(isRTL);
       I18nManager.forceRTL(isRTL);
-      // Note: You usually need to reload the app here for RTL to take full effect
     }
   };
 
   return (
     <>
-      {/* --- 1. THE TRIGGER BUTTON --- */}
+      {/* --- COMPACT TRIGGER BUTTON --- */}
       <TouchableOpacity 
         style={[
-          styles.container, 
-          { 
-            backgroundColor: theme.backgroundSecondary, // Card Background
-            borderColor: theme.backgroundTertiary,      // Subtle Border
-          }
+          styles.compactTrigger, 
+          { backgroundColor: theme.backgroundTertiary }
         ]} 
         onPress={() => setModalVisible(true)}
         activeOpacity={0.7}
       >
-        <View style={styles.leftSide}>
-          {/* Icon Container */}
-          <View style={[
-            styles.iconContainer, 
-            { backgroundColor: theme.backgroundTertiary }
-          ]}>
-            <Ionicons name="globe-outline" size={20} color={theme.primary} />
-          </View>
-          
-          <Text style={[styles.label, { color: theme.textPrimary }]}>
-            {t('profile.language', 'Language')}
-          </Text>
-        </View>
-
-        <View style={styles.rightSide}>
-          <Text style={styles.flag}>{currentLang.flag}</Text>
-          <Text style={[styles.currentLangText, { color: theme.textSecondary }]}>
-            {currentLang.label}
-          </Text>
-          <Ionicons name="chevron-forward" size={16} color={theme.textTertiary} />
-        </View>
+        <Text style={styles.flag}>{currentLang.flag}</Text>
+        <Text style={[styles.compactLabel, { color: theme.textPrimary }]}>
+          {currentLang.label}
+        </Text>
+        <Ionicons name="chevron-down" size={14} color={theme.textSecondary} style={{ marginLeft: 4 }} />
       </TouchableOpacity>
 
-      {/* --- 2. THE SELECTION MODAL --- */}
+      {/* --- SELECTION MODAL (Kept mostly the same) --- */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -79,23 +57,20 @@ export const LanguageSelector = () => {
         onRequestClose={() => setModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
-          {/* Modal Content */}
           <View style={[
             styles.modalContent, 
             { backgroundColor: theme.backgroundSecondary }
           ]}>
             
-            {/* Header */}
             <View style={[styles.modalHeader, { borderBottomColor: theme.backgroundTertiary }]}>
               <Text style={[styles.modalTitle, { color: theme.textPrimary }]}>
-                Select Language
+                {t('profile.language', 'Select Language')}
               </Text>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
                 <Ionicons name="close-circle" size={28} color={theme.textTertiary} />
               </TouchableOpacity>
             </View>
 
-            {/* List */}
             <FlatList
               data={LANGUAGES}
               keyExtractor={(item) => item.code}
@@ -106,7 +81,6 @@ export const LanguageSelector = () => {
                     style={[
                       styles.langItem,
                       { borderBottomColor: theme.backgroundTertiary },
-                      // Highlight active item slightly
                       isActive && { backgroundColor: theme.backgroundTertiary }
                     ]}
                     onPress={() => handleLanguageChange(item.code, item.isRTL)}
@@ -136,24 +110,25 @@ export const LanguageSelector = () => {
 };
 
 const styles = StyleSheet.create({
-  // Trigger Styles
-  container: {
+  // Compact Trigger Styles
+  compactTrigger: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
-    borderRadius: 12,
-    marginVertical: 8,
-    borderWidth: 1,
+    alignSelf: 'flex-start', // Ensures it wraps content width
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    gap: 6,
   },
-  leftSide: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  iconContainer: { padding: 8, borderRadius: 50 },
-  label: { fontSize: 16, fontWeight: '600' },
-  rightSide: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  flag: { fontSize: 18 },
-  currentLangText: { fontSize: 14, fontWeight: '500' },
+  flag: { 
+    fontSize: 16 
+  },
+  compactLabel: { 
+    fontSize: 14, 
+    fontWeight: '600' 
+  },
 
-  // Modal Styles
+  // Modal Styles (Unchanged mostly)
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)', 
@@ -165,7 +140,6 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     paddingBottom: 40,
     maxHeight: '60%', 
-    // Shadow for elevation
     shadowColor: "#000",
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
@@ -181,7 +155,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     marginBottom: 0,
   },
-  modalTitle: { fontSize: 20, fontWeight: 'bold' },
+  modalTitle: { fontSize: 18, fontWeight: 'bold' },
   langItem: {
     flexDirection: 'row',
     alignItems: 'center',
