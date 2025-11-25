@@ -1,28 +1,41 @@
 import React, { useMemo } from "react";
-import { View, TouchableOpacity, useWindowDimensions } from "react-native";
+import { View, TouchableOpacity, useWindowDimensions, StyleSheet } from "react-native";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
+// Import Lucide Icons
+import { 
+  Home, 
+  LayoutGrid, 
+  Gamepad2, 
+  Disc, 
+  User, 
+  Hexagon 
+} from "lucide-react-native";
+import Animated, { 
+  useAnimatedStyle, 
+  withSpring, 
+  useSharedValue, 
+  withTiming 
+} from "react-native-reanimated";
 
 import { useTheme } from "@/context/ThemeContext";
 import { createStyles } from "./CustomTabBar.styles";
 import { TabBarBackground } from "./TabBarBackground";
 
-// Icons to match your screenshot
-const ICONS = [
-  "home-outline",
-  "apps-sharp",
-  "game-controller-outline",
-  "radio-button-off-outline",
-  "person-outline",
-];
-const ACTIVE_ICONS = [
-  "home",
-  "apps-sharp",
-  "game-controller",
-  "disc-sharp",
-  "person",
-];
+// Map index to Icon Component
+const TabIcon = ({ index, color, size, focused }: { index: number; color: string; size: number; focused: boolean }) => {
+  // You can customize the stroke width: thicker when focused looks nice
+  const strokeWidth = focused ? 2.5 : 2; 
+
+  switch (index) {
+    case 0: return <Home color={color} size={size} strokeWidth={strokeWidth} />;
+    case 1: return <LayoutGrid color={color} size={size} strokeWidth={strokeWidth} />;
+    case 2: return <Gamepad2 color={color} size={size} strokeWidth={strokeWidth} />; // Center Game Icon
+    case 3: return <Disc color={color} size={size} strokeWidth={strokeWidth} />; // Airdrop/Token Icon
+    case 4: return <User color={color} size={size} strokeWidth={strokeWidth} />;
+    default: return <Home color={color} size={size} strokeWidth={strokeWidth} />;
+  }
+};
 
 export const CustomTabBar: React.FC<BottomTabBarProps> = ({
   state,
@@ -57,39 +70,76 @@ export const CustomTabBar: React.FC<BottomTabBarProps> = ({
             }
           };
 
-          const iconName = isFocused ? ACTIVE_ICONS[index] : ICONS[index];
-
-          // --- Center Button Logic (remains the same) ---
+          // --- Center Button Logic ---
           if (isCenter) {
             return (
               <TouchableOpacity
                 key={route.key}
                 onPress={onPress}
                 style={styles.tabButton}
+                activeOpacity={0.8}
               >
-                <View style={styles.centerButton}>
-                  <Ionicons
-                    name={iconName as any}
-                    size={32}
-                    color={theme.primaryContent}
+                {/* 
+                   To make the center button stand out more, we can use a Hexagon 
+                   or filled shape behind the icon, or just styling from styles.centerButton 
+                */}
+                <View style={[styles.centerButton, { 
+                    shadowColor: theme.primary,
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.3,
+                    shadowRadius: 8,
+                    elevation: 5
+                }]}>
+                  <TabIcon 
+                    index={index} 
+                    color={theme.primaryContent} // Usually white or dark depending on button bg
+                    size={32} 
+                    focused={isFocused} 
                   />
                 </View>
               </TouchableOpacity>
             );
           }
 
-          // --- CORRECTED Side Buttons Logic ---
+          // --- Side Buttons Logic ---
           return (
             <TouchableOpacity
               key={route.key}
               onPress={onPress}
               style={styles.tabButton}
+              activeOpacity={0.7}
             >
-              <Ionicons
-                name={iconName as any}
-                size={28}
-                color={isFocused ? theme.primary : theme.textSecondary}
+               {/* Optional: Add a subtle glow/indicator behind active tab */}
+              {isFocused && (
+                <View 
+                  style={{
+                    position: 'absolute',
+                    width: 40,
+                    height: 40,
+                    borderRadius: 20,
+                    backgroundColor: theme.primary,
+                    opacity: 0.15, 
+                  }} 
+                />
+              )}
+              
+              <TabIcon 
+                index={index} 
+                color={isFocused ? theme.primary : theme.textSecondary} 
+                size={26} 
+                focused={isFocused} 
               />
+              
+              {/* Optional: Add a tiny dot below active tab */}
+              {isFocused && (
+                 <View style={{
+                    width: 4,
+                    height: 4,
+                    borderRadius: 2,
+                    backgroundColor: theme.primary,
+                    marginTop: 4
+                 }}/>
+              )}
             </TouchableOpacity>
           );
         })}
