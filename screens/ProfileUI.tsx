@@ -9,6 +9,7 @@ import { useTheme } from "@/context/ThemeContext";
 import { createStyles } from "./ProfileUI.styles";
 import { USER_DATA, LEADERBOARD_DATA } from "@/data/dummyData";
 import { LeaderboardPreview } from "@/components/profile/LeaderboardPreview";
+import { LanguageSelector } from "@/components/profile/LanguageSelector"
 
 export const ProfileUI: React.FC = () => {
   const { t } = useTranslation();
@@ -25,6 +26,19 @@ export const ProfileUI: React.FC = () => {
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
+		{/* Settings*/}
+<View style={styles.settingsSection}> 
+          <Text style={styles.sectionTitle}>
+            {t("profile.preferences", "PREFERENCES")}
+          </Text>
+          
+          {/* 1. Theme Switch */}
+          {/* <ThemeToggle /> */}
+          
+          {/* 2. Language Switch */}
+          <LanguageSelector />
+          
+        </View>
         {/* --- User Identity Section --- */}
         <View style={styles.identitySection}>
           <Image source={{ uri: USER_DATA.avatarUrl }} style={styles.avatar} />
