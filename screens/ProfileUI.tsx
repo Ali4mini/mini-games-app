@@ -36,14 +36,14 @@ export const ProfileUI: React.FC = () => {
     <View style={styles.mainContainer}>
       
       {/* --- HERO BACKGROUND --- */}
-      <View style={styles.splashContainer}>
-        <LinearGradient
-          colors={[theme.primary, theme.backgroundPrimary]} 
-          start={{ x: 0.5, y: 0 }}
-          end={{ x: 0.5, y: 1 }}
-          style={styles.headerSplash}
-        />
-      </View>
+      {/* <View style={styles.splashContainer}> */}
+      {/*   <LinearGradient */}
+      {/*     colors={[theme.primary, theme.backgroundPrimary]}  */}
+      {/*     start={{ x: 0.5, y: 0 }} */}
+      {/*     end={{ x: 0.5, y: 1 }} */}
+      {/*     style={styles.headerSplash} */}
+      {/*   /> */}
+      {/* </View> */}
 
       <SafeAreaView style={styles.safeArea} edges={["top"]}>
         <ScrollView 
@@ -122,7 +122,7 @@ const createStyles = (theme: any) =>
   StyleSheet.create({
     mainContainer: {
       flex: 1,
-      backgroundColor: theme.backgroundPrimary,
+      // backgroundColor: theme.backgroundPrimary,
     },
     safeArea: {
       flex: 1,
@@ -223,7 +223,7 @@ const createStyles = (theme: any) =>
       flexDirection: "row",
       justifyContent: "space-between",
       width: "100%",
-      backgroundColor: theme.backgroundPrimary,
+      // backgroundColor: theme.backgroundPrimary,
       borderRadius: 16,
       paddingVertical: 16,
       paddingHorizontal: 10,

@@ -59,7 +59,7 @@ const createStyles = (theme: Theme) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: theme.backgroundPrimary,
+      // backgroundColor: theme.backgroundPrimary,
     },
     scrollContent: {
       paddingBottom: 110,

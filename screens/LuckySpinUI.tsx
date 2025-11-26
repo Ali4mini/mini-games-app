@@ -96,12 +96,12 @@ export const LuckySpinUI: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <LinearGradient
-        colors={[theme.backgroundPrimary, theme.backgroundTertiary, theme.backgroundPrimary]}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-        style={StyleSheet.absoluteFill}
-      />
+      {/* <LinearGradient */}
+      {/*   colors={[theme.backgroundPrimary, theme.backgroundTertiary, theme.backgroundPrimary]} */}
+      {/*   start={{ x: 0.5, y: 0 }} */}
+      {/*   end={{ x: 0.5, y: 1 }} */}
+      {/*   style={StyleSheet.absoluteFill} */}
+      {/* /> */}
       
       <View style={styles.ambientGlowContainer}>
         <View style={[styles.ambientGlow, { backgroundColor: theme.primary }]} />
@@ -230,7 +230,7 @@ const createStyles = (theme: any, insets: any) => {
   return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: theme.backgroundPrimary,
+      // backgroundColor: theme.backgroundPrimary,
       overflow: "hidden",
     },
     ambientGlowContainer: {

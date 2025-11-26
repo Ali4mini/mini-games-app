@@ -4,59 +4,66 @@ import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { I18nextProvider } from "react-i18next";
-import { StatusBar } from "expo-status-bar"; // Optional: to control status bar color
+import { StatusBar } from "expo-status-bar";
+import BlobBackground from "@/components/common/BlobBackground"; // Your new component
+// import PatternBackground from "@/components/common/PatternBackground"; // Your new component
 import i18n from "@/i18n";
 
-// Imports from your project
 import { ThemeProvider, useTheme } from "@/context/ThemeContext";
 import { SplashScreen as AnimatedSplash } from "@/components/common/SplashScreen";
 
-// Keep the native splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
 
-// 1. Create a separate component for Navigation
-// This allows us to use the useTheme hook because it is INSIDE ThemeProvider
 const RootNavigator = () => {
   const theme = useTheme();
 
   return (
-    <>
-      {/* Optional: Adapts status bar icons (light/dark) based on your theme */}
+    <BlobBackground> 
+      {/* ^^^ 1. WRAP EVERYTHING IN BACKGROUND ^^^ */}
+      
       <StatusBar style={theme.type === "dark" ? "light" : "dark"} />
 
       <Stack
         screenOptions={{
-          // 1. Background color of the Header
+          // 2. Make the Header Transparent so blobs float behind it
           headerStyle: {
-            backgroundColor: theme.backgroundPrimary,
+            backgroundColor: 'transparent', 
           },
-          // 2. Color of the Back Button and Title text
+          headerTransparent: true, // This allows content to scroll under the header
+          
           headerTintColor: theme.textPrimary,
-          // 3. Font style for the title (using your loaded font)
           headerTitleStyle: {
-            fontFamily: "LilitaOne", 
+            fontFamily: "LilitaOne",
             fontSize: 20,
           },
-          // 4. Remove the thin line under the header (looks cleaner)
           headerShadowVisible: false,
-          // 5. Background color of the screen BEHIND the content
+
+          // 3. CRITICAL: Make the screen background transparent
+          // If this is set to theme.backgroundPrimary, it covers the blobs!
           contentStyle: {
-            backgroundColor: theme.backgroundPrimary,
+            backgroundColor: 'transparent',
           },
         }}
       >
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="game-details" options={{ headerShown: false }} />
-        <Stack.Screen name="game-player" options={{ headerShown: false }} />
-        <Stack.Screen name="airdrop" options={{ headerShown: false }} />
         
-        {/* Any other screen added automatically will now inherit the theme styles above */}
+        {/* 4. EXCEPTION: The Game Player usually needs a solid background */}
+        {/* We override the transparency here to focus on gameplay */}
+        <Stack.Screen 
+          name="game-player" 
+          options={{ 
+            headerShown: false,
+            contentStyle: { backgroundColor: '#000' } // Keep game player dark/solid
+          }} 
+        />
+        
+        <Stack.Screen name="airdrop" options={{ headerShown: false }} />
       </Stack>
-    </>
+    </BlobBackground>
   );
 };
 
-// 2. The Main Layout Wrapper
 export default function RootLayout() {
   const [showAnimatedSplash, setShowAnimatedSplash] = useState(true);
   
@@ -77,17 +84,11 @@ export default function RootLayout() {
   return (
     <I18nextProvider i18n={i18n}>
       <SafeAreaProvider>
-        {/* The Provider wraps the Navigator */}
         <ThemeProvider>
-          
-          {/* The Navigator now has access to the theme */}
           <RootNavigator />
-
-          {/* Splash sits on top */}
           {showAnimatedSplash && (
             <AnimatedSplash onFinish={() => setShowAnimatedSplash(false)} />
           )}
-          
         </ThemeProvider>
       </SafeAreaProvider>
     </I18nextProvider>

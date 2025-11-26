@@ -8,6 +8,11 @@ export default function TabLayout() {
       tabBar={(props) => <CustomTabBar {...props} />}
       screenOptions={{
         headerShown: false,
+        
+        // 1. Ensure the tab "scene" (the page content) is transparent
+        // so the Root Layout's background shows through.
+        sceneStyle: { backgroundColor: 'transparent' },
+
         tabBarStyle: {
           backgroundColor: "transparent",
           position: "absolute",

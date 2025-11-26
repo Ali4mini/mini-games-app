@@ -175,7 +175,7 @@ const createStyles = (theme: any) =>
   StyleSheet.create({
     mainContainer: {
       flex: 1,
-      backgroundColor: theme.backgroundPrimary,
+      // backgroundColor: theme.backgroundPrimary,
     },
     safeArea: {
         flex: 1,

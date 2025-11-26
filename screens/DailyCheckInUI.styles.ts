@@ -7,7 +7,7 @@ export const createStyles = (theme: Theme) => {
   return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: theme.backgroundPrimary,
+      // backgroundColor: theme.backgroundPrimary,
       // Removed justifyContent: 'space-between' to stop overlapping
     },
     scrollView: {

@@ -71,7 +71,7 @@ const AirdropScreen: React.FC = () => {
     <View
       style={[
         styles.container,
-        { backgroundColor: theme.backgroundPrimary },
+        // { backgroundColor: theme.backgroundPrimary },
       ]}
     >
       <Animated.View style={[styles.content, floatStyle]}>
