@@ -146,7 +146,7 @@ export const DailyCheckInUI: React.FC = () => {
 
       <ConfettiCannon
         ref={confettiRef}
-        count={150}
+        count={60}
         origin={{ x: -10, y: 0 }}
         fallSpeed={2000}
         colors={["#ff0000", "#00ff00", "#0000ff", "#ffff00", "#ff00ff", "#00ffff"]}

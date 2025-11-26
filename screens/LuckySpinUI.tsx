@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef } from "react";
-import { View, Text, TouchableOpacity, Dimensions, StyleSheet, Platform } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { View, Text, TouchableOpacity, Dimensions, StyleSheet } from "react-native";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import ConfettiCannon from "react-native-confetti-cannon";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
@@ -32,7 +32,8 @@ const SEGMENT_COLORS = [
 export const LuckySpinUI: React.FC = () => {
   const theme = useTheme();
   const { t } = useTranslation();
-  const styles = useMemo(() => createStyles(theme), [theme]);
+  const insets = useSafeAreaInsets(); // 1. Get safe area insets
+  const styles = useMemo(() => createStyles(theme, insets), [theme, insets]);
 
   const rotation = useSharedValue(0);
   const [isSpinning, setIsSpinning] = useState(false);
@@ -70,7 +71,7 @@ export const LuckySpinUI: React.FC = () => {
     const currentAngle = rotation.value;
     const randomOffset = (Math.random() - 0.5) * (segmentAngle * 0.8);
     
-    // Target calculation
+    // Target calculation (Logic Fix)
     const targetAngleRelativeToZero = -(winnerIndex * segmentAngle) - (segmentAngle / 2) + randomOffset;
     const currentMod = currentAngle % 360;
     let distanceToTarget = targetAngleRelativeToZero - currentMod;
@@ -95,7 +96,6 @@ export const LuckySpinUI: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      {/* 1. CLEANER GRADIENT: Uses theme vars only */}
       <LinearGradient
         colors={[theme.backgroundPrimary, theme.backgroundTertiary, theme.backgroundPrimary]}
         start={{ x: 0.5, y: 0 }}
@@ -103,12 +103,11 @@ export const LuckySpinUI: React.FC = () => {
         style={StyleSheet.absoluteFill}
       />
       
-      {/* 2. SUBTLE GLOW: Reduced opacity to avoid looking dirty */}
       <View style={styles.ambientGlowContainer}>
         <View style={[styles.ambientGlow, { backgroundColor: theme.primary }]} />
       </View>
 
-      <SafeAreaView style={styles.safeArea}>
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
         {/* HEADER */}
         <View style={styles.header}>
           <Text style={styles.title}>{t("luckySpin.title", "LUCKY WHEEL")}</Text>
@@ -117,7 +116,18 @@ export const LuckySpinUI: React.FC = () => {
 
         {/* WHEEL SECTION */}
         <View style={styles.wheelSection}>
+          {/* 2. Outer Ring is now the parent container for relative positioning */}
           <View style={[styles.outerRing, { borderColor: theme.backgroundTertiary }]}>
+             
+             {/* 3. POINTER IS NOW INSIDE THE RING CONTAINER */}
+             <View style={styles.pointerContainer}>
+                <SvgSpinPointer
+                  size={55}
+                  color={theme.secondary}
+                  strokeColor={theme.backgroundPrimary}
+                />
+             </View>
+
              <View style={[styles.innerRing, { borderColor: theme.backgroundTertiary }]}>
                 
                 {/* SPINNING WHEEL */}
@@ -154,27 +164,16 @@ export const LuckySpinUI: React.FC = () => {
                     </View>
                   </LinearGradient>
                   
-                  {/* Outer Rim (Static) */}
                   <View style={[styles.centerButtonShadow, { borderColor: theme.backgroundPrimary }]} />
                 </TouchableOpacity>
 
              </View>
-          </View>
-
-          {/* POINTER */}
-          <View style={styles.pointerContainer}>
-            <SvgSpinPointer
-              size={55}
-              color={theme.secondary}
-              strokeColor={theme.backgroundPrimary}
-            />
           </View>
         </View>
 
         {/* HUD STATS */}
         <View style={styles.hudContainer}>
           <View style={styles.statsRow}>
-            {/* Spins Left */}
             <View style={[styles.statBox, { backgroundColor: theme.backgroundSecondary, borderColor: theme.backgroundTertiary }]}>
               <Ionicons name="ticket" size={24} color={theme.primary} />
               <View style={styles.statTextContainer}>
@@ -187,7 +186,6 @@ export const LuckySpinUI: React.FC = () => {
               </View>
             </View>
 
-            {/* Timer */}
             <View style={[styles.statBox, { backgroundColor: theme.backgroundSecondary, borderColor: theme.backgroundTertiary }]}>
               <MaterialCommunityIcons name="timer-outline" size={24} color={theme.secondary} />
               <View style={styles.statTextContainer}>
@@ -203,11 +201,11 @@ export const LuckySpinUI: React.FC = () => {
         </View>
       </SafeAreaView>
 
-      {/* Confetti */}
+      {/* Confetti - Optimized count */}
       {showConfetti && (
         <ConfettiCannon
           ref={confettiRef}
-          count={200}
+          count={60}
           origin={{ x: -10, y: 0 }}
           fallSpeed={3500}
           fadeOut={true}
@@ -227,14 +225,14 @@ export const LuckySpinUI: React.FC = () => {
   );
 };
 
-const createStyles = (theme: any) => {
+// 4. Update createStyles to accept insets
+const createStyles = (theme: any, insets: any) => {
   return StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: theme.backgroundPrimary,
       overflow: "hidden",
     },
-    // Background Glow - VERY SUBTLE NOW
     ambientGlowContainer: {
       ...StyleSheet.absoluteFillObject,
       alignItems: 'center',
@@ -244,18 +242,15 @@ const createStyles = (theme: any) => {
       width: SCREEN_WIDTH * 1.3,
       height: SCREEN_WIDTH * 1.3,
       borderRadius: SCREEN_WIDTH,
-      opacity: 0.05, // <--- Minimal opacity (5%) prevents "dirty" look on white
+      opacity: 0.05, 
       position: 'absolute',
       top: -50,
     },
-    
     safeArea: {
       flex: 1,
       zIndex: 1,
       justifyContent: "space-between",
     },
-
-    // Header
     header: {
       alignItems: "center",
       marginTop: 10,
@@ -265,7 +260,6 @@ const createStyles = (theme: any) => {
       fontWeight: "900",
       color: theme.textPrimary,
       letterSpacing: 1.5,
-      // Removed harsh text shadow
     },
     subtitle: {
       fontSize: 13,
@@ -278,7 +272,6 @@ const createStyles = (theme: any) => {
       alignItems: "center",
       justifyContent: "center",
       marginTop: 10,
-      position: "relative",
       flex: 1,
     },
     outerRing: {
@@ -288,7 +281,8 @@ const createStyles = (theme: any) => {
       borderWidth: 1,
       justifyContent: "center",
       alignItems: "center",
-      backgroundColor: "rgba(125,125,125,0.05)", // Neutral subtle fill
+      backgroundColor: "rgba(125,125,125,0.05)",
+      position: "relative", // Required for absolute pointer child
     },
     innerRing: {
       width: WHEEL_SIZE + 8,
@@ -305,7 +299,18 @@ const createStyles = (theme: any) => {
       alignItems: "center",
     },
 
-    // --- CENTER SPIN BUTTON (Cleaned Shadows) ---
+    // --- POINTER FIX ---
+    pointerContainer: {
+      position: "absolute",
+      top: -14, // Negative margin to pull it up out of the ring
+      zIndex: 30,
+      alignSelf: 'center', // Centers it horizontally relative to outerRing
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.15,
+      shadowRadius: 3,
+    },
+
     centerButtonWrapper: {
       position: "absolute",
       width: CENTER_BUTTON_SIZE,
@@ -314,10 +319,9 @@ const createStyles = (theme: any) => {
       justifyContent: "center",
       alignItems: "center",
       zIndex: 20,
-      // Soft, minimal shadow
       shadowColor: "#000",
       shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.2, // Reduced from 0.4
+      shadowOpacity: 0.2,
       shadowRadius: 5,
       elevation: 5,
     },
@@ -351,23 +355,14 @@ const createStyles = (theme: any) => {
       borderRadius: (CENTER_BUTTON_SIZE + 6) / 2,
       borderWidth: 3,
       zIndex: -1,
-      opacity: 0.2, // Lower opacity for the ring around button
+      opacity: 0.2,
     },
 
-    pointerContainer: {
-      position: "absolute",
-      top: 15,
-      zIndex: 30,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.15, // Reduced from 0.4
-      shadowRadius: 3,
-    },
-
-    // HUD (Cleaned Shadows)
+    // HUD (Stats)
     hudContainer: {
       paddingHorizontal: 20,
-      paddingBottom: 120,
+      // 5. Use safe area insets for bottom padding
+      paddingBottom: insets.bottom + 120,
     },
     statsRow: {
       flexDirection: "row",
@@ -382,10 +377,9 @@ const createStyles = (theme: any) => {
       paddingHorizontal: 16,
       borderRadius: 16,
       borderWidth: 1,
-      // Very soft shadow for "Card" effect
       shadowColor: "#000",
       shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.05, // Extremely subtle
+      shadowOpacity: 0.05,
       shadowRadius: 3,
       elevation: 2,
     },
