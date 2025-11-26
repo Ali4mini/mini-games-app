@@ -87,5 +87,14 @@ export const createStyles = (theme: Theme) => {
       color: theme.primaryContent,
       fontWeight: "bold",
     },
+  headerRow: {
+    flexDirection: "row", // Aligns items horizontally
+    justifyContent: "flex-end", // Pushes items to the right
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    marginBottom: 10,
+    zIndex: 10, // Ensures the dropdown/modal trigger sits above other content if needed
+  },
   });
 };
