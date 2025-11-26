@@ -1,8 +1,9 @@
 import React, { useState, useMemo, useRef } from "react";
-import { View, Text, TouchableOpacity, Dimensions } from "react-native";
+import { View, Text, TouchableOpacity, Dimensions, StyleSheet, Platform } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import ConfettiCannon from "react-native-confetti-cannon";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -10,43 +11,36 @@ import Animated, {
   Easing,
   runOnJS,
 } from "react-native-reanimated";
-import { useTranslation } from "react-i18next"; // Add translation hook
+import { useTranslation } from "react-i18next";
 
 import { useTheme } from "@/context/ThemeContext";
-import { createStyles } from "./LuckySpinUI.styles";
 import { SPIN_WHEEL_PRIZES } from "@/data/dummyData";
 import { SvgSpinWheel } from "@/components/lucky-spin/SvgSpinWheel";
 import { SvgSpinPointer } from "@/components/lucky-spin/SvgSpinPointer";
 import { WinModal } from "@/components/lucky-spin/WinModal";
 
 const WHEEL_SEGMENTS = SPIN_WHEEL_PRIZES.length;
-const WHEEL_SIZE = 300;
-const SEGMENT_COLORS = [
-  "#F59E0B",
-  "#EF4444",
-  "#3B82F6",
-  "#8B5CF6",
-  "#10B981",
-  "#64748B",
-  "#EC4899",
-  "#6366F1",
-];
-
+const WHEEL_SIZE = 340;
+const CENTER_BUTTON_SIZE = 80;
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
+
+const SEGMENT_COLORS = [
+  "#F72585", "#7209B7", "#3A0CA3", "#4361EE", 
+  "#4CC9F0", "#F59E0B", "#10B981", "#F43F5E",
+];
 
 export const LuckySpinUI: React.FC = () => {
   const theme = useTheme();
-  const { t } = useTranslation(); // Add translation hook
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   const rotation = useSharedValue(0);
   const [isSpinning, setIsSpinning] = useState(false);
-  const [spinsLeft, setSpinsLeft] = useState(1); //BUG: the speed of the spinner is very slow for more other spins except the first one
+  const [spinsLeft, setSpinsLeft] = useState(3);
   const [showConfetti, setShowConfetti] = useState(false);
   const [showWinModal, setShowWinModal] = useState(false);
-  const [winningPrize, setWinningPrize] = useState<string | number | null>(
-    null,
-  );
+  const [winningPrize, setWinningPrize] = useState<string | number | null>(null);
+  
   const confettiRef = useRef<ConfettiCannon>(null);
 
   const animatedStyle = useAnimatedStyle(() => {
@@ -55,24 +49,11 @@ export const LuckySpinUI: React.FC = () => {
     };
   });
 
-  // Helper function to be called from worklet context
   const onSpinComplete = (prize: string | number) => {
-    // Set the winning prize and show confetti
     setWinningPrize(prize);
     setShowConfetti(true);
-
-    // Start the confetti immediately
-    setTimeout(() => {
-      if (confettiRef.current) {
-        confettiRef.current.start();
-      }
-    }, 100);
-
-    // Show the win modal after a short delay to let confetti start
-    setTimeout(() => {
-      setShowWinModal(true);
-    }, 500); // Show modal after 500ms to let confetti start
-
+    setTimeout(() => confettiRef.current?.start(), 100);
+    setTimeout(() => setShowWinModal(true), 600);
     setIsSpinning(false);
   };
 
@@ -82,128 +63,158 @@ export const LuckySpinUI: React.FC = () => {
     setIsSpinning(true);
     setSpinsLeft((prev) => prev - 1);
 
-    // Select a random winner index
     const winnerIndex = Math.floor(Math.random() * WHEEL_SEGMENTS);
     const segmentAngle = 360 / WHEEL_SEGMENTS;
-
-    // Calculate the current rotation (normalized to 0-360 range)
-    const currentRotation = rotation.value % 360;
-    const normalizedCurrentRotation =
-      currentRotation < 0 ? currentRotation + 360 : currentRotation;
-
-    // The center of the winning segment should end up at 0 degrees (top, where the pointer is)
-    const winningSegmentCenterOffset =
-      winnerIndex * segmentAngle + segmentAngle / 2;
-    let additionalRotation =
-      -normalizedCurrentRotation - winningSegmentCenterOffset;
-
-    // Add multiple full rotations for the spinning effect
-    additionalRotation += 360 * 5;
-
-    // Add a small random offset to make it more realistic
-    const randomOffset = (Math.random() - 0.5) * (segmentAngle * 0.8);
-    const finalRotation =
-      normalizedCurrentRotation + additionalRotation + randomOffset;
-
-    // Store the actual prize to be shown when animation completes
     const actualPrize = SPIN_WHEEL_PRIZES[winnerIndex];
+
+    const currentAngle = rotation.value;
+    const randomOffset = (Math.random() - 0.5) * (segmentAngle * 0.8);
+    
+    // Target calculation
+    const targetAngleRelativeToZero = -(winnerIndex * segmentAngle) - (segmentAngle / 2) + randomOffset;
+    const currentMod = currentAngle % 360;
+    let distanceToTarget = targetAngleRelativeToZero - currentMod;
+    if (distanceToTarget < 0) distanceToTarget += 360; 
+    
+    const finalRotation = currentAngle + (360 * 5) + distanceToTarget;
 
     rotation.value = withTiming(
       finalRotation,
-      { duration: 4000, easing: Easing.out(Easing.cubic) },
+      { duration: 4000, easing: Easing.bezier(0.25, 0.1, 0.25, 1) },
       (finished) => {
-        if (finished) {
-          runOnJS(onSpinComplete)(actualPrize);
-        }
-      },
+        if (finished) runOnJS(onSpinComplete)(actualPrize);
+      }
     );
   };
 
   const handleModalClose = () => {
     setShowWinModal(false);
     setWinningPrize(null);
-
-    // Hide confetti after modal closes
-    setTimeout(() => {
-      setShowConfetti(false);
-    }, 500);
+    setTimeout(() => setShowConfetti(false), 500);
   };
 
-  // Use translations for countdown textPrimary
-  const countdown = t("luckySpin.nextFreeSpin", { time: "23:59:59" });
-
   return (
-    <LinearGradient
-      colors={[
-        theme.primary, // Primary rose color at top
-        theme.backgroundPrimary, // Background color at bottom
-        theme.backgroundPrimary, // Background color at bottom
-      ]}
-      start={{ x: 0.5, y: 0 }} // Start at top center
-      end={{ x: 0.5, y: 1 }} // End at bottom center
-      style={styles.container}
-    >
-      <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
-        <Text style={styles.title}>{t("luckySpin.title")}</Text>
+    <View style={styles.container}>
+      {/* 1. CLEANER GRADIENT: Uses theme vars only */}
+      <LinearGradient
+        colors={[theme.backgroundPrimary, theme.backgroundTertiary, theme.backgroundPrimary]}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
+      
+      {/* 2. SUBTLE GLOW: Reduced opacity to avoid looking dirty */}
+      <View style={styles.ambientGlowContainer}>
+        <View style={[styles.ambientGlow, { backgroundColor: theme.primary }]} />
+      </View>
 
-        <View style={styles.wheelContainer}>
-          <TouchableOpacity
-            onPress={handleSpin}
-            disabled={isSpinning || spinsLeft === 0}
-            activeOpacity={0.7}
-          >
-            <Animated.View style={[animatedStyle]}>
-              <SvgSpinWheel
-                size={WHEEL_SIZE}
-                segments={SPIN_WHEEL_PRIZES}
-                colors={SEGMENT_COLORS}
-                isSpinning={isSpinning}
-                spinsLeft={spinsLeft}
-                theme={theme}
-              />
-            </Animated.View>
-          </TouchableOpacity>
+      <SafeAreaView style={styles.safeArea}>
+        {/* HEADER */}
+        <View style={styles.header}>
+          <Text style={styles.title}>{t("luckySpin.title", "LUCKY WHEEL")}</Text>
+          <Text style={styles.subtitle}>{t("luckySpin.subtitle", "Spin to win exclusive prizes!")}</Text>
+        </View>
 
-          <View style={styles.pointer}>
+        {/* WHEEL SECTION */}
+        <View style={styles.wheelSection}>
+          <View style={[styles.outerRing, { borderColor: theme.backgroundTertiary }]}>
+             <View style={[styles.innerRing, { borderColor: theme.backgroundTertiary }]}>
+                
+                {/* SPINNING WHEEL */}
+                <Animated.View style={[styles.wheelContainer, animatedStyle]}>
+                  <SvgSpinWheel
+                    size={WHEEL_SIZE}
+                    segments={SPIN_WHEEL_PRIZES}
+                    colors={SEGMENT_COLORS}
+                    isSpinning={isSpinning}
+                    spinsLeft={spinsLeft}
+                    theme={theme}
+                  />
+                </Animated.View>
+
+                {/* CENTER BUTTON */}
+                <TouchableOpacity
+                  onPress={handleSpin}
+                  disabled={isSpinning || spinsLeft === 0}
+                  activeOpacity={0.9}
+                  style={[styles.centerButtonWrapper]}
+                >
+                  <LinearGradient
+                    colors={isSpinning || spinsLeft === 0 
+                      ? [theme.textTertiary, theme.backgroundTertiary] 
+                      : theme.buttonGradient
+                    }
+                    start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                    style={styles.centerButtonGradient}
+                  >
+                    <View style={styles.centerButtonInnerRim}>
+                        <Text style={styles.centerButtonText}>
+                          {isSpinning ? "..." : "SPIN"}
+                        </Text>
+                    </View>
+                  </LinearGradient>
+                  
+                  {/* Outer Rim (Static) */}
+                  <View style={[styles.centerButtonShadow, { borderColor: theme.backgroundPrimary }]} />
+                </TouchableOpacity>
+
+             </View>
+          </View>
+
+          {/* POINTER */}
+          <View style={styles.pointerContainer}>
             <SvgSpinPointer
-              size={40}
-              color={theme.primary}
+              size={55}
+              color={theme.secondary}
               strokeColor={theme.backgroundPrimary}
             />
           </View>
         </View>
 
-        {/* Information container below the wheel */}
-        <View style={styles.infoContainer}>
-          <Text style={styles.spinsLeftText}>
-            {spinsLeft > 0
-              ? t("luckySpin.spinsLeft", { count: spinsLeft })
-              : t("luckySpin.noSpinsLeft")}
-          </Text>
-          {spinsLeft === 0 && (
-            <Text style={styles.countdownText}>{countdown}</Text>
-          )}
+        {/* HUD STATS */}
+        <View style={styles.hudContainer}>
+          <View style={styles.statsRow}>
+            {/* Spins Left */}
+            <View style={[styles.statBox, { backgroundColor: theme.backgroundSecondary, borderColor: theme.backgroundTertiary }]}>
+              <Ionicons name="ticket" size={24} color={theme.primary} />
+              <View style={styles.statTextContainer}>
+                <Text style={[styles.statLabel, { color: theme.textSecondary }]}>
+                  {t("luckySpin.spins", "SPINS")}
+                </Text>
+                <Text style={[styles.statValue, { color: theme.textPrimary }]}>
+                  {spinsLeft}
+                </Text>
+              </View>
+            </View>
+
+            {/* Timer */}
+            <View style={[styles.statBox, { backgroundColor: theme.backgroundSecondary, borderColor: theme.backgroundTertiary }]}>
+              <MaterialCommunityIcons name="timer-outline" size={24} color={theme.secondary} />
+              <View style={styles.statTextContainer}>
+                <Text style={[styles.statLabel, { color: theme.textSecondary }]}>
+                  {t("luckySpin.nextFree", "NEXT FREE")}
+                </Text>
+                <Text style={[styles.statValue, { color: theme.textPrimary }]}>
+                  23:59:00
+                </Text>
+              </View>
+            </View>
+          </View>
         </View>
       </SafeAreaView>
 
-      {/* Confetti Cannon */}
+      {/* Confetti */}
       {showConfetti && (
         <ConfettiCannon
           ref={confettiRef}
           count={200}
-          origin={{ x: -50, y: 0 }}
-          fallSpeed={3000}
-          colors={[
-            theme.primary,
-            theme.secondary,
-            theme.warning,
-            theme.success,
-            theme.info,
-          ]}
+          origin={{ x: -10, y: 0 }}
+          fallSpeed={3500}
+          fadeOut={true}
+          colors={[theme.primary, theme.secondary, "#FFD700", "#FFF"]}
         />
       )}
 
-      {/* Win Modal */}
       {winningPrize && (
         <WinModal
           visible={showWinModal}
@@ -212,6 +223,184 @@ export const LuckySpinUI: React.FC = () => {
           theme={theme}
         />
       )}
-    </LinearGradient>
+    </View>
   );
+};
+
+const createStyles = (theme: any) => {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.backgroundPrimary,
+      overflow: "hidden",
+    },
+    // Background Glow - VERY SUBTLE NOW
+    ambientGlowContainer: {
+      ...StyleSheet.absoluteFillObject,
+      alignItems: 'center',
+      zIndex: 0,
+    },
+    ambientGlow: {
+      width: SCREEN_WIDTH * 1.3,
+      height: SCREEN_WIDTH * 1.3,
+      borderRadius: SCREEN_WIDTH,
+      opacity: 0.05, // <--- Minimal opacity (5%) prevents "dirty" look on white
+      position: 'absolute',
+      top: -50,
+    },
+    
+    safeArea: {
+      flex: 1,
+      zIndex: 1,
+      justifyContent: "space-between",
+    },
+
+    // Header
+    header: {
+      alignItems: "center",
+      marginTop: 10,
+    },
+    title: {
+      fontSize: 28,
+      fontWeight: "900",
+      color: theme.textPrimary,
+      letterSpacing: 1.5,
+      // Removed harsh text shadow
+    },
+    subtitle: {
+      fontSize: 13,
+      color: theme.textSecondary,
+      marginTop: 4,
+    },
+
+    // Wheel Layout
+    wheelSection: {
+      alignItems: "center",
+      justifyContent: "center",
+      marginTop: 10,
+      position: "relative",
+      flex: 1,
+    },
+    outerRing: {
+      width: WHEEL_SIZE + 24,
+      height: WHEEL_SIZE + 24,
+      borderRadius: (WHEEL_SIZE + 24) / 2,
+      borderWidth: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: "rgba(125,125,125,0.05)", // Neutral subtle fill
+    },
+    innerRing: {
+      width: WHEEL_SIZE + 8,
+      height: WHEEL_SIZE + 8,
+      borderRadius: (WHEEL_SIZE + 8) / 2,
+      borderWidth: 1,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    wheelContainer: {
+      width: WHEEL_SIZE,
+      height: WHEEL_SIZE,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+
+    // --- CENTER SPIN BUTTON (Cleaned Shadows) ---
+    centerButtonWrapper: {
+      position: "absolute",
+      width: CENTER_BUTTON_SIZE,
+      height: CENTER_BUTTON_SIZE,
+      borderRadius: CENTER_BUTTON_SIZE / 2,
+      justifyContent: "center",
+      alignItems: "center",
+      zIndex: 20,
+      // Soft, minimal shadow
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.2, // Reduced from 0.4
+      shadowRadius: 5,
+      elevation: 5,
+    },
+    centerButtonGradient: {
+      width: "100%",
+      height: "100%",
+      borderRadius: CENTER_BUTTON_SIZE / 2,
+      padding: 3,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    centerButtonInnerRim: {
+      flex: 1,
+      width: "100%",
+      borderRadius: CENTER_BUTTON_SIZE / 2,
+      borderWidth: 1.5,
+      borderColor: "rgba(255,255,255,0.4)",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    centerButtonText: {
+      color: "#FFFFFF",
+      fontWeight: "900",
+      fontSize: 16,
+      letterSpacing: 1,
+    },
+    centerButtonShadow: {
+      position: "absolute",
+      width: CENTER_BUTTON_SIZE + 6,
+      height: CENTER_BUTTON_SIZE + 6,
+      borderRadius: (CENTER_BUTTON_SIZE + 6) / 2,
+      borderWidth: 3,
+      zIndex: -1,
+      opacity: 0.2, // Lower opacity for the ring around button
+    },
+
+    pointerContainer: {
+      position: "absolute",
+      top: 15,
+      zIndex: 30,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.15, // Reduced from 0.4
+      shadowRadius: 3,
+    },
+
+    // HUD (Cleaned Shadows)
+    hudContainer: {
+      paddingHorizontal: 20,
+      paddingBottom: 120,
+    },
+    statsRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      gap: 15,
+    },
+    statBox: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: 14,
+      paddingHorizontal: 16,
+      borderRadius: 16,
+      borderWidth: 1,
+      // Very soft shadow for "Card" effect
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.05, // Extremely subtle
+      shadowRadius: 3,
+      elevation: 2,
+    },
+    statTextContainer: {
+      marginLeft: 12,
+    },
+    statLabel: {
+      fontSize: 11,
+      fontWeight: "700",
+      textTransform: "uppercase",
+      letterSpacing: 0.5,
+    },
+    statValue: {
+      fontSize: 18,
+      fontWeight: "800",
+    },
+  });
 };

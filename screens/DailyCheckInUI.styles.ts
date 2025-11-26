@@ -1,16 +1,25 @@
-import { StyleSheet } from "react-native";
+import { StyleSheet, Dimensions } from "react-native";
 import { Theme } from "@/types";
+
+const { width } = Dimensions.get("window");
 
 export const createStyles = (theme: Theme) => {
   return StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: theme.backgroundPrimary,
-      justifyContent: "space-between",
+      // Removed justifyContent: 'space-between' to stop overlapping
+    },
+    scrollView: {
+      flex: 1,
+    },
+    scrollContent: {
       padding: 20,
+      paddingBottom: 150, // Extra padding at bottom so grid doesn't hide behind button
     },
     header: {
       alignItems: "center",
+      marginBottom: 20,
     },
     title: {
       fontSize: 32,
@@ -27,23 +36,21 @@ export const createStyles = (theme: Theme) => {
       lineHeight: 24,
       maxWidth: "90%",
     },
-    // New container to center the grid vertically
     gridContainer: {
-      flex: 1,
+      // Removed flex: 1 to allow ScrollView to calculate height
       justifyContent: "center",
       alignItems: "center",
+      marginBottom: 20,
     },
     daysGrid: {
       flexDirection: "row",
       flexWrap: "wrap",
-      justifyContent: "center",
-      gap: 16,
-      maxWidth: "100%",
+      justifyContent: "space-between", // Better spacing than 'center' for grids
+      gap: 12, // Reduced gap slightly
       width: "100%",
-      paddingHorizontal: 10, // Add padding to prevent edge clipping
     },
     dayCell: {
-      width: "30%", // Use percentage instead of fixed width
+      width: "30%", // 3 items per row
       aspectRatio: 1,
       borderRadius: 15,
       backgroundColor: theme.backgroundSecondary,
@@ -59,21 +66,24 @@ export const createStyles = (theme: Theme) => {
       shadowOpacity: 0.5,
       shadowRadius: 10,
       elevation: 10,
+      backgroundColor: theme.backgroundPrimary, // Highlight slightly
     },
     dayCellClaimed: {
       backgroundColor: theme.primary,
+      borderColor: theme.primary,
     },
     dayCellFuture: {
       opacity: 0.5,
     },
     dayCellGrandPrize: {
+      width: "100%", // Make grand prize take full width of bottom row
+      aspectRatio: 2.5, // Less tall, more wide
       borderColor: theme.buttonSecondary,
       borderWidth: 2,
-      width: "60%",
-      aspectRatio: 0.9,
+      marginTop: 5,
     },
     dayText: {
-      fontSize: 16,
+      fontSize: 14,
       fontWeight: "bold",
       color: theme.textSecondary,
     },
@@ -81,30 +91,37 @@ export const createStyles = (theme: Theme) => {
       color: theme.primaryContent,
     },
     rewardText: {
-      fontSize: 20,
+      fontSize: 18,
       fontWeight: "bold",
-      marginTop: 8,
+      marginTop: 4,
       color: theme.buttonSecondary,
     },
     rewardTextClaimed: {
       color: theme.primaryContent,
     },
-    buttonContainer: {
-      paddingBottom: 3,
+    // Footer styles for the fixed button
+    footer: {
+      position: "absolute",
+      bottom: 0,
+      left: 0,
+      right: 0,
+      padding: 20,
+      backgroundColor: theme.backgroundPrimary, // Solid background to cover scrolling content
+      borderTopWidth: 1,
+      borderTopColor: "rgba(0,0,0,0.05)",
     },
     gradient: {
       paddingVertical: 15,
-      paddingHorizontal: 60,
       borderRadius: 30,
       alignItems: "center",
+      width: "100%",
     },
     buttonDisabled: {
       backgroundColor: theme.textSecondary,
-      borderRadius: 30,
     },
     buttonDisabledText: {
       color: theme.secondaryContent,
-      fontSize: 20,
+      fontSize: 18,
       fontWeight: "bold",
     },
     buttonText: {
@@ -114,8 +131,8 @@ export const createStyles = (theme: Theme) => {
       letterSpacing: 1,
     },
     progressBarContainer: {
-      width: "90%",
-      marginBottom: 40,
+      width: "100%",
+      marginBottom: 10,
     },
     progressBarHeader: {
       flexDirection: "row",
@@ -134,13 +151,13 @@ export const createStyles = (theme: Theme) => {
       fontWeight: "bold",
     },
     progressBarBackground: {
-      height: 8,
-      borderRadius: 4,
+      height: 10,
+      borderRadius: 5,
       overflow: "hidden",
     },
     progressBarFill: {
       height: "100%",
-      borderRadius: 4,
+      borderRadius: 5,
     },
   });
 };

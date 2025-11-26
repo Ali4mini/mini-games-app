@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { View, Text, TouchableOpacity, ScrollView, Dimensions } from "react-native";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"; // <--- 1. Import hook
 import { useTranslation } from "react-i18next";
 import { LinearGradient } from "expo-linear-gradient";
 import ConfettiCannon from "react-native-confetti-cannon";
@@ -22,19 +22,15 @@ export const DailyCheckInUI: React.FC = () => {
   const { t } = useTranslation();
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
+  const insets = useSafeAreaInsets(); // <--- 2. Get Insets
   const confettiRef = useRef<ConfettiCannon>(null);
 
   const [rewards, setRewards] = useState<DailyReward[]>(DAILY_REWARDS);
-
-  // Calculate progress based on claimed days
   const claimedCount = rewards.filter((reward) => reward.claimed).length;
   const progressPercentage = (claimedCount / rewards.length) * 100;
-
-  // Animated progress value
   const animatedProgress = useSharedValue(0);
 
   useEffect(() => {
-    // Animate the progress bar when rewards change
     animatedProgress.value = withTiming(progressPercentage, {
       duration: 800,
       easing: Easing.out(Easing.quad),
@@ -46,29 +42,17 @@ export const DailyCheckInUI: React.FC = () => {
 
   const handleClaimReward = () => {
     if (!canClaim) return;
-
     const updatedRewards = rewards.map((reward, index) => {
-      if (index === TODAY_INDEX) {
-        return { ...reward, claimed: true };
-      }
+      if (index === TODAY_INDEX) return { ...reward, claimed: true };
       return reward;
     });
     setRewards(updatedRewards);
-
-    // Trigger confetti after a short delay
-    setTimeout(() => {
-      if (confettiRef.current) {
-        confettiRef.current.start();
-      }
-    }, 300);
+    setTimeout(() => confettiRef.current?.start(), 300);
   };
 
-  // Animated style for the progress bar fill
-  const animatedProgressBarStyle = useAnimatedStyle(() => {
-    return {
-      width: `${animatedProgress.value}%`,
-    };
-  });
+  const animatedProgressBarStyle = useAnimatedStyle(() => ({
+    width: `${animatedProgress.value}%`,
+  }));
 
   const renderDayCell = (item: DailyReward, index: number) => {
     const isToday = index === TODAY_INDEX;
@@ -83,26 +67,13 @@ export const DailyCheckInUI: React.FC = () => {
           item.claimed && styles.dayCellClaimed,
           isToday && styles.dayCellToday,
           isFuture && !item.claimed && styles.dayCellFuture,
-          isGrandPrize &&
-            !isToday &&
-            !item.claimed && [
-              styles.dayCellGrandPrize,
-              { width: "60%", aspectRatio: 0.9 },
-            ],
-          isGrandPrize &&
-            (isToday || item.claimed) && [
-              styles.dayCellToday,
-              styles.dayCellGrandPrize,
-              { width: "60%", aspectRatio: 0.9 },
-            ],
+          isGrandPrize && styles.dayCellGrandPrize,
         ]}
       >
         <Text style={[styles.dayText, item.claimed && styles.dayTextClaimed]}>
           {t("dailyCheckIn.day", { day: item.day })}
         </Text>
-        <Text
-          style={[styles.rewardText, item.claimed && styles.rewardTextClaimed]}
-        >
+        <Text style={[styles.rewardText, item.claimed && styles.rewardTextClaimed]}>
           💰 {item.reward}
         </Text>
       </View>
@@ -111,47 +82,44 @@ export const DailyCheckInUI: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
-      <View style={styles.header}>
-        <Text style={styles.title}>{t("dailyCheckIn.title")}</Text>
-        <Text style={styles.subtitle}>{t("dailyCheckIn.subtitle")}</Text>
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={[
+          styles.scrollContent, 
+          { paddingBottom: 140 } // <--- 3. Extra padding so grid doesn't hide behind footer
+        ]}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+      >
+        <View style={styles.header}>
+          <Text style={styles.title}>{t("dailyCheckIn.title")}</Text>
+          <Text style={styles.subtitle}>{t("dailyCheckIn.subtitle")}</Text>
 
-        {/* Progress Bar Section */}
-        <View style={styles.progressBarContainer}>
-          <View style={styles.progressBarHeader}>
-            <Text style={styles.progressText}>
-              {t("dailyCheckIn.progress", {
-                claimed: claimedCount,
-                total: rewards.length,
-              })}
-            </Text>
-            <Text style={styles.progressPercentage}>
-              {Math.round(progressPercentage)}%
-            </Text>
-          </View>
-          <View
-            style={[
-              styles.progressBarBackground,
-              { backgroundColor: theme.backgroundSecondary },
-            ]}
-          >
-            <Animated.View
-              style={[
-                styles.progressBarFill,
-                animatedProgressBarStyle,
-                { backgroundColor: theme.buttonSecondary },
-              ]}
-            />
+          <View style={styles.progressBarContainer}>
+            <View style={styles.progressBarHeader}>
+              <Text style={styles.progressText}>
+                {t("dailyCheckIn.progress", { claimed: claimedCount, total: rewards.length })}
+              </Text>
+              <Text style={styles.progressPercentage}>{Math.round(progressPercentage)}%</Text>
+            </View>
+            <View style={[styles.progressBarBackground, { backgroundColor: theme.backgroundSecondary }]}>
+              <Animated.View style={[styles.progressBarFill, animatedProgressBarStyle, { backgroundColor: theme.buttonSecondary }]} />
+            </View>
           </View>
         </View>
-      </View>
 
-      <View style={styles.gridContainer}>
-        <View style={styles.daysGrid}>
-          {rewards.map((item, index) => renderDayCell(item, index))}
+        <View style={styles.gridContainer}>
+          <View style={styles.daysGrid}>
+            {rewards.map((item, index) => renderDayCell(item, index))}
+          </View>
         </View>
-      </View>
+      </ScrollView>
 
-      <View style={styles.buttonContainer}>
+      {/* 4. Footer with Dynamic Bottom Padding */}
+      <View style={[
+        styles.footer, 
+        { paddingBottom: insets.bottom + 20 } // Pushes content up above the home bar
+      ]}>
         <TouchableOpacity onPress={handleClaimReward} disabled={!canClaim}>
           {canClaim ? (
             <LinearGradient
@@ -176,23 +144,14 @@ export const DailyCheckInUI: React.FC = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Confetti Cannon - Hidden until triggered */}
       <ConfettiCannon
         ref={confettiRef}
         count={150}
-        origin={{ x: -50, y: 0 }}
+        origin={{ x: -10, y: 0 }}
         fallSpeed={2000}
-        colors={[
-          "#ff0000",
-          "#00ff00",
-          "#0000ff",
-          "#ffff00",
-          "#ff00ff",
-          "#00ffff",
-        ]}
+        colors={["#ff0000", "#00ff00", "#0000ff", "#ffff00", "#ff00ff", "#00ffff"]}
         fadeOut={true}
         autoStart={false}
-        explosionSpeed={500}
       />
     </SafeAreaView>
   );
