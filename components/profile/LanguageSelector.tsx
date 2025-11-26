@@ -7,64 +7,51 @@ import {
   StyleSheet,
   TouchableOpacity,
   FlatList,
+  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
-import { useTranslation } from "react-i18next"; // <--- Direct connection to i18n
-
-// Adjust this import path to match your file structure
-import { useTheme } from "@/context/ThemeContext"; 
-
-const LANGUAGES = [
-  { code: "en", label: "English", flag: "🇺🇸" },
-  { code: "es", label: "Español", flag: "🇪🇸" },
-  { code: "fr", label: "Français", flag: "🇫🇷" },
-  { code: "de", label: "Deutsch", flag: "🇩🇪" },
-  { code: "ar", label: "العریبه", flag: "🇸🇦" },
-  { code: "fa", label: "فارسی", flag: "🇮🇷" },
-];
+import { useTranslation } from "react-i18next";
+import { useTheme } from "@/context/ThemeContext";
+import {LANGUAGES} from "@/constants/Languages"
 
 const LanguageSelector: React.FC = () => {
   const [visible, setVisible] = useState(false);
-  
-  // 1. Get Theme
-  const theme = useTheme(); 
-  
-  // 2. Get Language from i18n
+  const theme = useTheme();
   const { i18n } = useTranslation();
-  
-  // Handle cases where language might be "en-US" vs "en"
-  const currentLangCode = i18n.language; 
-  const activeLang = LANGUAGES.find((l) => currentLangCode.startsWith(l.code)) || LANGUAGES[0];
+
+  const currentLangCode = i18n.language;
+  const activeLang =
+    LANGUAGES.find((l) => currentLangCode.startsWith(l.code)) || LANGUAGES[0];
 
   const handleLanguageChange = (code: string) => {
-    i18n.changeLanguage(code); // This triggers a re-render automatically
+    i18n.changeLanguage(code);
     setVisible(false);
   };
 
   return (
     <View>
-      {/* --- TRIGGER BUTTON (Compact Pill) --- */}
-      <TouchableOpacity onPress={() => setVisible(true)} activeOpacity={0.8}>
-        <LinearGradient
-          colors={theme.buttonGradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.gradientBorder}
-        >
-          <View style={[styles.triggerButton, { backgroundColor: theme.backgroundSecondary }]}>
-            <Text style={styles.flag}>{activeLang.flag}</Text>
-            <Text style={[styles.triggerText, { color: theme.textPrimary }]}>
-              {activeLang.code.toUpperCase()}
-            </Text>
-            <Ionicons
-              name="chevron-down"
-              size={12}
-              color={theme.textTertiary}
-              style={{ marginLeft: 6 }}
-            />
-          </View>
-        </LinearGradient>
+      {/* --- TRIGGER BUTTON --- */}
+      <TouchableOpacity
+        onPress={() => setVisible(true)}
+        activeOpacity={0.7}
+        style={[
+          styles.triggerButton,
+          {
+            backgroundColor: theme.backgroundSecondary,
+            borderColor: theme.backgroundTertiary,
+          },
+        ]}
+      >
+        <Text style={styles.flag}>{activeLang.flag}</Text>
+        <Text style={[styles.triggerText, { color: theme.textSecondary }]}>
+          {activeLang.code.toUpperCase()}
+        </Text>
+        <Ionicons
+          name="chevron-down"
+          size={12}
+          color={theme.textTertiary}
+          style={{ marginLeft: 6 }}
+        />
       </TouchableOpacity>
 
       {/* --- SELECTION MODAL --- */}
@@ -73,20 +60,31 @@ const LanguageSelector: React.FC = () => {
         transparent={true}
         visible={visible}
         onRequestClose={() => setVisible(false)}
+        statusBarTranslucent={true} // <--- FIX: Covers the status bar on Android
       >
-        <Pressable style={styles.overlay} onPress={() => setVisible(false)}>
-          <View
+        <Pressable 
+          style={styles.overlay} 
+          onPress={() => setVisible(false)}
+        >
+          {/* Prevent clicks inside the card from closing the modal */}
+          <Pressable 
             style={[
               styles.modalContainer,
               {
                 backgroundColor: theme.backgroundSecondary,
                 borderColor: theme.backgroundTertiary,
-                shadowColor: theme.primary, // Neon glow
+                shadowColor: "#000",
               },
             ]}
+            onPress={(e) => e.stopPropagation()} 
           >
             {/* Header */}
-            <View style={[styles.modalHeader, { borderBottomColor: theme.backgroundTertiary }]}>
+            <View
+              style={[
+                styles.modalHeader,
+                { borderBottomColor: theme.backgroundTertiary },
+              ]}
+            >
               <Text style={[styles.modalTitle, { color: theme.textSecondary }]}>
                 Select Language
               </Text>
@@ -111,7 +109,9 @@ const LanguageSelector: React.FC = () => {
                       <Text
                         style={[
                           styles.optionLabel,
-                          { color: isActive ? theme.primary : theme.textPrimary },
+                          {
+                            color: isActive ? theme.primary : theme.textPrimary,
+                          },
                         ]}
                       >
                         {item.label}
@@ -119,13 +119,17 @@ const LanguageSelector: React.FC = () => {
                     </View>
 
                     {isActive && (
-                      <Ionicons name="checkmark-circle" size={20} color={theme.secondary} />
+                      <Ionicons
+                        name="checkmark-circle"
+                        size={20}
+                        color={theme.secondary}
+                      />
                     )}
                   </TouchableOpacity>
                 );
               }}
             />
-          </View>
+          </Pressable>
         </Pressable>
       </Modal>
     </View>
@@ -133,17 +137,18 @@ const LanguageSelector: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  // Trigger
-  gradientBorder: {
-    borderRadius: 20,
-    padding: 1.5,
-  },
   triggerButton: {
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 6,
     paddingHorizontal: 12,
-    borderRadius: 19,
+    borderRadius: 20,
+    borderWidth: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
   },
   flag: {
     fontSize: 16,
@@ -151,56 +156,56 @@ const styles = StyleSheet.create({
   },
   triggerText: {
     fontSize: 13,
-    fontWeight: "700",
+    fontWeight: "600",
     letterSpacing: 0.5,
   },
-
-  // Modal
+  
+  // --- MODAL STYLES ---
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.6)",
+    backgroundColor: "rgba(0,0,0,0.6)", // Slightly darker for better focus
     justifyContent: "center",
     alignItems: "center",
   },
   modalContainer: {
-    width: 280,
+    width: 260,
     borderRadius: 16,
     borderWidth: 1,
     paddingBottom: 8,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.25,
     shadowRadius: 10,
     elevation: 10,
   },
   modalHeader: {
-    padding: 16,
+    padding: 14,
     borderBottomWidth: 1,
     alignItems: "center",
   },
   modalTitle: {
-    fontSize: 12,
-    fontWeight: "600",
+    fontSize: 11,
+    fontWeight: "700",
     textTransform: "uppercase",
-    letterSpacing: 1.5,
+    letterSpacing: 1,
   },
   optionItem: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: 14,
-    paddingHorizontal: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
   },
   optionRow: {
     flexDirection: "row",
     alignItems: "center",
   },
   optionFlag: {
-    fontSize: 20,
+    fontSize: 18,
     marginRight: 12,
   },
   optionLabel: {
-    fontSize: 15,
-    fontWeight: "600",
+    fontSize: 14,
+    fontWeight: "500",
   },
 });
 
