@@ -28,7 +28,7 @@ const GAP = 15;
 // Width = (Screen - PaddingLeft - PaddingRight - Gap) / 2
 const ITEM_WIDTH = (width - 20 - 20 - GAP) / 2;
 
-const FeaturedGameCard = ({ item, styles }: { item: Game; styles: any }) => {
+const FeaturedGameCard = ({ item, styles, theme }: { item: Game; styles: any, theme: Theme }) => {
   const scale = useSharedValue(1);
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -48,7 +48,7 @@ const FeaturedGameCard = ({ item, styles }: { item: Game; styles: any }) => {
           category: item.category,
           url: item.url,
           orientation: item.orientation,
-          description: item.description || "This is a super fun game...", // Pass description if you have it
+          description: item.description || "This is a super fun game...",
         },
       }}
       asChild
@@ -67,7 +67,7 @@ const FeaturedGameCard = ({ item, styles }: { item: Game; styles: any }) => {
               resizeMode="cover"
             />
 
-            {/* Rating Badge */}
+            {/* Rating Badge - Keep hardcoded colors here as it overlays image */}
             <View style={styles.ratingBadge}>
               <Ionicons name="star" size={10} color="#FFD700" />
               <Text style={styles.ratingText}>4.5</Text>
@@ -81,7 +81,7 @@ const FeaturedGameCard = ({ item, styles }: { item: Game; styles: any }) => {
               <Ionicons
                 name="play"
                 size={14}
-                color="#000"
+                color={theme.secondaryContent} // Text color on button (e.g., White or Dark Blue)
                 style={{ marginLeft: 2 }}
               />
             </View>
@@ -104,7 +104,6 @@ export const FeaturedGames: React.FC = () => {
 
   const [selectedCategory, setSelectedCategory] = useState("All");
 
-  // --- 1. FILTER LOGIC ---
   const filteredGames = useMemo(() => {
     if (selectedCategory === "All") return FEATURED_GAMES;
     return FEATURED_GAMES.filter((game) => game.category === selectedCategory);
@@ -128,24 +127,20 @@ export const FeaturedGames: React.FC = () => {
       />
 
       <FlatList
-        data={displayGames} // <--- USE THE SLICED DATA
+        data={displayGames}
         keyExtractor={(item) => item.id}
         numColumns={2}
         scrollEnabled={false}
         columnWrapperStyle={styles.columnWrapper}
         contentContainerStyle={styles.gridContent}
         renderItem={({ item }) => (
-          <FeaturedGameCard item={item} styles={styles} />
+          // Pass theme prop so icon colors can resolve correctly
+          <FeaturedGameCard item={item} styles={styles} theme={theme} />
         )}
-        // 2. ADD "VIEW ALL" BUTTON AT BOTTOM
         ListFooterComponent={
           <TouchableOpacity
             style={styles.viewAllButton}
-            onPress={() => {
-              // Navigate to your full Game Library Screen
-              // router.push('/library');
-              console.log("Go to full library");
-            }}
+            onPress={() => console.log("Go to full library")}
           >
             <Text style={styles.viewAllText}>View All Games</Text>
             <Ionicons name="chevron-down" size={16} color={theme.textPrimary} />
@@ -161,14 +156,14 @@ const createStyles = (theme: Theme) =>
   StyleSheet.create({
     section: {
       marginTop: 10,
-      paddingBottom: 80, // Extra space at bottom for tab bar
+      paddingBottom: 80,
     },
     sectionTitle: {
       fontSize: 20,
       fontWeight: "800",
-      color: theme.textPrimary,
+      color: theme.textPrimary, // Changed from hardcoded black/white
       paddingHorizontal: 20,
-      marginBottom: 5, // Reduced margin as Categories have their own margin
+      marginBottom: 5,
     },
     // Grid Styles
     gridContent: {
@@ -176,11 +171,11 @@ const createStyles = (theme: Theme) =>
       paddingBottom: 20,
     },
     columnWrapper: {
-      justifyContent: "space-between", // Pushes items to edges
-      marginBottom: 20, // Vertical Gap between rows
+      justifyContent: "space-between",
+      marginBottom: 20,
     },
     emptyText: {
-      color: "#888",
+      color: theme.textTertiary, // Changed from #888
       textAlign: "center",
       marginTop: 20,
       fontStyle: "italic",
@@ -189,18 +184,18 @@ const createStyles = (theme: Theme) =>
     // --- CARD STYLES ---
     cardContainer: {
       width: ITEM_WIDTH,
-      backgroundColor: "#2a2a2a", // Dark card bg
+      backgroundColor: theme.backgroundSecondary, // White (Light) or Slate 800 (Dark)
       borderRadius: 16,
       // Shadow
       shadowColor: "#000",
       shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.3,
+      shadowOpacity: 0.1, // Softer shadow for light mode validity
       shadowRadius: 4,
       elevation: 4,
     },
     imageWrapper: {
       width: "100%",
-      height: ITEM_WIDTH * 1.1, // Portrait Aspect Ratio (Taller than wide)
+      height: ITEM_WIDTH * 1.1,
       borderTopLeftRadius: 16,
       borderTopRightRadius: 16,
       overflow: "hidden",
@@ -214,7 +209,7 @@ const createStyles = (theme: Theme) =>
       position: "absolute",
       top: 8,
       left: 8,
-      backgroundColor: "rgba(0,0,0,0.6)",
+      backgroundColor: "rgba(0,0,0,0.6)", // Stays dark translucent
       flexDirection: "row",
       alignItems: "center",
       paddingHorizontal: 6,
@@ -223,7 +218,7 @@ const createStyles = (theme: Theme) =>
       gap: 3,
     },
     ratingText: {
-      color: "#fff",
+      color: "#FFFFFF", // Always white because background is always dark overlay
       fontSize: 10,
       fontWeight: "bold",
     },
@@ -231,36 +226,36 @@ const createStyles = (theme: Theme) =>
     // Info Area
     infoWrapper: {
       padding: 10,
-      paddingTop: 15, // Space for floating button
+      paddingTop: 15,
       position: "relative",
     },
     gameTitle: {
-      color: "#fff",
+      color: theme.textPrimary, // Changed from #fff
       fontSize: 13,
       fontWeight: "700",
       marginBottom: 2,
     },
     gameCategory: {
-      color: "#888",
+      color: theme.textTertiary, // Changed from #888
       fontSize: 11,
     },
 
     // Floating Play Button
     playBtn: {
       position: "absolute",
-      top: -18, // Moves it up to bridge the image and text
+      top: -18,
       right: 10,
       width: 36,
       height: 36,
       borderRadius: 18,
-      backgroundColor: theme.primary, // Your Gold/Pink theme color
+      backgroundColor: theme.secondary, // Cyan (Pop color)
       justifyContent: "center",
       alignItems: "center",
-      borderWidth: 3, // Thick border to separate from image
-      borderColor: "#2a2a2a", // Matches card background
+      borderWidth: 3,
+      borderColor: theme.backgroundSecondary, // IMPORTANT: Matches card bg to create "cutout" look
       shadowColor: "#000",
       shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.5,
+      shadowOpacity: 0.3,
       shadowRadius: 3,
       elevation: 5,
     },
@@ -271,14 +266,14 @@ const createStyles = (theme: Theme) =>
       alignItems: "center",
       justifyContent: "center",
       padding: 15,
-      backgroundColor: "#2a2a2a",
+      backgroundColor: theme.backgroundSecondary, // Changed from #2a2a2a
       borderRadius: 12,
       borderWidth: 1,
-      borderColor: "#333",
+      borderColor: theme.backgroundTertiary, // Changed from #333
       gap: 8,
     },
     viewAllText: {
-      color: theme.textPrimary, // White/Light Grey
+      color: theme.textPrimary,
       fontWeight: "700",
       fontSize: 14,
     },

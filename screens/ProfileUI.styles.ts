@@ -9,7 +9,7 @@ export const createStyles = (theme: Theme) => {
     },
     scrollViewContent: {
       padding: 20,
-      paddingBottom: 110, // For the tab bar
+      paddingBottom: 150, // For the tab bar
     },
     // Identity Section
     identitySection: {

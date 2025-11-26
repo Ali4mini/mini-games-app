@@ -4,64 +4,73 @@ import { Theme } from "@/types";
 const { width } = Dimensions.get("window");
 const GAP = 15;
 const PADDING = 20;
-// Calculate item width: (Screen - LeftPad - RightPad - MiddleGap) / 2
-const ITEM_WIDTH = (width - PADDING * 2 - GAP) / 2;
+// Calculate precise card width for 2-column grid
+const ITEM_WIDTH = (width - (PADDING * 2) - GAP) / 2;
 
-export const createStyles = (theme: Theme) => {
-  return StyleSheet.create({
+export const createStyles = (theme: Theme) =>
+  StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: theme.backgroundPrimary,
     },
-    // --- HEADER ---
+    
+    // --- Header ---
     headerContainer: {
       paddingHorizontal: PADDING,
       paddingTop: 10,
-      backgroundColor: theme.backgroundPrimary, // Ensures header isn't transparent
-      zIndex: 10,
+      paddingBottom: 5,
     },
     pageTitle: {
-      fontSize: 24,
+      fontSize: 28,
       fontWeight: "800",
       color: theme.textPrimary,
       marginBottom: 15,
       letterSpacing: 0.5,
     },
 
-    // --- GRID ---
+    // --- Grid Layout ---
     listContentContainer: {
       paddingHorizontal: PADDING,
-      paddingTop: 10,
       paddingBottom: 100, // Space for bottom tab bar
+      paddingTop: 10,
     },
     columnWrapper: {
       justifyContent: "space-between",
       marginBottom: 20,
     },
+
+    // --- Empty State ---
     emptyState: {
       alignItems: "center",
+      justifyContent: "center",
       marginTop: 50,
+      opacity: 0.7,
+    },
+    emptyText: {
+      marginTop: 10,
+      fontSize: 16,
+      fontStyle: "italic",
     },
 
-    // --- POSTER CARD STYLES ---
+    // --- Card Styles (Same as FeaturedGames) ---
     cardContainer: {
       width: ITEM_WIDTH,
-      backgroundColor: "#252525",
+      backgroundColor: theme.backgroundSecondary, // Card color (White/Slate)
       borderRadius: 16,
+      // Subtle Shadow
       shadowColor: "#000",
       shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.3,
+      shadowOpacity: 0.1,
       shadowRadius: 4,
-      elevation: 5,
+      elevation: 3,
     },
     imageWrapper: {
       width: "100%",
-      height: ITEM_WIDTH * 1.2, // 1.2 aspect ratio = Portrait Poster
+      height: ITEM_WIDTH * 1.1, // Portrait aspect ratio
       borderTopLeftRadius: 16,
       borderTopRightRadius: 16,
       overflow: "hidden",
       position: "relative",
-      backgroundColor: "#333",
     },
     gameImage: {
       width: "100%",
@@ -77,40 +86,49 @@ export const createStyles = (theme: Theme) => {
       paddingHorizontal: 6,
       paddingVertical: 3,
       borderRadius: 6,
-      gap: 3,
+      gap: 4,
     },
     ratingText: {
-      color: "#fff",
+      color: "#FFFFFF",
       fontSize: 10,
       fontWeight: "bold",
     },
+
+    // --- Info Section ---
     infoWrapper: {
-      padding: 10,
-      paddingTop: 15,
+      padding: 12,
+      paddingTop: 16,
       position: "relative",
     },
+    gameTitle: {
+      color: theme.textPrimary,
+      fontSize: 13,
+      fontWeight: "700",
+      marginBottom: 4,
+    },
+    gameCategory: {
+      color: theme.textTertiary,
+      fontSize: 11,
+      fontWeight: "500",
+    },
+
+    // --- Floating Play Button ---
     playBtn: {
       position: "absolute",
-      top: -18, // Floats between image and text
+      top: -18,
       right: 10,
       width: 36,
       height: 36,
       borderRadius: 18,
-      backgroundColor: theme.primary, // Gold/Pink
+      backgroundColor: theme.secondary, // Cyan Pop Color
       justifyContent: "center",
       alignItems: "center",
       borderWidth: 3,
-      borderColor: "#252525",
-    },
-    gameTitle: {
-      color: "#fff",
-      fontSize: 13,
-      fontWeight: "700",
-      marginBottom: 2,
-    },
-    gameCategory: {
-      color: "#888",
-      fontSize: 11,
+      borderColor: theme.backgroundSecondary, // "Cutout" effect from card bg
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.2,
+      shadowRadius: 3,
+      elevation: 4,
     },
   });
-};
