@@ -2,36 +2,74 @@ import React, { useEffect, useState } from "react";
 import { Stack } from "expo-router";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
-import { ThemeProvider } from "@/context/ThemeContext";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { I18nextProvider } from "react-i18next";
+import { StatusBar } from "expo-status-bar"; // Optional: to control status bar color
 import i18n from "@/i18n";
 
-// Import the animated component we created
-// Aliased as 'AnimatedSplash' to avoid naming conflict with the Expo library
+// Imports from your project
+import { ThemeProvider, useTheme } from "@/context/ThemeContext";
 import { SplashScreen as AnimatedSplash } from "@/components/common/SplashScreen";
 
 // Keep the native splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
 
-export default function RootLayout() {
-  // 1. State to control the Animated Splash visibility
-  const [showAnimatedSplash, setShowAnimatedSplash] = useState(true);
+// 1. Create a separate component for Navigation
+// This allows us to use the useTheme hook because it is INSIDE ThemeProvider
+const RootNavigator = () => {
+  const theme = useTheme();
 
-  // 2. Load custom fonts
+  return (
+    <>
+      {/* Optional: Adapts status bar icons (light/dark) based on your theme */}
+      <StatusBar style={theme.type === "dark" ? "light" : "dark"} />
+
+      <Stack
+        screenOptions={{
+          // 1. Background color of the Header
+          headerStyle: {
+            backgroundColor: theme.backgroundPrimary,
+          },
+          // 2. Color of the Back Button and Title text
+          headerTintColor: theme.textPrimary,
+          // 3. Font style for the title (using your loaded font)
+          headerTitleStyle: {
+            fontFamily: "LilitaOne", 
+            fontSize: 20,
+          },
+          // 4. Remove the thin line under the header (looks cleaner)
+          headerShadowVisible: false,
+          // 5. Background color of the screen BEHIND the content
+          contentStyle: {
+            backgroundColor: theme.backgroundPrimary,
+          },
+        }}
+      >
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="game-details" options={{ headerShown: false }} />
+        <Stack.Screen name="game-player" options={{ headerShown: false }} />
+        <Stack.Screen name="airdrop" options={{ headerShown: false }} />
+        
+        {/* Any other screen added automatically will now inherit the theme styles above */}
+      </Stack>
+    </>
+  );
+};
+
+// 2. The Main Layout Wrapper
+export default function RootLayout() {
+  const [showAnimatedSplash, setShowAnimatedSplash] = useState(true);
+  
   const [fontsLoaded, fontError] = useFonts({
     LilitaOne: require("../assets/fonts/LilitaOne-Regular.ttf"),
   });
 
-  // 3. Hide the NATIVE static image once fonts are loaded
   useEffect(() => {
     if (fontsLoaded || fontError) {
-      // We hide the native splash, revealing our <AnimatedSplash /> component underneath
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded, fontError]);
 
-  // Prevent rendering until fonts are ready
   if (!fontsLoaded && !fontError) {
     return null;
   }
@@ -39,24 +77,17 @@ export default function RootLayout() {
   return (
     <I18nextProvider i18n={i18n}>
       <SafeAreaProvider>
+        {/* The Provider wraps the Navigator */}
         <ThemeProvider>
-          {/* THE MAIN APP CONTENT */}
-          <Stack>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            {/* Add your other screens here */}
-            <Stack.Screen
-              name="game-details"
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen name="game-player" options={{ headerShown: false }} />
-            <Stack.Screen name="airdrop" options={{ headerShown: false }} />
-          </Stack>
+          
+          {/* The Navigator now has access to the theme */}
+          <RootNavigator />
 
-          {/* THE ANIMATED SPLASH OVERLAY */}
-          {/* This sits ON TOP of the Stack (Z-Index handled in component) */}
+          {/* Splash sits on top */}
           {showAnimatedSplash && (
             <AnimatedSplash onFinish={() => setShowAnimatedSplash(false)} />
           )}
+          
         </ThemeProvider>
       </SafeAreaProvider>
     </I18nextProvider>

@@ -12,7 +12,7 @@ type AppTitleHeaderProps = {
 };
 
 // You can customize these colors to match your brand's new vibe!
-const GRADIENT_COLORS = ["#F472B6", "#A78BFA"] as const; // Pink to a soft Purple
+const GRADIENT_COLORS = ["#7C3AED", "#06B6D4"] as const; // Pink to a soft Purple
 
 export const AppTitleHeader: React.FC<AppTitleHeaderProps> = ({ appName }) => {
   const theme = useTheme();
