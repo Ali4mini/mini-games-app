@@ -2,63 +2,122 @@
   "appName": "Earnado",
   "home": {
     "welcomeBack": "Willkommen zurück,",
-    "dailyCheckIn": "Täglicher Check-in",
+    "dailyCheckIn": "Tägliches Check-in",
     "luckySpin": "Glücksrad",
-    "continuePlaying": "Weiter spielen",
-    "featuredGames": "Top-Spiele",
-    "referralTitle": "Freunde werben!",
-    "referralSubtitle": "Verdiene {{count}} Münzen für jeden eingeladenen Freund."
+    "continuePlaying": "Weiter Spielen",
+    "featuredGames": "Empfohlene Spiele",
+    "referralTitle": "Empfiehl einen Freund!",
+    "referralSubtitle": "Verdiene {{count}} Münzen für jeden Freund, den du einlädst."
   },
   "luckySpin": {
     "title": "Glücksrad",
     "spinButton": "DREHEN",
-    "spinning": "DREHT...",
-    "noSpins": "KEINE DREHS",
-    "spinsLeft": "{{count}} Freidreh übrig",
-    "spinsLeft_plural": "{{count}} Freidrehs übrig",
-    "noSpinsLeft": "Keine Freidrehs mehr",
-    "nextFreeSpin": "Nächster Freidreh in: {{time}}",
+    "spinning": "WIRD GEDREHT",
+    "noSpins": "KEINE DREHUNGEN",
+    "spinsLeft": "{{count}} Kostenlose Drehung Übrig",
+    "spinsLeft_plural": "{{count}} Kostenlose Drehungen Übrig",
+    "noSpinsLeft": "Keine Kostenlosen Drehungen Mehr",
+    "nextFreeSpin": "Nächste kostenlose Drehung in: {{time}}",
     "congratulations": "Glückwunsch!",
     "youWon": "Du hast gewonnen: {{prize}}",
-    "great": "Super!"
+    "great": "Großartig!"
   },
   "common": {
-    "home": "Home",
+    "home": "Startseite",
     "games": "Spiele",
-    "dailyCheck": "Täglich",
-    "referral": "Empfehlen",
-    "luckySpin": "Glücksrad"
+    "dailyCheck": "Tägliches Check",
+    "referral": "Empfehlung",
+    "luckySpin": "Glücksrad",
+    "success": "Erfolg",
+    "error": "Fehler"
   },
   "gamesList": {
     "searchPlaceholder": "Suche nach einem Spiel..."
   },
   "dailyCheckIn": {
-    "title": "Täglicher Check-in",
-    "subtitle": "Komm jeden Tag zurück, um deine Belohnung abzuholen und deine Serie zu halten!",
+    "title": "Tägliches Check-in",
+    "subtitle": "Komm jeden Tag wieder, um deine Belohnung zu beanspruchen und deinen Streak beizubehalten!",
     "day": "Tag {{day}}",
     "claimButton": "{{reward}} Münzen beanspruchen",
-    "claimedButton": "Abgeholt!",
-    "comeBackTomorrow": "Komm morgen wieder",
+    "claimedButton": "Beansprucht!",
+    "comeBackTomorrow": "Komm Morgen Wieder",
     "progress": "Fortschritt"
   },
   "leaderboard": {
-    "title": "Bestenliste",
-    "subtitle": "Top-Spieler diese Woche",
+    "title": "Rangliste",
+    "subtitle": "Top-Spieler dieser Woche",
     "days": "Tage",
     "games": "Spiele",
-    "yourRank": "Dein Rang: #{{rank}}"
+    "yourRank": "Dein Rang: #{rank}"
   },
   "profile": {
-    "joinDate": "Beigetreten am {{date}}",
+    "joinDate": "Mitglied seit {{date}}",
     "yourReferralCode": "Dein Empfehlungscode",
     "copyCode": "Kopieren",
-    "copied": "Kopiert!",
-    "leaderboard": "Bestenliste",
-    "yourRank": "Dein Rang"
+    "copied": "KOPIERT!",
+    "leaderboard": "TOP-SPIELER",
+    "yourRank": "Dein Rang",
+    "playerTitle": "Cyber Läufer",
+    "credits": "GUTSCHRIFTEN",
+    "rank": "GLOBAL",
+    "since": "MITGLIED",
+    "contactTitle": "BENÖTIGEN SIE SICHERUNG?",
+    "contactSubtitle": "Support HQ kontaktieren",
+    "inviteFriends": "CREW EINLADEN",
+    "inviteSubtitle": "Code teilen & Level aufsteigen",
+    "yourCode": "ZUGANGSSCHLÜSSEL",
+    "share": "Teilen",
+    "copy": "KOPIEREN",
+    "shareMessage": "Tritt mir in der App bei! Code: {{code}}"
   },
   "airdrop": {
     "title": "Airdrop",
     "subtitle": "Demnächst!",
-    "description": "Mach dich bereit für spannende Belohnungen und exklusive Token. Folge uns für Updates zu unserem kommenden Airdrop-Event."
+    "descriptionPre": "Mach dich bereit für spannende Belohnungen! Der Airdrop beginnt im ",
+    "date": "Q1 2026",
+    "descriptionMid": ". Dieses Event ist ausschließlich für Benutzer, die mindestens ",
+    "requirement": "20 Personen"
+  },
+  "achievements": {
+    "title": "ERFOLGE",
+    "progress": "{{count}} / {{total}} FREIGESCHALTET",
+    "names": {
+      "firstWin": "Erster Sieg",
+      "sniper": "Scharfschütze",
+      "bigSpender": "Großausgeber",
+      "veteran": "Veteran",
+      "speedster": "Schnellläufer",
+      "legend": "Legende"
+    }
+  },
+  "contact": {
+    "title": "SUPPORT HQ",
+    "statusOnline": "SYSTEM ONLINE",
+    "channels": "KANÄLE //",
+    "email": "EMAIL",
+    "discord": "DISCORD",
+    "twitter": "TWITTER",
+    "newTransmission": "NEUE ÜBERTRAGUNG //",
+    "from": "VON:",
+    "id": "ID:",
+    "subjectLabel": "BETREFF",
+    "subjectPlaceholder": "Fehler melden / Funktionsanfrage...",
+    "messageLabel": "NACHRICHTENDATEN",
+    "messagePlaceholder": "Beschreiben Sie Ihr Problem...",
+    "transmitting": "ÜBERTRAGE...",
+    "initiate": "VERBINDUNG AUFNEHMEN",
+    "errorEmpty": "Übertragung leer. Bitte Daten eingeben.",
+    "errorLink": "Link konnte nicht geöffnet werden",
+    "successMessage": "Übertragung von HQ empfangen."
+  },
+  "categories": {
+    "all": "Alle",
+    "action": "Action",
+    "puzzle": "Puzzle",
+    "strategy": "Strategie",
+    "racing": "Rennen",
+    "arcade": "Arcade",
+    "sports": "Sport",
+    "adventure": "Abenteuer"
   }
 }

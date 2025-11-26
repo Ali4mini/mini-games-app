@@ -6,6 +6,7 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from "react-native-reanimated";
+import { useTranslation } from "react-i18next"; // 1. Import hook
 
 import { useTheme } from "../../context/ThemeContext";
 import { createStyles } from "./GameCategories.styles";
@@ -15,6 +16,7 @@ type GameCategoriesProps = {
   onSelectCategory: (category: string) => void;
 };
 
+// Helper to get icon/color based on the ID/Key
 const getCategoryData = (category: string) => {
   switch (category.toLowerCase()) {
     case "all":
@@ -39,12 +41,14 @@ const getCategoryData = (category: string) => {
 };
 
 const CategoryChip = ({
-  item,
+  item,      // This is the ID (e.g., "action") used for logic
+  label,     // This is the Translated Text (e.g., "Action" or "Azione")
   isActive,
   onPress,
   styles,
 }: {
   item: string;
+  label: string;
   isActive: boolean;
   onPress: () => void;
   styles: any;
@@ -64,7 +68,6 @@ const CategoryChip = ({
     scale.value = withSpring(1);
   };
 
-  // Only trigger selection on actual press completion
   const handlePress = () => {
     onPress();
   };
@@ -93,8 +96,9 @@ const CategoryChip = ({
               color={isActive ? "#000" : color}
               style={{ marginRight: 6 }}
             />
+            {/* 2. Render the translated label instead of the raw item key */}
             <Text style={isActive ? styles.tagTextActive : styles.tagText}>
-              {item}
+              {label}
             </Text>
           </>
         )}
@@ -107,6 +111,7 @@ export const GameCategories: React.FC<GameCategoriesProps> = ({
   categories,
   onSelectCategory,
 }) => {
+  const { t } = useTranslation(); // 3. Init translation
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const [activeCategory, setActiveCategory] = useState(categories[0] || "All");
@@ -123,6 +128,9 @@ export const GameCategories: React.FC<GameCategoriesProps> = ({
         renderItem={({ item }) => (
           <CategoryChip
             item={item}
+            // 4. Translate here. We convert key to lowercase to match JSON keys.
+            // Example: "Action" -> t("categories.action") -> "Action" (or translated)
+            label={t(`categories.${item.toLowerCase()}`, { defaultValue: item })}
             isActive={item === activeCategory}
             onPress={() => handlePress(item)}
             styles={styles}
@@ -132,7 +140,6 @@ export const GameCategories: React.FC<GameCategoriesProps> = ({
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 20 }}
-        // Prevent accidental touches during scroll
         scrollEnabled={true}
         bounces={false}
         alwaysBounceHorizontal={false}

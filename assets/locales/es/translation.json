@@ -4,9 +4,9 @@
     "welcomeBack": "Bienvenido de nuevo,",
     "dailyCheckIn": "Registro Diario",
     "luckySpin": "Giro de la Suerte",
-    "continuePlaying": "Seguir Jugando",
+    "continuePlaying": "Continuar Jugando",
     "featuredGames": "Juegos Destacados",
-    "referralTitle": "¡Invita a un amigo!",
+    "referralTitle": "¡Refiere a un Amigo!",
     "referralSubtitle": "Gana {{count}} monedas por cada amigo que invites."
   },
   "luckySpin": {
@@ -14,9 +14,9 @@
     "spinButton": "GIRAR",
     "spinning": "GIRANDO",
     "noSpins": "SIN GIROS",
-    "spinsLeft": "Queda {{count}} giro gratis",
-    "spinsLeft_plural": "Quedan {{count}} giros gratis",
-    "noSpinsLeft": "No quedan giros gratis",
+    "spinsLeft": "{{count}} Giro Gratis Restante",
+    "spinsLeft_plural": "{{count}} Giros Gratis Restantes",
+    "noSpinsLeft": "Sin Giros Gratis",
     "nextFreeSpin": "Próximo giro gratis en: {{time}}",
     "congratulations": "¡Felicidades!",
     "youWon": "Ganaste: {{prize}}",
@@ -25,16 +25,18 @@
   "common": {
     "home": "Inicio",
     "games": "Juegos",
-    "dailyCheck": "Diario",
-    "referral": "Invitar",
-    "luckySpin": "Suerte"
+    "dailyCheck": "Registro Diario",
+    "referral": "Referidos",
+    "luckySpin": "Giro de la Suerte",
+    "success": "Éxito",
+    "error": "Error"
   },
   "gamesList": {
     "searchPlaceholder": "Buscar un juego..."
   },
   "dailyCheckIn": {
     "title": "Registro Diario",
-    "subtitle": "¡Vuelve todos los días para reclamar tu recompensa y mantener tu racha!",
+    "subtitle": "¡Vuelve cada día para reclamar tu recompensa y mantener tu racha!",
     "day": "Día {{day}}",
     "claimButton": "Reclamar {{reward}} Monedas",
     "claimedButton": "¡Reclamado!",
@@ -43,22 +45,79 @@
   },
   "leaderboard": {
     "title": "Clasificación",
-    "subtitle": "Mejores jugadores de la semana",
+    "subtitle": "Mejores jugadores esta semana",
     "days": "días",
     "games": "juegos",
-    "yourRank": "Tu rango: #{{rank}}"
+    "yourRank": "Tu Rango: #{rank}"
   },
   "profile": {
-    "joinDate": "Se unió el {{date}}",
+    "joinDate": "Miembro desde {{date}}",
     "yourReferralCode": "Tu Código de Referido",
     "copyCode": "Copiar",
-    "copied": "¡Copiado!",
-    "leaderboard": "Clasificación",
-    "yourRank": "Tu Rango"
+    "copied": "¡COPIADO!",
+    "leaderboard": "TOP PLAYERS",
+    "yourRank": "Tu Rango",
+    "playerTitle": "Corredor Cibernético",
+    "credits": "CRÉDITOS",
+    "rank": "GLOBAL",
+    "since": "MIEMBRO",
+    "contactTitle": "¿NECESITAS RESPALDO?",
+    "contactSubtitle": "Contactar HQ de Soporte",
+    "inviteFriends": "INVITA A LA TRIPULACIÓN",
+    "inviteSubtitle": "Comparte el código y sube de nivel",
+    "yourCode": "CLAVE DE ACCESO",
+    "share": "Compartir",
+    "copy": "COPIAR",
+    "shareMessage": "¡Únete a mí en la aplicación! Código: {{code}}"
   },
   "airdrop": {
     "title": "Airdrop",
     "subtitle": "¡Próximamente!",
-    "description": "Prepárate para recompensas emocionantes y tokens exclusivos. Síguenos para recibir actualizaciones sobre nuestro próximo evento de airdrop."
+    "descriptionPre": "Prepárate para recompensas emocionantes. El airdrop comienza en ",
+    "date": "Primer trimestre de 2026",
+    "descriptionMid": ". Este evento es exclusivamente para usuarios que han invitado al menos a ",
+    "requirement": "20 personas"
+  },
+  "achievements": {
+    "title": "LOGROS",
+    "progress": "{{count}} / {{total}} DESBLOQUEADOS",
+    "names": {
+      "firstWin": "Primera Victoria",
+      "sniper": "Francotirador",
+      "bigSpender": "Gran Gastador",
+      "veteran": "Veterano",
+      "speedster": "Velocista",
+      "legend": "Leyenda"
+    }
+  },
+  "contact": {
+    "title": "HQ DE SOPORTE",
+    "statusOnline": "SISTEMA EN LÍNEA",
+    "channels": "CANALES //",
+    "email": "EMAIL",
+    "discord": "DISCORD",
+    "twitter": "TWITTER",
+    "newTransmission": "NUEVA TRANSMISIÓN //",
+    "from": "DE:",
+    "id": "ID:",
+    "subjectLabel": "ASUNTO",
+    "subjectPlaceholder": "Reportar error / Solicitud de función...",
+    "messageLabel": "DATOS DEL MENSAJE",
+    "messagePlaceholder": "Describe tu problema...",
+    "transmitting": "TRANSMITIENDO...",
+    "initiate": "INICIAR ENLACE",
+    "errorEmpty": "Transmisión vacía. Por favor, introduce datos.",
+    "errorLink": "No se pudo abrir el enlace",
+    "successMessage": "Transmisión recibida por HQ."
+  },
+  "categories": {
+    "all": "Todos",
+    "action": "Acción",
+    "puzzle": "Rompecabezas",
+    "strategy": "Estrategia",
+    "racing": "Carreras",
+    "arcade": "Arcade",
+    "sports": "Deportes",
+    "adventure": "Aventura"
   }
 }

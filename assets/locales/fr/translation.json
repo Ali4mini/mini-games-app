@@ -1,22 +1,22 @@
 {
   "appName": "Earnado",
   "home": {
-    "welcomeBack": "Bon retour,",
-    "dailyCheckIn": "Bonus Quotidien",
-    "luckySpin": "Roue de la Chance",
-    "continuePlaying": "Continuer à jouer",
-    "featuredGames": "Jeux en vedette",
-    "referralTitle": "Parrainez un ami !",
-    "referralSubtitle": "Gagnez {{count}} pièces pour chaque ami invité."
+    "welcomeBack": "Heureux de vous revoir,",
+    "dailyCheckIn": "Vérification Quotidienne",
+    "luckySpin": "Tour de Chance",
+    "continuePlaying": "Continuer à Jouer",
+    "featuredGames": "Jeux en Vedette",
+    "referralTitle": "Parrainez un Ami !",
+    "referralSubtitle": "Gagnez {{count}} pièces pour chaque ami que vous invitez."
   },
   "luckySpin": {
-    "title": "Roue de la Chance",
-    "spinButton": "TOURNER",
+    "title": "Tour de Chance",
+    "spinButton": "FAIRE TOURNER",
     "spinning": "EN COURS",
-    "noSpins": "0 TOUR",
-    "spinsLeft": "{{count}} tour gratuit restant",
-    "spinsLeft_plural": "{{count}} tours gratuits restants",
-    "noSpinsLeft": "Aucun tour gratuit restant",
+    "noSpins": "PAS DE TOURS",
+    "spinsLeft": "{{count}} Tour de Chance Restant",
+    "spinsLeft_plural": "{{count}} Tours de Chance Restants",
+    "noSpinsLeft": "Plus de Tours de Chance",
     "nextFreeSpin": "Prochain tour gratuit dans : {{time}}",
     "congratulations": "Félicitations !",
     "youWon": "Vous avez gagné : {{prize}}",
@@ -25,40 +25,99 @@
   "common": {
     "home": "Accueil",
     "games": "Jeux",
-    "dailyCheck": "Quotidien",
+    "dailyCheck": "Vérif. Quotidienne",
     "referral": "Parrainage",
-    "luckySpin": "Roue"
+    "luckySpin": "Tour de Chance",
+    "success": "Succès",
+    "error": "Erreur"
   },
   "gamesList": {
     "searchPlaceholder": "Rechercher un jeu..."
   },
   "dailyCheckIn": {
-    "title": "Bonus Quotidien",
-    "subtitle": "Revenez chaque jour pour réclamer votre récompense et garder votre série !",
+    "title": "Vérification Quotidienne",
+    "subtitle": "Revenez chaque jour pour réclamer votre récompense et maintenir votre série !",
     "day": "Jour {{day}}",
     "claimButton": "Réclamer {{reward}} Pièces",
     "claimedButton": "Réclamé !",
     "comeBackTomorrow": "Revenez Demain",
-    "progress": "Progression"
+    "progress": "Progrès"
   },
   "leaderboard": {
     "title": "Classement",
     "subtitle": "Meilleurs joueurs cette semaine",
     "days": "jours",
-    "games": "jeux",
-    "yourRank": "Votre rang : #{{rank}}"
+    "games": "parties",
+    "yourRank": "Votre rang : #{rank}"
   },
   "profile": {
-    "joinDate": "Rejoint le {{date}}",
-    "yourReferralCode": "Votre code de parrainage",
+    "joinDate": "Membre depuis {{date}}",
+    "yourReferralCode": "Votre Code de Parrainage",
     "copyCode": "Copier",
-    "copied": "Copié !",
-    "leaderboard": "Classement",
-    "yourRank": "Votre Rang"
+    "copied": "COPIÉ !",
+    "leaderboard": "MEILLEURS JOUEURS",
+    "yourRank": "Votre Rang",
+    "playerTitle": "Coureur Cyber",
+    "credits": "CRÉDITS",
+    "rank": "GLOBAL",
+    "since": "MEMBRE",
+    "contactTitle": "BESOIN DE RENFORT ?",
+    "contactSubtitle": "Contacter le QG de Support",
+    "inviteFriends": "INVITEZ L'ÉQUIPE",
+    "inviteSubtitle": "Partagez le code et montez de niveau",
+    "yourCode": "CLÉ D'ACCÈS",
+    "share": "Partager",
+    "copy": "COPIER",
+    "shareMessage": "Rejoins-moi sur l'application ! Code : {{code}}"
   },
   "airdrop": {
     "title": "Airdrop",
     "subtitle": "Bientôt disponible !",
-    "description": "Préparez-vous pour des récompenses excitantes et des jetons exclusifs. Suivez-nous pour les mises à jour sur notre prochain événement airdrop."
+    "descriptionPre": "Préparez-vous pour des récompenses passionnantes ! L'airdrop commence le ",
+    "date": "T1 2026",
+    "descriptionMid": ". Cet événement est exclusivement réservé aux utilisateurs qui ont invité au moins ",
+    "requirement": "20 personnes"
+  },
+  "achievements": {
+    "title": "RÉALISATIONS",
+    "progress": "{{count}} / {{total}} DÉBLOQUÉS",
+    "names": {
+      "firstWin": "Première Victoire",
+      "sniper": "Tireur d'Élite",
+      "bigSpender": "Gros Dépensier",
+      "veteran": "Vétéran",
+      "speedster": "Éclair",
+      "legend": "Légende"
+    }
+  },
+  "contact": {
+    "title": "HQ DE SUPPORT",
+    "statusOnline": "SYSTÈME EN LIGNE",
+    "channels": "CANAUX //",
+    "email": "EMAIL",
+    "discord": "DISCORD",
+    "twitter": "TWITTER",
+    "newTransmission": "NOUVELLE TRANSMISSION //",
+    "from": "DE :",
+    "id": "ID :",
+    "subjectLabel": "SUJET",
+    "subjectPlaceholder": "Signaler un bug / Demande de fonctionnalité...",
+    "messageLabel": "DONNÉES DU MESSAGE",
+    "messagePlaceholder": "Décrivez votre problème...",
+    "transmitting": "TRANSMISSION EN COURS...",
+    "initiate": "INITIER LA LIAISON",
+    "errorEmpty": "Transmission vide. Veuillez saisir des données.",
+    "errorLink": "Impossible d'ouvrir le lien",
+    "successMessage": "Transmission reçue par le QG."
+  },
+  "categories": {
+    "all": "Tous",
+    "action": "Action",
+    "puzzle": "Puzzle",
+    "strategy": "Stratégie",
+    "racing": "Course",
+    "arcade": "Arcade",
+    "sports": "Sports",
+    "adventure": "Aventure"
   }
 }

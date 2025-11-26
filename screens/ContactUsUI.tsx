@@ -13,17 +13,17 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FontAwesome5, MaterialCommunityIcons } from "@expo/vector-icons";
-import { useTranslation } from "react-i18next"; // Optional if you have translations
-import { useNavigation } from "@react-navigation/native"; // Or useRouter from expo-router
+import { useTranslation } from "react-i18next"; // 1. Imported hook
+import { useNavigation } from "@react-navigation/native";
 
 import { useTheme } from "@/context/ThemeContext";
-import { USER_DATA } from "@/data/dummyData"; // To get User ID
+import { USER_DATA } from "@/data/dummyData"; 
 
 export const ContactUs: React.FC = () => {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const navigation = useNavigation();
-  // const { t } = useTranslation(); // Use if needed
+  const { t } = useTranslation(); // 2. Initialized hook
 
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
@@ -32,7 +32,8 @@ export const ContactUs: React.FC = () => {
   // --- Actions ---
   const handleSend = () => {
     if (!message.trim()) {
-        Alert.alert("Error", "Transmission empty. Please input data.");
+        // 3. Translated Alerts
+        Alert.alert(t("common.error"), t("contact.errorEmpty"));
         return;
     }
     setSending(true);
@@ -42,12 +43,12 @@ export const ContactUs: React.FC = () => {
         setSending(false);
         setSubject("");
         setMessage("");
-        Alert.alert("Success", "Transmission received by HQ.");
+        Alert.alert(t("common.success"), t("contact.successMessage"));
     }, 1500);
   };
 
   const openLink = (url: string) => {
-    Linking.openURL(url).catch(() => Alert.alert("Error", "Could not open link"));
+    Linking.openURL(url).catch(() => Alert.alert(t("common.error"), t("contact.errorLink")));
   };
 
   return (
@@ -60,10 +61,10 @@ export const ContactUs: React.FC = () => {
                     <FontAwesome5 name="arrow-left" size={20} color={theme.textPrimary} />
                 </TouchableOpacity>
                 <View>
-                    <Text style={styles.headerTitle}>SUPPORT HQ</Text>
+                    <Text style={styles.headerTitle}>{t("contact.title", "SUPPORT HQ")}</Text>
                     <View style={styles.statusRow}>
                         <View style={styles.statusDot} />
-                        <Text style={styles.statusText}>SYSTEM ONLINE</Text>
+                        <Text style={styles.statusText}>{t("contact.statusOnline", "SYSTEM ONLINE")}</Text>
                     </View>
                 </View>
             </View>
@@ -75,7 +76,7 @@ export const ContactUs: React.FC = () => {
                 <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
                     
                     {/* --- QUICK ACTIONS GRID --- */}
-                    <Text style={styles.sectionLabel}>CHANNELS //</Text>
+                    <Text style={styles.sectionLabel}>{t("contact.channels", "CHANNELS //")}</Text>
                     <View style={styles.grid}>
                         <TouchableOpacity 
                             style={styles.gridItem}
@@ -84,7 +85,7 @@ export const ContactUs: React.FC = () => {
                             <View style={[styles.iconBox, { backgroundColor: 'rgba(6, 182, 212, 0.1)' }]}>
                                 <FontAwesome5 name="envelope" size={20} color={theme.secondary} />
                             </View>
-                            <Text style={styles.gridText}>EMAIL</Text>
+                            <Text style={styles.gridText}>{t("contact.email", "EMAIL")}</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity 
@@ -94,7 +95,7 @@ export const ContactUs: React.FC = () => {
                             <View style={[styles.iconBox, { backgroundColor: 'rgba(88, 101, 242, 0.1)' }]}>
                                 <FontAwesome5 name="discord" size={20} color="#5865F2" />
                             </View>
-                            <Text style={styles.gridText}>DISCORD</Text>
+                            <Text style={styles.gridText}>{t("contact.discord", "DISCORD")}</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity 
@@ -104,37 +105,37 @@ export const ContactUs: React.FC = () => {
                             <View style={[styles.iconBox, { backgroundColor: 'rgba(29, 161, 242, 0.1)' }]}>
                                 <FontAwesome5 name="twitter" size={20} color="#1DA1F2" />
                             </View>
-                            <Text style={styles.gridText}>TWITTER</Text>
+                            <Text style={styles.gridText}>{t("contact.twitter", "TWITTER")}</Text>
                         </TouchableOpacity>
                     </View>
 
                     {/* --- TERMINAL FORM --- */}
-                    <Text style={[styles.sectionLabel, { marginTop: 30 }]}>NEW TRANSMISSION //</Text>
+                    <Text style={[styles.sectionLabel, { marginTop: 30 }]}>{t("contact.newTransmission", "NEW TRANSMISSION //")}</Text>
                     
                     <View style={styles.formCard}>
                         {/* User Metadata Display */}
                         <View style={styles.metaDataRow}>
-                            <Text style={styles.metaLabel}>FROM:</Text>
+                            <Text style={styles.metaLabel}>{t("contact.from", "FROM:")}</Text>
                             <Text style={styles.metaValue}>{USER_DATA.name}</Text>
-                            <Text style={[styles.metaLabel, { marginLeft: 10 }]}>ID:</Text>
+                            <Text style={[styles.metaLabel, { marginLeft: 10 }]}>{t("contact.id", "ID:")}</Text>
                             <Text style={styles.metaValue}>#{Math.floor(Math.random()*9000)+1000}</Text>
                         </View>
 
                         {/* Subject Input */}
-                        <Text style={styles.inputLabel}>SUBJECT</Text>
+                        <Text style={styles.inputLabel}>{t("contact.subjectLabel", "SUBJECT")}</Text>
                         <TextInput 
                             style={styles.input}
-                            placeholder="Report bug / Feature request..."
+                            placeholder={t("contact.subjectPlaceholder", "Report bug / Feature request...")}
                             placeholderTextColor={theme.textTertiary}
                             value={subject}
                             onChangeText={setSubject}
                         />
 
                         {/* Message Input */}
-                        <Text style={styles.inputLabel}>MESSAGE DATA</Text>
+                        <Text style={styles.inputLabel}>{t("contact.messageLabel", "MESSAGE DATA")}</Text>
                         <TextInput 
                             style={[styles.input, styles.textArea]}
-                            placeholder="Describe your issue..."
+                            placeholder={t("contact.messagePlaceholder", "Describe your issue...")}
                             placeholderTextColor={theme.textTertiary}
                             multiline
                             textAlignVertical="top"
@@ -154,10 +155,10 @@ export const ContactUs: React.FC = () => {
                     disabled={sending}
                 >
                     {sending ? (
-                        <Text style={styles.sendButtonText}>TRANSMITTING...</Text>
+                        <Text style={styles.sendButtonText}>{t("contact.transmitting", "TRANSMITTING...")}</Text>
                     ) : (
                         <>
-                            <Text style={styles.sendButtonText}>INITIATE UPLINK</Text>
+                            <Text style={styles.sendButtonText}>{t("contact.initiate", "INITIATE UPLINK")}</Text>
                             <MaterialCommunityIcons name="console-network" size={20} color={theme.primaryContent} />
                         </>
                     )}
@@ -169,7 +170,7 @@ export const ContactUs: React.FC = () => {
   );
 };
 
-// --- STYLES ---
+// --- STYLES (No Changes Needed) ---
 const createStyles = (theme: any) =>
   StyleSheet.create({
     mainContainer: {
@@ -179,7 +180,6 @@ const createStyles = (theme: any) =>
     safeArea: {
         flex: 1,
     },
-    // Custom Header
     header: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -210,7 +210,7 @@ const createStyles = (theme: any) =>
         width: 6,
         height: 6,
         borderRadius: 3,
-        backgroundColor: theme.success, // Green
+        backgroundColor: theme.success,
         marginRight: 6,
         shadowColor: theme.success,
         shadowOffset: { width: 0, height: 0 },
@@ -224,11 +224,9 @@ const createStyles = (theme: any) =>
         fontWeight: '700',
         letterSpacing: 1,
     },
-
-    // Content
     scrollContent: {
         padding: 24,
-        paddingBottom: 240, // Space for footer
+        paddingBottom: 240,
     },
     sectionLabel: {
         fontSize: 12,
@@ -237,8 +235,6 @@ const createStyles = (theme: any) =>
         marginBottom: 16,
         letterSpacing: 1.5,
     },
-
-    // Grid Actions
     grid: {
         flexDirection: 'row',
         gap: 12,
@@ -266,14 +262,12 @@ const createStyles = (theme: any) =>
         fontWeight: 'bold',
         color: theme.textSecondary,
     },
-
-    // Form
     formCard: {
         backgroundColor: theme.backgroundSecondary,
         borderRadius: 20,
         padding: 20,
         borderWidth: 1,
-        borderColor: theme.primary, // Violet border for the main area
+        borderColor: theme.primary,
     },
     metaDataRow: {
         flexDirection: 'row',
@@ -294,7 +288,6 @@ const createStyles = (theme: any) =>
         fontFamily: Platform.OS === 'ios' ? 'Courier-Bold' : 'monospace',
         marginLeft: 4,
     },
-
     inputLabel: {
         fontSize: 11,
         fontWeight: '700',
@@ -303,7 +296,7 @@ const createStyles = (theme: any) =>
         marginTop: 4,
     },
     input: {
-        backgroundColor: theme.backgroundPrimary, // Dark input background
+        backgroundColor: theme.backgroundPrimary,
         borderRadius: 12,
         padding: 14,
         color: theme.textPrimary,
@@ -311,13 +304,11 @@ const createStyles = (theme: any) =>
         borderWidth: 1,
         borderColor: theme.backgroundTertiary,
         marginBottom: 16,
-        fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace', // Terminal feel
+        fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
     },
     textArea: {
         height: 120,
     },
-
-    // Footer Button
     footer: {
         position: 'absolute',
         bottom: 0,
@@ -329,14 +320,13 @@ const createStyles = (theme: any) =>
         borderTopColor: theme.backgroundTertiary,
     },
     sendButton: {
-        backgroundColor: theme.primary, // Violet
+        backgroundColor: theme.primary,
         borderRadius: 16,
         paddingVertical: 18,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         gap: 10,
-        // Glow
         shadowColor: theme.primary,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.4,

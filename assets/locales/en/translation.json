@@ -60,5 +60,99 @@
     "title": "Airdrop",
     "subtitle": "Coming Soon!",
     "description": "Get ready for exciting rewards and exclusive tokens. Follow us for updates on our upcoming airdrop event."
+  },
+  "common": {
+    "success": "Success",
+    "error": "Error"
+  },
+  "profile": {
+    "joinDate": "Member since {{date}}",
+    "playerTitle": "Cyber Runner",
+    "credits": "CREDITS",
+    "rank": "GLOBAL",
+    "since": "MEMBER",
+    "leaderboard": "TOP PLAYERS",
+    "contactTitle": "NEED BACKUP?",
+    "contactSubtitle": "Contact Support HQ",
+    "inviteFriends": "INVITE CREW",
+    "inviteSubtitle": "Share code & level up",
+    "yourCode": "ACCESS KEY",
+    "share": "Share",
+    "copy": "COPY",
+    "copied": "COPIED!",
+    "shareMessage": "Join me on the app! Code: {{code}}"
+  },
+  "achievements": {
+    "title": "ACHIEVEMENTS",
+    "progress": "{{count}} / {{total}} UNLOCKED",
+    "names": {
+      "firstWin": "First Win",
+      "sniper": "Sniper",
+      "bigSpender": "Big Spender",
+      "veteran": "Veteran",
+      "speedster": "Speedster",
+      "legend": "Legend"
+    }
+  },
+  "contact": {
+    "title": "SUPPORT HQ",
+    "statusOnline": "SYSTEM ONLINE",
+    "channels": "CHANNELS //",
+    "email": "EMAIL",
+    "discord": "DISCORD",
+    "twitter": "TWITTER",
+    "newTransmission": "NEW TRANSMISSION //",
+    "from": "FROM:",
+    "id": "ID:",
+    "subjectLabel": "SUBJECT",
+    "subjectPlaceholder": "Report bug / Feature request...",
+    "messageLabel": "MESSAGE DATA",
+    "messagePlaceholder": "Describe your issue...",
+    "initiate": "INITIATE UPLINK",
+    "transmitting": "TRANSMITTING...",
+    "errorEmpty": "Transmission empty. Please input data.",
+    "successMessage": "Transmission received by HQ."
+  },
+ "categories": {
+    "all": "All",
+    "action": "Action",
+    "puzzle": "Puzzle",
+    "strategy": "Strategy",
+    "racing": "Racing",
+    "arcade": "Arcade",
+    "sports": "Sports",
+    "adventure": "Adventure"
+  },
+  "common": {
+    "success": "Success",
+    "error": "Error"
+  },
+  "contact": {
+    "title": "SUPPORT HQ",
+    "statusOnline": "SYSTEM ONLINE",
+    "channels": "CHANNELS //",
+    "email": "EMAIL",
+    "discord": "DISCORD",
+    "twitter": "TWITTER",
+    "newTransmission": "NEW TRANSMISSION //",
+    "from": "FROM:",
+    "id": "ID:",
+    "subjectLabel": "SUBJECT",
+    "subjectPlaceholder": "Report bug / Feature request...",
+    "messageLabel": "MESSAGE DATA",
+    "messagePlaceholder": "Describe your issue...",
+    "transmitting": "TRANSMITTING...",
+    "initiate": "INITIATE UPLINK",
+    "errorEmpty": "Transmission empty. Please input data.",
+    "errorLink": "Could not open link",
+    "successMessage": "Transmission received by HQ."
+  }, 
+  "airdrop": {
+    "title": "Airdrop",
+    "subtitle": "Coming Soon!",
+    "descriptionPre": "Get ready for exciting rewards! The airdrop starts in ",
+    "date": "Q1 of 2026",
+    "descriptionMid": ". This event is exclusively for users who have invited at least ",
+    "requirement": "20 people"
   }
 }

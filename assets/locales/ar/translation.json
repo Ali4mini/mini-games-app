@@ -2,22 +2,22 @@
   "appName": "Earnado",
   "home": {
     "welcomeBack": "أهلاً بعودتك،",
-    "dailyCheckIn": "تزيجل الدخول اليومي",
-    "luckySpin": "عجلة الحظ",
+    "dailyCheckIn": "التحقق اليومي",
+    "luckySpin": "دوران الحظ",
     "continuePlaying": "متابعة اللعب",
-    "featuredGames": "ألعاب مميزة",
-    "referralTitle": "ادعُ صديقاً!",
-    "referralSubtitle": "اكسب {{count}} عملة لكل صديق تدعوه."
+    "featuredGames": "الألعاب المميزة",
+    "referralTitle": "أحِل صديقًا!",
+    "referralSubtitle": "اكسب {{count}} قطعة نقدية عن كل صديق تدعوه."
   },
   "luckySpin": {
-    "title": "عجلة الحظ",
-    "spinButton": "دوران",
-    "spinning": "جار الدوران",
-    "noSpins": "لا يوجد محاولات",
-    "spinsLeft": "بقي لديك {{count}} محاولة مجانية",
-    "spinsLeft_plural": "بقي لديك {{count}} محاولات مجانية",
-    "noSpinsLeft": "لم يتبق أي محاولات مجانية",
-    "nextFreeSpin": "المحاولة المجانية التالية خلال: {{time}}",
+    "title": "دوران الحظ",
+    "spinButton": "دَوِّر",
+    "spinning": "يَدُور",
+    "noSpins": "لا توجد لفات",
+    "spinsLeft": "بقي {{count}} لفة مجانية",
+    "spinsLeft_plural": "بقي {{count}} لفات مجانية",
+    "noSpinsLeft": "لا توجد لفات مجانية متبقية",
+    "nextFreeSpin": "اللفة المجانية التالية في: {{time}}",
     "congratulations": "تهانينا!",
     "youWon": "لقد ربحت: {{prize}}",
     "great": "رائع!"
@@ -25,40 +25,99 @@
   "common": {
     "home": "الرئيسية",
     "games": "الألعاب",
-    "dailyCheck": "يومي",
-    "referral": "الدعوات",
-    "luckySpin": "الحظ"
+    "dailyCheck": "تحقق يومي",
+    "referral": "الإحالة",
+    "luckySpin": "دوران الحظ",
+    "success": "نجاح",
+    "error": "خطأ"
   },
   "gamesList": {
     "searchPlaceholder": "ابحث عن لعبة..."
   },
   "dailyCheckIn": {
-    "title": "تسجيل الدخول اليومي",
-    "subtitle": "عد كل يوم للمطالبة بمكافأتك والحفاظ على استمرارية التسجيل!",
+    "title": "التحقق اليومي",
+    "subtitle": "عد كل يوم للمطالبة بمكافأتك والحفاظ على سجل تقدمك!",
     "day": "اليوم {{day}}",
-    "claimButton": "استلم {{reward}} عملة",
-    "claimedButton": "تم الاستلام!",
+    "claimButton": "المطالبة بـ {{reward}} قطعة نقدية",
+    "claimedButton": "تمت المطالبة!",
     "comeBackTomorrow": "عد غداً",
     "progress": "التقدم"
   },
   "leaderboard": {
-    "title": "قائمة المتصدرين",
+    "title": "لوحة المتصدرين",
     "subtitle": "أفضل اللاعبين هذا الأسبوع",
     "days": "أيام",
     "games": "ألعاب",
-    "yourRank": "ترتيبك: #{{rank}}"
+    "yourRank": "ترتيبك: #{rank}"
   },
   "profile": {
-    "joinDate": "انضممت في {{date}}",
-    "yourReferralCode": "رمز الدعوة الخاص بك",
+    "joinDate": "عضو منذ {{date}}",
+    "yourReferralCode": "رمز الإحالة الخاص بك",
     "copyCode": "نسخ",
     "copied": "تم النسخ!",
-    "leaderboard": "المتصدرين",
-    "yourRank": "ترتيبك"
+    "leaderboard": "أفضل اللاعبين",
+    "yourRank": "ترتيبك",
+    "playerTitle": "العداء السيبراني",
+    "credits": "رصيد",
+    "rank": "عالمي",
+    "since": "عضو",
+    "contactTitle": "هل تحتاج إلى دعم؟",
+    "contactSubtitle": "اتصل بمقر الدعم",
+    "inviteFriends": "ادعُ الطاقم",
+    "inviteSubtitle": "شارك الرمز و ارتقِ بالمستوى",
+    "yourCode": "مفتاح الوصول",
+    "share": "مشاركة",
+    "copy": "نسخ",
+    "shareMessage": "انضم إلي في التطبيق! الرمز: {{code}}"
   },
   "airdrop": {
-    "title": "إيردروب (Airdrop)",
+    "title": "Airdrop",
     "subtitle": "قريباً!",
-    "description": "استعد للحصول على مكافآت مثيرة ورموز حصرية. تابعنا للحصول على تحديثات حول حدث الإيردروب القادم."
+    "descriptionPre": "استعد لمكافآت مثيرة! سيبدأ الحدث في ",
+    "date": "الربع الأول من عام 2026",
+    "descriptionMid": ". هذا الحدث مخصص حصريًا للمستخدمين الذين دعوا ما لا يقل عن ",
+    "requirement": "20 شخصًا"
+  },
+  "achievements": {
+    "title": "الإنجازات",
+    "progress": "تم فتح {{count}} / {{total}}",
+    "names": {
+      "firstWin": "الفوز الأول",
+      "sniper": "قناص",
+      "bigSpender": "المُسْرِف الكبير",
+      "veteran": "مخضرم",
+      "speedster": "سريع البرق",
+      "legend": "أسطورة"
+    }
+  },
+  "contact": {
+    "title": "مقر الدعم",
+    "statusOnline": "النظام متصل",
+    "channels": "قنوات //",
+    "email": "البريد الإلكتروني",
+    "discord": "ديسكورد",
+    "twitter": "تويتر",
+    "newTransmission": "إرسال جديد //",
+    "from": "من:",
+    "id": "المعرّف:",
+    "subjectLabel": "الموضوع",
+    "subjectPlaceholder": "الإبلاغ عن خطأ / طلب ميزة...",
+    "messageLabel": "بيانات الرسالة",
+    "messagePlaceholder": "صف مشكلتك...",
+    "transmitting": "جاري الإرسال...",
+    "initiate": "بدء الاتصال",
+    "errorEmpty": "الإرسال فارغ. يرجى إدخال البيانات.",
+    "errorLink": "تعذر فتح الرابط",
+    "successMessage": "تم استلام الإرسال من المقر."
+  },
+  "categories": {
+    "all": "الكل",
+    "action": "أكشن",
+    "puzzle": "ألغاز",
+    "strategy": "استراتيجية",
+    "racing": "سباق",
+    "arcade": "أركيد",
+    "sports": "رياضات",
+    "adventure": "مغامرة"
   }
 }

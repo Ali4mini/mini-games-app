@@ -33,17 +33,19 @@ const ReferralSection: React.FC<ReferralSectionProps> = ({ code }) => {
     try {
       const message = t("profile.shareMessage", { 
         defaultValue: `🚀 Join me on this app! Use my code to get started: ${code}`, 
-        code 
+        code: code 
       });
+      
       await Share.share({ message });
     } catch (error: any) {
-      Alert.alert("Error", error.message);
+      // Updated to use translation for "Error"
+      Alert.alert(t("common.error", "Error"), error.message);
     }
   };
 
   return (
     <View style={styles.container}>
-      {/* Decorative 'screws' or dots for that industrial/cyberpunk look */}
+      {/* Decorative 'screws' */}
       <View style={[styles.screw, styles.screwTopLeft]} />
       <View style={[styles.screw, styles.screwTopRight]} />
       <View style={[styles.screw, styles.screwBottomLeft]} />
@@ -60,7 +62,7 @@ const ReferralSection: React.FC<ReferralSectionProps> = ({ code }) => {
         </View>
       </View>
 
-      {/* --- The Code Display (Digital Screen Look) --- */}
+      {/* --- The Code Display --- */}
       <View style={styles.codeDisplay}>
         <Text style={styles.codeLabel}>{t("profile.yourCode", "ACCESS KEY")}</Text>
         <Text style={styles.codeText}>{code}</Text>
@@ -68,7 +70,6 @@ const ReferralSection: React.FC<ReferralSectionProps> = ({ code }) => {
 
       {/* --- Action Buttons --- */}
       <View style={styles.actionsRow}>
-        {/* Share Button (Outlined/Secondary) */}
         <TouchableOpacity
           onPress={handleShare}
           style={[styles.button, styles.shareButton]}
@@ -78,7 +79,6 @@ const ReferralSection: React.FC<ReferralSectionProps> = ({ code }) => {
           <Text style={styles.shareButtonText}>{t("profile.share", "Share")}</Text>
         </TouchableOpacity>
 
-        {/* Copy Button (Filled/Primary) */}
         <TouchableOpacity
           onPress={handleCopyCode}
           style={[styles.button, styles.copyButton]}
@@ -106,23 +106,18 @@ const createStyles = (theme: any) =>
       marginVertical: 20,
       marginHorizontal: 20,
       padding: 20,
-      backgroundColor: theme.backgroundSecondary, // Slate 800 / White
+      backgroundColor: theme.backgroundSecondary,
       borderRadius: 20,
-      
-      // Cyberpunk Glow / Border
       borderWidth: 1,
-      borderColor: theme.primary, // Violet border
-      
-      // Shadow for 'Pop' (iOS) and Elevation (Android)
+      borderColor: theme.primary,
       shadowColor: theme.primary, 
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.25,
       shadowRadius: 8,
       elevation: 5,
       position: 'relative',
-      overflow: 'hidden', // Keeps the screws inside if they overlap slightly
+      overflow: 'hidden',
     },
-    // Decorative "Screws" in corners
     screw: {
         position: 'absolute',
         width: 6,
@@ -135,7 +130,6 @@ const createStyles = (theme: any) =>
     screwTopRight: { top: 10, right: 10 },
     screwBottomLeft: { bottom: 10, left: 10 },
     screwBottomRight: { bottom: 10, right: 10 },
-
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -159,26 +153,23 @@ const createStyles = (theme: any) =>
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: theme.primary, // Violet bg
+        backgroundColor: theme.primary,
         alignItems: 'center',
         justifyContent: 'center',
-        // Slight glow on the icon
         shadowColor: theme.primary,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.4,
         shadowRadius: 4,
     },
-    
-    // The "Digital" box for the code
     codeDisplay: {
-        backgroundColor: theme.backgroundPrimary, // Darker/Lighter contrasting bg
+        backgroundColor: theme.backgroundPrimary,
         borderRadius: 12,
         paddingVertical: 16,
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 1,
         borderColor: theme.backgroundTertiary,
-        borderStyle: 'dashed', // "Ticket" feel
+        borderStyle: 'dashed',
         marginBottom: 16,
     },
     codeLabel: {
@@ -191,11 +182,10 @@ const createStyles = (theme: any) =>
     codeText: {
         fontSize: 28,
         fontWeight: 'bold',
-        color: theme.secondary, // Cyan (Electric Blue) - Makes it POP
+        color: theme.secondary,
         letterSpacing: 2,
         fontFamily: Platform.OS === 'ios' ? 'Courier-Bold' : 'monospace',
     },
-
     actionsRow: {
         flexDirection: 'row',
         gap: 12,
@@ -211,7 +201,7 @@ const createStyles = (theme: any) =>
     shareButton: {
         backgroundColor: 'transparent',
         borderWidth: 1,
-        borderColor: theme.textTertiary, // Subtle border
+        borderColor: theme.textTertiary,
     },
     shareButtonText: {
         color: theme.textPrimary,
@@ -219,10 +209,9 @@ const createStyles = (theme: any) =>
         marginLeft: 8,
     },
     copyButton: {
-        backgroundColor: theme.primary, // Violet Fill
-        // Gradient simulation (if no linear-gradient package):
+        backgroundColor: theme.primary,
         borderTopWidth: 1,
-        borderTopColor: 'rgba(255,255,255,0.2)', // Top highlight
+        borderTopColor: 'rgba(255,255,255,0.2)',
     },
     copyButtonText: {
         color: theme.primaryContent,

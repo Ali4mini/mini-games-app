@@ -2,39 +2,41 @@
   "appName": "Earnado",
   "home": {
     "welcomeBack": "خوش آمدید،",
-    "dailyCheckIn": "ورود روزانه",
-    "luckySpin": "گردونه شانس",
+    "dailyCheckIn": "ثبت نام روزانه",
+    "luckySpin": "چرخش شانس",
     "continuePlaying": "ادامه بازی",
-    "featuredGames": "بازی‌های منتخب",
-    "referralTitle": "معرفی به دوستان!",
-    "referralSubtitle": "برای دعوت هر دوست {{count}} سکه دریافت کنید."
+    "featuredGames": "بازی‌های ویژه",
+    "referralTitle": "دوست خود را معرفی کنید!",
+    "referralSubtitle": "به ازای هر دوستی که دعوت می‌کنید {{count}} سکه کسب کنید."
   },
   "luckySpin": {
-    "title": "گردونه شانس",
-    "spinButton": "چرخش",
-    "spinning": "در حال چرخش",
-    "noSpins": "بدون چرخش",
-    "spinsLeft": "{{count}} چرخش رایگان باقی‌مانده",
-    "spinsLeft_plural": "{{count}} چرخش رایگان باقی‌مانده",
-    "noSpinsLeft": "چرخش رایگانی باقی نمانده",
-    "nextFreeSpin": "چرخش رایگان بعدی در: {{time}}",
-    "congratulations": "تبریک!",
+    "title": "چرخش شانس",
+    "spinButton": "بِچَرخان",
+    "spinning": "درحال چرخش",
+    "noSpins": "بدون شانس",
+    "spinsLeft": "{{count}} شانس رایگان باقی مانده",
+    "spinsLeft_plural": "{{count}} شانس رایگان باقی مانده",
+    "noSpinsLeft": "شانس رایگان باقی نمانده",
+    "nextFreeSpin": "شانس رایگان بعدی در: {{time}}",
+    "congratulations": "تبریک می‌گوییم!",
     "youWon": "شما برنده شدید: {{prize}}",
-    "great": "عالی!"
+    "great": "عالی است!"
   },
   "common": {
     "home": "خانه",
     "games": "بازی‌ها",
-    "dailyCheck": "روزانه",
+    "dailyCheck": "بررسی روزانه",
     "referral": "معرفی",
-    "luckySpin": "گردونه"
+    "luckySpin": "چرخش شانس",
+    "success": "موفقیت",
+    "error": "خطا"
   },
   "gamesList": {
-    "searchPlaceholder": "جستجوی بازی..."
+    "searchPlaceholder": "جستجوی یک بازی..."
   },
   "dailyCheckIn": {
-    "title": "ورود روزانه",
-    "subtitle": "هر روز سر بزنید تا پاداش خود را بگیرید و زنجیره حضور را حفظ کنید!",
+    "title": "ثبت نام روزانه",
+    "subtitle": "هر روز برگردید تا جایزه خود را دریافت کنید و رکوردتان را حفظ نمایید!",
     "day": "روز {{day}}",
     "claimButton": "دریافت {{reward}} سکه",
     "claimedButton": "دریافت شد!",
@@ -42,23 +44,80 @@
     "progress": "پیشرفت"
   },
   "leaderboard": {
-    "title": "جدول امتیازات",
-    "subtitle": "بازیکنان برتر هفته",
+    "title": "جدول رده‌بندی",
+    "subtitle": "بهترین بازیکنان این هفته",
     "days": "روز",
     "games": "بازی",
-    "yourRank": "رتبه شما: #{{rank}}"
+    "yourRank": "رتبه شما: #{rank}"
   },
   "profile": {
-    "joinDate": "عضویت در {{date}}",
-    "yourReferralCode": "کد معرف شما",
+    "joinDate": "عضو شده در {{date}}",
+    "yourReferralCode": "کد معرفی شما",
     "copyCode": "کپی",
     "copied": "کپی شد!",
-    "leaderboard": "جدول امتیازات",
-    "yourRank": "رتبه شما"
+    "leaderboard": "بهترین بازیکنان",
+    "yourRank": "رتبه شما",
+    "playerTitle": "دونده سایبری",
+    "credits": "اعتبار",
+    "rank": "جهانی",
+    "since": "عضو",
+    "contactTitle": "نیاز به پشتیبانی دارید؟",
+    "contactSubtitle": "تماس با دفتر پشتیبانی",
+    "inviteFriends": "دعوت از تیم",
+    "inviteSubtitle": "کد را به اشتراک بگذارید و سطح خود را بالا ببرید",
+    "yourCode": "کلید دسترسی",
+    "share": "اشتراک‌گذاری",
+    "copy": "کپی",
+    "shareMessage": "به من در اپلیکیشن بپیوند! کد: {{code}}"
   },
   "airdrop": {
-    "title": "ایردراپ",
+    "title": "Airdrop",
     "subtitle": "به زودی!",
-    "description": "برای پاداش‌های هیجان‌انگیز و توکن‌های اختصاصی آماده باشید. برای اطلاع از رویداد ایردراپ آینده، ما را دنبال کنید."
+    "descriptionPre": "برای جوایز هیجان‌انگیز آماده شوید! ایردراپ در ",
+    "date": "سه ماهه اول 2026",
+    "descriptionMid": " آغاز می‌شود. این رویداد منحصراً برای کاربرانی است که حداقل ",
+    "requirement": "20 نفر"
+  },
+  "achievements": {
+    "title": "دستاوردهای",
+    "progress": "باز شده {{count}} / {{total}}",
+    "names": {
+      "firstWin": "اولین برد",
+      "sniper": "تک‌تیرانداز",
+      "bigSpender": "مصرف‌کننده بزرگ",
+      "veteran": "کهنه‌سرباز",
+      "speedster": "سریع",
+      "legend": "افسانه"
+    }
+  },
+  "contact": {
+    "title": "دفتر پشتیبانی",
+    "statusOnline": "سیستم فعال",
+    "channels": "کانال‌ها //",
+    "email": "ایمیل",
+    "discord": "دیسکورد",
+    "twitter": "توییتر",
+    "newTransmission": "ارسال جدید //",
+    "from": "از:",
+    "id": "شناسه:",
+    "subjectLabel": "موضوع",
+    "subjectPlaceholder": "گزارش اشکال / درخواست ویژگی...",
+    "messageLabel": "داده‌های پیام",
+    "messagePlaceholder": "مشکل خود را شرح دهید...",
+    "transmitting": "درحال ارسال...",
+    "initiate": "شروع ارتباط",
+    "errorEmpty": "پیام ارسالی خالی است. لطفاً داده‌ها را وارد کنید.",
+    "errorLink": "لینک باز نشد",
+    "successMessage": "پیام توسط دفتر دریافت شد."
+  },
+  "categories": {
+    "all": "همه",
+    "action": "اکشن",
+    "puzzle": "پازل",
+    "strategy": "استراتژی",
+    "racing": "مسابقه‌ای",
+    "arcade": "آرکید",
+    "sports": "ورزشی",
+    "adventure": "ماجراجویی"
   }
 }
