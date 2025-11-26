@@ -89,7 +89,7 @@ export const createStyles = (theme: Theme) => {
     },
   headerRow: {
     flexDirection: "row", // Aligns items horizontally
-    justifyContent: "flex-end", // Pushes items to the right
+    justifyContent: "space-between", // Pushes items to the right
     alignItems: "center",
     paddingHorizontal: 20,
     paddingTop: 10,

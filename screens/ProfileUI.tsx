@@ -10,6 +10,7 @@ import { createStyles } from "./ProfileUI.styles";
 import { USER_DATA, LEADERBOARD_DATA } from "@/data/dummyData";
 import { LeaderboardPreview } from "@/components/profile/LeaderboardPreview";
 import LanguageSelector from "@/components/profile/LanguageSelector"; // Ensure path is correct
+import ThemeToggle from "@/components/profile/ThemeToggle"
 
 export const ProfileUI: React.FC = () => {
   const { t } = useTranslation();
@@ -36,7 +37,9 @@ export const ProfileUI: React.FC = () => {
         {/* --- HEADER / SETTINGS BAR --- */}
         <View style={styles.headerRow}>
           {/* Spacer to push content to the right */}
-          <View style={{ flex: 1 }} />
+          {/* <View style={{ flex: 1  }} /> */}
+
+	  <ThemeToggle />
           
           {/* Language Selector (Top Right) */}
           <LanguageSelector />
