@@ -1,5 +1,7 @@
 import React, { useEffect } from "react";
-import { View, Text, useColorScheme, StyleSheet, Dimensions } from "react-native";
+import { View, Text, StyleSheet, Dimensions } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -7,15 +9,13 @@ import Animated, {
   withTiming,
   withSequence,
   Easing,
-  withDelay,
 } from "react-native-reanimated";
-import colors from "@/constants/Colors"; // Adjust path as needed
 
-const { width } = Dimensions.get("window");
+import { useTheme } from "@/context/ThemeContext";
 
 const AirdropScreen: React.FC = () => {
-  const colorScheme = useColorScheme();
-  const currentColors = colors[colorScheme || "light"];
+  const { t } = useTranslation();
+  const theme = useTheme();
 
   // Animation values
   const glowScale = useSharedValue(1);
@@ -26,23 +26,23 @@ const AirdropScreen: React.FC = () => {
     // 1. Pulsing Glow Animation
     glowScale.value = withRepeat(
       withSequence(
-        withTiming(1.5, { duration: 2000, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1.4, { duration: 2000, easing: Easing.inOut(Easing.ease) }),
         withTiming(1, { duration: 2000, easing: Easing.inOut(Easing.ease) })
-      ),
-      -1, // Infinite loop
-      true // Reverse
-    );
-
-    glowOpacity.value = withRepeat(
-      withSequence(
-        withTiming(0.2, { duration: 2000 }),
-        withTiming(0.5, { duration: 2000 })
       ),
       -1,
       true
     );
 
-    // 2. Gentle Floating Animation for the whole content
+    glowOpacity.value = withRepeat(
+      withSequence(
+        withTiming(0.3, { duration: 2000 }),
+        withTiming(0.6, { duration: 2000 })
+      ),
+      -1,
+      true
+    );
+
+    // 2. Gentle Floating Animation
     contentTranslateY.value = withRepeat(
       withSequence(
         withTiming(-10, { duration: 3000, easing: Easing.inOut(Easing.quad) }),
@@ -71,61 +71,68 @@ const AirdropScreen: React.FC = () => {
     <View
       style={[
         styles.container,
-        { backgroundColor: currentColors.backgroundPrimary },
+        { backgroundColor: theme.backgroundPrimary },
       ]}
     >
-      {/* Background ambient glow (Static or subtle animation could be added here too) */}
-      <View style={[styles.ambientGlow, { backgroundColor: "rgba(244, 63, 94, 0.05)" }]} />
-
       <Animated.View style={[styles.content, floatStyle]}>
         
-        {/* Icon Container with Animated Glow Behind it */}
+        {/* --- ICON WRAPPER --- */}
         <View style={styles.iconWrapper}>
+          {/* Pulsing Ring Behind */}
           <Animated.View
             style={[
               styles.glowRing,
-              { backgroundColor: "rgba(244, 63, 94, 0.6)" },
+              { 
+                backgroundColor: theme.primary, // Violet
+                shadowColor: theme.primary,
+              },
               glowStyle,
             ]}
           />
+          
+          {/* Main Icon Circle */}
           <View
             style={[
               styles.iconContainer,
-              { backgroundColor: "rgba(244, 63, 94, 0.1)" },
+              { 
+                backgroundColor: theme.backgroundSecondary, // Card Color
+                borderColor: theme.backgroundTertiary,     // Subtle Border
+              },
             ]}
           >
-            <Text style={[styles.emoji, { color: currentColors.primary }]}>
-              🎁
-            </Text>
+            {/* Using Icon instead of Emoji for cleaner vector look */}
+            <Ionicons name="gift" size={36} color={theme.primary} />
           </View>
         </View>
 
-        <Text style={[styles.title, { color: currentColors.textPrimary }]}>
-          Airdrop
+        {/* --- TEXT CONTENT --- */}
+        <Text style={[styles.title, { color: theme.textPrimary }]}>
+          {t("airdrop.title", "Airdrop")}
         </Text>
 
-        <Text style={[styles.subtitle, { color: currentColors.textSecondary }]}>
-          Coming Soon!
+        <Text style={[styles.subtitle, { color: theme.secondary }]}>
+          {t("airdrop.subtitle", "Coming Soon!")}
         </Text>
 
+        {/* Divider Line */}
         <View
           style={[
             styles.divider,
-            { backgroundColor: "rgba(244, 63, 94, 0.3)" },
+            { backgroundColor: theme.tabBarInactive }, // Muted color
           ]}
         />
 
-        <Text
-          style={[styles.description, { color: currentColors.textTertiary }]}
-        >
-          Get ready for exciting rewards! The airdrop is scheduled to start in{" "}
-          <Text style={{ fontWeight: "700", color: currentColors.textPrimary }}>
-            Q1 of 2026
+        <Text style={[styles.description, { color: theme.textSecondary }]}>
+          {t("airdrop.descriptionPre", "Get ready for exciting rewards! The airdrop starts in ")}
+          
+          <Text style={{ fontWeight: "700", color: theme.primary }}>
+            {t("airdrop.date", "Q1 of 2026")}
           </Text>
-          . Please note that this event is exclusively for users who have
-          invited at least{" "}
-          <Text style={{ fontWeight: "700", color: currentColors.textPrimary }}>
-            20 people
+          
+          {t("airdrop.descriptionMid", ". This event is exclusively for users who have invited at least ")}
+          
+          <Text style={{ fontWeight: "700", color: theme.secondary }}>
+             {t("airdrop.requirement", "20 people")}
           </Text>
           .
         </Text>
@@ -140,16 +147,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: 24,
-    overflow: 'hidden', // Ensures glow doesn't spill if it gets huge
-  },
-  ambientGlow: {
-    position: 'absolute',
-    top: -100,
-    left: -100,
-    right: -100,
-    bottom: -100,
-    zIndex: -1,
-    // Add a very large blurry background circle if desired
+    overflow: 'hidden',
   },
   content: {
     maxWidth: 400,
@@ -160,22 +158,18 @@ const styles = StyleSheet.create({
     position: 'relative',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 30, // Increased margin to account for glow size
+    marginBottom: 40,
   },
   glowRing: {
     position: 'absolute',
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    // The blurRadius property works differently on iOS/Android. 
-    // Usually standard views don't support blurRadius directly without specific libraries.
-    // We simulate the glow with opacity and scaling instead for max compatibility,
-    // but if you want a soft edge, you can use a shadow or an image.
-    shadowColor: "#f43f5e",
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    // Soft Glow logic
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
+    shadowOpacity: 0.6,
     shadowRadius: 20,
-    elevation: 10, // Android shadow
+    elevation: 10,
   },
   iconContainer: {
     width: 80,
@@ -183,38 +177,40 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     justifyContent: "center",
     alignItems: "center",
-    zIndex: 2, // Ensure icon sits on top of glow
+    zIndex: 2,
     borderWidth: 1,
-    borderColor: "rgba(244, 63, 94, 0.2)",
-  },
-  emoji: {
-    fontSize: 40,
+    // Add a slight internal shadow/elevation
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 5,
   },
   title: {
-    fontSize: 32, // Slightly larger
+    fontSize: 32,
     fontWeight: "800",
     marginBottom: 8,
     textAlign: "center",
     letterSpacing: 0.5,
   },
   subtitle: {
-    fontSize: 20,
-    fontWeight: "600",
+    fontSize: 18,
+    fontWeight: "700",
     marginBottom: 24,
     textAlign: "center",
-    opacity: 0.8,
-    textTransform: 'uppercase', // Adds a bit of "alert" style
+    textTransform: 'uppercase',
     letterSpacing: 2,
   },
   divider: {
     width: 60,
     height: 4,
     borderRadius: 2,
-    marginVertical: 24,
+    marginBottom: 24,
+    opacity: 0.3,
   },
   description: {
     fontSize: 16,
-    lineHeight: 24,
+    lineHeight: 26,
     textAlign: "center",
     paddingHorizontal: 16,
   },
