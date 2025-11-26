@@ -1,0 +1,124 @@
+{
+  "appName": "Earnado",
+  "home": {
+    "welcomeBack": "欢迎回来，",
+    "dailyCheckIn": "每日签到",
+    "luckySpin": "幸运转盘",
+    "continuePlaying": "继续游戏",
+    "featuredGames": "精选游戏",
+    "referralTitle": "邀请好友！",
+    "referralSubtitle": "每邀请一位好友即可赚取 {{count}} 金币。"
+  },
+  "luckySpin": {
+    "title": "幸运转盘",
+    "spinButton": "旋转",
+    "spinning": "旋转中...",
+    "noSpins": "无剩余次数",
+    "spinsLeft": "剩余 {{count}} 次免费旋转",
+    "spinsLeft_plural": "剩余 {{count}} 次免费旋转",
+    "noSpinsLeft": "没有免费旋转次数了",
+    "nextFreeSpin": "下次免费旋转时间：{{time}}",
+    "congratulations": "恭喜！",
+    "youWon": "你赢得了：{{prize}}",
+    "great": "太棒了！"
+  },
+  "common": {
+    "home": "首页",
+    "games": "游戏",
+    "dailyCheck": "每日签到",
+    "referral": "邀请",
+    "luckySpin": "幸运转盘",
+    "success": "成功",
+    "error": "错误"
+  },
+  "gamesList": {
+    "searchPlaceholder": "搜索游戏..."
+  },
+  "dailyCheckIn": {
+    "title": "每日签到",
+    "subtitle": "每天回来领取奖励并保持签到连胜！",
+    "day": "第 {{day}} 天",
+    "claimButton": "领取 {{reward}} 金币",
+    "claimedButton": "已领取！",
+    "comeBackTomorrow": "明天再来",
+    "progress": "进度"
+  },
+  "leaderboard": {
+    "title": "排行榜",
+    "subtitle": "本周顶尖玩家",
+    "days": "天",
+    "games": "游戏",
+    "yourRank": "你的排名：第 #{rank} 名"
+  },
+  "profile": {
+    "joinDate": "加入时间 {{date}}",
+    "yourReferralCode": "你的邀请码",
+    "copyCode": "复制",
+    "playerTitle": "网络行者",
+    "credits": "信用点",
+    "rank": "全球排名",
+    "since": "会员身份",
+    "leaderboard": "顶尖玩家",
+    "yourRank": "你的排名",
+    "contactTitle": "需要支援？",
+    "contactSubtitle": "联系总部支持",
+    "inviteFriends": "招募队友",
+    "inviteSubtitle": "分享代码并升级",
+    "yourCode": "访问密钥",
+    "share": "分享",
+    "copy": "复制",
+    "copied": "已复制！",
+    "shareMessage": "快来加入我！邀请码：{{code}}"
+  },
+  "airdrop": {
+    "title": "空投",
+    "subtitle": "即将推出！",
+    "description": "准备好迎接激动人心的奖励和独家代币。关注我们以获取即将到来的空投活动更新。",
+    "descriptionPre": "准备好迎接激动人心的奖励！空投将于 ",
+    "date": "2026年第一季度",
+    "descriptionMid": " 开启。此活动仅限邀请了至少 ",
+    "requirement": "20人"
+  },
+  "achievements": {
+    "title": "成就",
+    "progress": "已解锁 {{count}} / {{total}}",
+    "names": {
+      "firstWin": "首胜",
+      "sniper": "狙击手",
+      "bigSpender": "挥金如土",
+      "veteran": "老兵",
+      "speedster": "急速者",
+      "legend": "传奇"
+    }
+  },
+  "contact": {
+    "title": "支持总部",
+    "statusOnline": "系统在线",
+    "channels": "频道 //",
+    "email": "电子邮件",
+    "discord": "DISCORD",
+    "twitter": "TWITTER",
+    "newTransmission": "新传输 //",
+    "from": "来自：",
+    "id": "ID：",
+    "subjectLabel": "主题",
+    "subjectPlaceholder": "报告漏洞 / 功能请求...",
+    "messageLabel": "信息数据",
+    "messagePlaceholder": "描述你的问题...",
+    "initiate": "启动上行链路",
+    "transmitting": "传输中...",
+    "errorEmpty": "传输内容为空。请输入数据。",
+    "errorLink": "无法打开链接",
+    "successMessage": "总部已收到传输。"
+  },
+  "categories": {
+    "all": "全部",
+    "action": "动作",
+    "puzzle": "益智",
+    "strategy": "策略",
+    "racing": "竞速",
+    "arcade": "街机",
+    "sports": "体育",
+    "adventure": "冒险"
+  }
+}

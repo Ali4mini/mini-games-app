@@ -9,6 +9,7 @@ import es from "@/assets/locales/es/translation.json"; // <-- Import Spanish
 import fr from "@/assets/locales/fr/translation.json"; // <-- Import French
 import de from "@/assets/locales/de/translation.json"; // <-- Import German
 import ar from "@/assets/locales/ar/translation.json"; // <-- Import Arabic
+import zh from "@/assets/locales/zh/translation.json";
 
 // 1. Define your resources, now including the new languages.
 const resources = {
@@ -29,6 +30,9 @@ const resources = {
   },
   ar: {
     translation: ar,
+  },
+  zh: {
+    translation: zh,
   },
 } as const;
 
