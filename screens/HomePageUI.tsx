@@ -1,5 +1,12 @@
 import React, { useMemo } from "react";
-import { ScrollView, StatusBar, StyleSheet } from "react-native";
+import {
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  ActivityIndicator,
+  View,
+  RefreshControl,
+} from "react-native";
 import { useTranslation } from "react-i18next";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -8,12 +15,9 @@ import { useTheme } from "@/context/ThemeContext";
 import Colors from "@/constants/Colors";
 import { Theme } from "@/types";
 
-// --- Data & Component Imports ---
-import {
-  USER_DATA,
-  HERO_BANNER_DATA,
-  RECENTLY_PLAYED_GAMES,
-} from "@/data/dummyData";
+// --- Hook Import ---
+import { useHomeData } from "@/hooks/useHomeData"; // Import the hook we made
+
 import { AppTitleHeader } from "@/components/layout/AppTitleHeader";
 import { HeroCarousel } from "@/components/home/HeroCarousel";
 import { ContinuePlaying } from "@/components/games/ContinuePlaying";
@@ -27,6 +31,20 @@ const HomePageUI: React.FC = () => {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
+  // 1. Use the Supabase hook
+  const { loading, profile, banners, games, refetch } = useHomeData();
+
+  console.log("profile:", profile);
+
+  // 2. Loading State (Optional: Make a nice skeleton loader later)
+  if (loading && !profile) {
+    return (
+      <View style={[styles.container, styles.center]}>
+        <ActivityIndicator size="large" color={theme.primary} />
+      </View>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
       <StatusBar
@@ -38,16 +56,33 @@ const HomePageUI: React.FC = () => {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
+        // 3. Add Pull-to-Refresh
+        refreshControl={
+          <RefreshControl
+            refreshing={loading}
+            onRefresh={refetch}
+            tintColor={theme.primary}
+          />
+        }
       >
+        {/* Pass real profile data */}
         <HomeHeader
-          userName={USER_DATA.name}
-          coins={USER_DATA.coins}
-          avatarUrl={USER_DATA.avatarUrl}
+          userName={profile?.name || "Guest"}
+          coins={profile?.coins || 0}
+          avatarUrl={profile?.avatar || "https://via.placeholder.com/150"}
         />
-        <HeroCarousel data={HERO_BANNER_DATA} />
+
+        {/* Pass real banner data */}
+        <HeroCarousel data={banners} />
+
         <QuickActions />
-        <ContinuePlaying data={RECENTLY_PLAYED_GAMES} />
+
+        {/* Pass real games data */}
+        <ContinuePlaying data={games} />
+
         <ReferralCTA />
+
+        {/* You might want to pass games here too, or fetch different ones inside this component */}
         <FeaturedGames />
       </ScrollView>
     </SafeAreaView>
@@ -59,7 +94,11 @@ const createStyles = (theme: Theme) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      // backgroundColor: theme.backgroundPrimary,
+      backgroundColor: theme.backgroundPrimary, // Ensure background is set
+    },
+    center: {
+      justifyContent: "center",
+      alignItems: "center",
     },
     scrollContent: {
       paddingBottom: 110,

@@ -1,18 +1,27 @@
 import React, { useMemo } from "react";
-import { View, Text, ScrollView, Image, StyleSheet, Dimensions, Platform, Alert } from "react-native";
+import {
+  View,
+  Text,
+  ScrollView,
+  Image,
+  StyleSheet,
+  Platform,
+  Alert,
+  Button,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { FontAwesome5, MaterialCommunityIcons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient"; 
-import { useRouter } from "expo-router"; 
+import { useRouter } from "expo-router";
+import { supabase } from "@/utils/supabase";
 
 import { useTheme } from "@/context/ThemeContext";
 import { USER_DATA } from "@/data/dummyData";
-import LanguageSelector from "@/components/profile/LanguageSelector"; 
+import LanguageSelector from "@/components/profile/LanguageSelector";
 import ThemeToggle from "@/components/profile/ThemeToggle";
 
 // --- Components ---
-import ReferralSection from "@/components/profile/ReferralSection"; 
+import ReferralSection from "@/components/profile/ReferralSection";
 import { AchievementsSection } from "@/components/profile/AchievementsSection"; // New
 import { ContactAction } from "@/components/profile/ContactAction"; // New
 
@@ -20,21 +29,29 @@ export const ProfileUI: React.FC = () => {
   const { t } = useTranslation();
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
-  const router = useRouter(); 
+  const router = useRouter();
 
   const playerLevel = Math.floor(USER_DATA.coins / 1000) + 1;
 
   const handleContactPress = () => {
     // Navigate to your Contact Page
-    router.push("/contact-us"); 
-    
+    router.push("/contact-us");
+
     // Fallback if no page exists yet:
     // Alert.alert("Contact Support", "Redirecting to support center...");
+  };
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      Alert.alert("Error signing out", error.message);
+    }
+    // No need to manually router.replace().
+    // The AuthContext in _layout.tsx will see the session vanish and redirect you.
   };
 
   return (
     <View style={styles.mainContainer}>
-      
       {/* --- HERO BACKGROUND --- */}
       {/* <View style={styles.splashContainer}> */}
       {/*   <LinearGradient */}
@@ -46,11 +63,10 @@ export const ProfileUI: React.FC = () => {
       {/* </View> */}
 
       <SafeAreaView style={styles.safeArea} edges={["top"]}>
-        <ScrollView 
-          contentContainerStyle={styles.scrollViewContent} 
+        <ScrollView
+          contentContainerStyle={styles.scrollViewContent}
           showsVerticalScrollIndicator={false}
         >
-          
           {/* --- HEADER BAR --- */}
           <View style={styles.headerRow}>
             <View style={styles.iconButtonWrapper}>
@@ -65,36 +81,72 @@ export const ProfileUI: React.FC = () => {
           <View style={styles.profileCard}>
             <View style={styles.avatarContainer}>
               <View style={styles.avatarBorder}>
-                <Image source={{ uri: USER_DATA.avatarUrl }} style={styles.avatar} />
+                <Image
+                  source={{ uri: USER_DATA.avatarUrl }}
+                  style={styles.avatar}
+                />
               </View>
               <View style={styles.levelBadge}>
                 <Text style={styles.levelText}>LVL {playerLevel}</Text>
               </View>
             </View>
 
+            <View style={styles.mainContainer}>
+              {/* Other profile info... */}
+
+              <Button title="Log Out" onPress={handleLogout} color="#ff4444" />
+            </View>
+
             <View style={styles.identityContent}>
               <Text style={styles.username}>{USER_DATA.name}</Text>
-              <Text style={styles.userTitle}>{t("profile.playerTitle", "Cyber Runner")}</Text>
+              <Text style={styles.userTitle}>
+                {t("profile.playerTitle", "Cyber Runner")}
+              </Text>
             </View>
 
             {/* Stats Grid */}
             <View style={styles.statsGrid}>
               <View style={styles.statBox}>
-                <FontAwesome5 name="coins" size={16} color={theme.warning} style={{ marginBottom: 4 }} />
-                <Text style={styles.statValue}>{USER_DATA.coins.toLocaleString()}</Text>
-                <Text style={styles.statLabel}>{t("profile.credits", "CREDITS")}</Text>
+                <FontAwesome5
+                  name="coins"
+                  size={16}
+                  color={theme.warning}
+                  style={{ marginBottom: 4 }}
+                />
+                <Text style={styles.statValue}>
+                  {USER_DATA.coins.toLocaleString()}
+                </Text>
+                <Text style={styles.statLabel}>
+                  {t("profile.credits", "CREDITS")}
+                </Text>
               </View>
               <View style={styles.verticalDivider} />
               <View style={styles.statBox}>
-                <FontAwesome5 name="trophy" size={16} color={theme.secondary} style={{ marginBottom: 4 }} />
+                <FontAwesome5
+                  name="trophy"
+                  size={16}
+                  color={theme.secondary}
+                  style={{ marginBottom: 4 }}
+                />
                 <Text style={styles.statValue}>#42</Text>
-                <Text style={styles.statLabel}>{t("profile.rank", "GLOBAL")}</Text>
+                <Text style={styles.statLabel}>
+                  {t("profile.rank", "GLOBAL")}
+                </Text>
               </View>
               <View style={styles.verticalDivider} />
               <View style={styles.statBox}>
-                <MaterialCommunityIcons name="clock-outline" size={18} color={theme.textTertiary} style={{ marginBottom: 4 }} />
-                <Text style={styles.statValue}>{new Date(USER_DATA.joinDate).getFullYear()}</Text>
-                <Text style={styles.statLabel}>{t("profile.since", "MEMBER")}</Text>
+                <MaterialCommunityIcons
+                  name="clock-outline"
+                  size={18}
+                  color={theme.textTertiary}
+                  style={{ marginBottom: 4 }}
+                />
+                <Text style={styles.statValue}>
+                  {new Date(USER_DATA.joinDate).getFullYear()}
+                </Text>
+                <Text style={styles.statLabel}>
+                  {t("profile.since", "MEMBER")}
+                </Text>
               </View>
             </View>
           </View>
@@ -110,7 +162,6 @@ export const ProfileUI: React.FC = () => {
 
           {/* --- CONTACT SUPPORT BUTTON --- */}
           <ContactAction onPress={handleContactPress} />
-
         </ScrollView>
       </SafeAreaView>
     </View>
@@ -128,18 +179,18 @@ const createStyles = (theme: any) =>
       flex: 1,
     },
     splashContainer: {
-        position: "absolute",
-        top: 0,
-        left: 0,
-        right: 0,
-        height: 280,
-        overflow: 'hidden',
-        borderBottomLeftRadius: 40,
-        borderBottomRightRadius: 40,
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      height: 280,
+      overflow: "hidden",
+      borderBottomLeftRadius: 40,
+      borderBottomRightRadius: 40,
     },
     headerSplash: {
-        flex: 1,
-        opacity: 0.8,
+      flex: 1,
+      opacity: 0.8,
     },
     scrollViewContent: {
       paddingBottom: 120,
@@ -152,7 +203,7 @@ const createStyles = (theme: any) =>
       marginBottom: 10,
     },
     iconButtonWrapper: {
-      backgroundColor: 'rgba(0,0,0,0.2)',
+      backgroundColor: "rgba(0,0,0,0.2)",
       borderRadius: 30,
       padding: 4,
     },
@@ -172,9 +223,9 @@ const createStyles = (theme: any) =>
       elevation: 5,
     },
     avatarContainer: {
-      position: 'absolute',
+      position: "absolute",
       top: -40,
-      alignItems: 'center',
+      alignItems: "center",
       zIndex: 10,
     },
     avatarBorder: {
@@ -190,7 +241,7 @@ const createStyles = (theme: any) =>
       borderColor: theme.primary,
     },
     levelBadge: {
-      position: 'absolute',
+      position: "absolute",
       bottom: -6,
       backgroundColor: theme.secondary,
       paddingHorizontal: 12,
@@ -204,7 +255,7 @@ const createStyles = (theme: any) =>
       letterSpacing: 0.5,
     },
     identityContent: {
-      alignItems: 'center',
+      alignItems: "center",
       marginBottom: 20,
     },
     username: {
@@ -236,14 +287,14 @@ const createStyles = (theme: any) =>
       fontSize: 16,
       fontWeight: "700",
       color: theme.textPrimary,
-      fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+      fontFamily: Platform.OS === "ios" ? "Courier" : "monospace",
     },
     statLabel: {
       fontSize: 9,
       color: theme.textSecondary,
       marginTop: 2,
       fontWeight: "700",
-      textTransform: 'uppercase',
+      textTransform: "uppercase",
     },
     verticalDivider: {
       width: 1,

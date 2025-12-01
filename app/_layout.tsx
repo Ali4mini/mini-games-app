@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { Stack } from "expo-router";
+import { Stack, useRouter, useSegments } from "expo-router"; // Added useRouter, useSegments
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { I18nextProvider } from "react-i18next";
 import { StatusBar } from "expo-status-bar";
-import BlobBackground from "@/components/common/BlobBackground"; // Your new component
-// import PatternBackground from "@/components/common/PatternBackground"; // Your new component
+import BlobBackground from "@/components/common/BlobBackground";
 import i18n from "@/i18n";
 
 import { ThemeProvider, useTheme } from "@/context/ThemeContext";
+import { AuthProvider, useAuth } from "@/context/AuthContext"; // <--- 1. Import Auth
 import { SplashScreen as AnimatedSplash } from "@/components/common/SplashScreen";
 
 SplashScreen.preventAutoHideAsync();
@@ -17,47 +17,55 @@ SplashScreen.preventAutoHideAsync();
 const RootNavigator = () => {
   const theme = useTheme();
 
+  // 2. Hooks for Auth and Navigation
+  const { session, loading: authLoading } = useAuth();
+  const segments = useSegments();
+  const router = useRouter();
+
+  // 3. The Gatekeeper: Manage Redirects
+  useEffect(() => {
+    if (authLoading) return; // Wait until supabase checks the session
+
+    const inAuthGroup = segments[0] === "(auth)";
+
+    if (!session && !inAuthGroup) {
+      // User is NOT logged in, and not in the login/signup screens -> Redirect to Login
+      router.replace("/(auth)/login");
+    } else if (session && inAuthGroup) {
+      // User IS logged in, but is on login/signup screens -> Redirect to Home
+      router.replace("/(tabs)");
+    }
+  }, [session, authLoading, segments]);
+
   return (
-    <BlobBackground> 
-      {/* ^^^ 1. WRAP EVERYTHING IN BACKGROUND ^^^ */}
-      
+    <BlobBackground>
       <StatusBar style={theme.type === "dark" ? "light" : "dark"} />
 
       <Stack
         screenOptions={{
-          // 2. Make the Header Transparent so blobs float behind it
-          headerStyle: {
-            backgroundColor: 'transparent', 
-          },
-          headerTransparent: true, // This allows content to scroll under the header
-          
+          headerStyle: { backgroundColor: "transparent" },
+          headerTransparent: true,
           headerTintColor: theme.textPrimary,
-          headerTitleStyle: {
-            fontFamily: "LilitaOne",
-            fontSize: 20,
-          },
+          headerTitleStyle: { fontFamily: "LilitaOne", fontSize: 20 },
           headerShadowVisible: false,
-
-          // 3. CRITICAL: Make the screen background transparent
-          // If this is set to theme.backgroundPrimary, it covers the blobs!
-          contentStyle: {
-            backgroundColor: 'transparent',
-          },
+          contentStyle: { backgroundColor: "transparent" },
         }}
       >
+        {/* 4. Add the Auth Route Group */}
+        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+
+        {/* Your Existing Routes */}
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="game-details" options={{ headerShown: false }} />
-        
-        {/* 4. EXCEPTION: The Game Player usually needs a solid background */}
-        {/* We override the transparency here to focus on gameplay */}
-        <Stack.Screen 
-          name="game-player" 
-          options={{ 
+
+        <Stack.Screen
+          name="game-player"
+          options={{
             headerShown: false,
-            contentStyle: { backgroundColor: '#000' } // Keep game player dark/solid
-          }} 
+            contentStyle: { backgroundColor: "#000" },
+          }}
         />
-        
+
         <Stack.Screen name="airdrop" options={{ headerShown: false }} />
       </Stack>
     </BlobBackground>
@@ -66,7 +74,7 @@ const RootNavigator = () => {
 
 export default function RootLayout() {
   const [showAnimatedSplash, setShowAnimatedSplash] = useState(true);
-  
+
   const [fontsLoaded, fontError] = useFonts({
     LilitaOne: require("../assets/fonts/LilitaOne-Regular.ttf"),
   });
@@ -85,7 +93,12 @@ export default function RootLayout() {
     <I18nextProvider i18n={i18n}>
       <SafeAreaProvider>
         <ThemeProvider>
-          <RootNavigator />
+          {/* 5. Wrap everything in AuthProvider */}
+          <AuthProvider>
+            <RootNavigator />
+          </AuthProvider>
+
+          {/* Splash screen stays outside AuthProvider to show regardless of auth state */}
           {showAnimatedSplash && (
             <AnimatedSplash onFinish={() => setShowAnimatedSplash(false)} />
           )}
