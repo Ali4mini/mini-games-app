@@ -3,37 +3,37 @@ import { View, Text, FlatList, Image, TouchableOpacity } from "react-native";
 import { useTranslation } from "react-i18next";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import { Link } from "expo-router";
+import { Link, Href } from "expo-router";
 
-import { useTheme } from "../../context/ThemeContext";
+import { useTheme } from "@/context/ThemeContext";
 import { createStyles } from "./ContinuePlaying.styles";
-import { Game } from "../../types";
+import { Game } from "@/types";
 
 const RecentGameCard: React.FC<{ game: Game }> = ({ game }) => {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
+  // Ensure we have a valid route structure for Expo Router
+  const gameLink: Href = {
+    pathname: "/game-player",
+    params: {
+      url: game.url,
+      title: game.title,
+      orientation: game.orientation,
+    },
+  };
+
   return (
-    <Link
-      href={{
-        pathname: "/game-player",
-        params: {
-          url: game.url,
-          title: game.title,
-          orientation: game.orientation,
-        },
-      }}
-      asChild
-    >
+    <Link href={gameLink} asChild>
       <TouchableOpacity activeOpacity={0.8} style={styles.card}>
-        {/* 1. Background Image */}
+        {/* 1. Background Image (Hook already fixed the URL) */}
         <Image
           source={{ uri: game.image }}
           style={styles.image}
           resizeMode="cover"
         />
 
-        {/* 2. Center Play Icon (Visual feedback) */}
+        {/* 2. Center Play Icon */}
         <View style={styles.playIconContainer}>
           <View style={styles.playButtonBubble}>
             <Ionicons
@@ -45,7 +45,7 @@ const RecentGameCard: React.FC<{ game: Game }> = ({ game }) => {
           </View>
         </View>
 
-        {/* 3. Gradient Fade + Text at bottom */}
+        {/* 3. Gradient Fade */}
         <LinearGradient
           colors={["transparent", "rgba(0,0,0,0.9)"]}
           style={styles.gradientOverlay}
@@ -68,6 +68,7 @@ export const ContinuePlaying: React.FC<ContinuePlayingProps> = ({ data }) => {
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
+  // Safety check: Don't render if no games
   if (!data || data.length === 0) {
     return null;
   }
@@ -83,7 +84,6 @@ export const ContinuePlaying: React.FC<ContinuePlayingProps> = ({ data }) => {
         keyExtractor={(item) => item.id}
         horizontal={true}
         showsHorizontalScrollIndicator={false}
-        // Add padding inside the list so the first item isn't flush with the screen edge
         contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 10 }}
       />
     </View>

@@ -10,10 +10,11 @@ import { useTranslation } from "react-i18next"; // 1. Import hook
 
 import { useTheme } from "../../context/ThemeContext";
 import { createStyles } from "./GameCategories.styles";
+import { GameCategories as GameCategoriesType } from "@/types";
 
 type GameCategoriesProps = {
   categories: string[];
-  onSelectCategory: (category: string) => void;
+  onSelectCategory: (category: GameCategoriesType) => void;
 };
 
 // Helper to get icon/color based on the ID/Key
@@ -41,8 +42,8 @@ const getCategoryData = (category: string) => {
 };
 
 const CategoryChip = ({
-  item,      // This is the ID (e.g., "action") used for logic
-  label,     // This is the Translated Text (e.g., "Action" or "Azione")
+  item, // This is the ID (e.g., "action") used for logic
+  label, // This is the Translated Text (e.g., "Action" or "Azione")
   isActive,
   onPress,
   styles,
@@ -116,7 +117,7 @@ export const GameCategories: React.FC<GameCategoriesProps> = ({
   const styles = useMemo(() => createStyles(theme), [theme]);
   const [activeCategory, setActiveCategory] = useState(categories[0] || "All");
 
-  const handlePress = (category: string) => {
+  const handlePress = (category: GameCategoriesType) => {
     setActiveCategory(category);
     onSelectCategory(category);
   };
@@ -130,7 +131,9 @@ export const GameCategories: React.FC<GameCategoriesProps> = ({
             item={item}
             // 4. Translate here. We convert key to lowercase to match JSON keys.
             // Example: "Action" -> t("categories.action") -> "Action" (or translated)
-            label={t(`categories.${item.toLowerCase()}`, { defaultValue: item })}
+            label={t(`categories.${item.toLowerCase()}`, {
+              defaultValue: item,
+            })}
             isActive={item === activeCategory}
             onPress={() => handlePress(item)}
             styles={styles}

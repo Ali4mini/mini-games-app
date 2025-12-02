@@ -1,8 +1,16 @@
-import React, { useState, useMemo } from "react";
-import { View, FlatList, Text, TouchableOpacity, Image } from "react-native";
+import React, { useMemo } from "react";
+import {
+  View,
+  FlatList,
+  Text,
+  TouchableOpacity,
+  Image,
+  ActivityIndicator,
+  RefreshControl,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
-import { Link } from "expo-router";
+import { Link, Href } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, {
   useSharedValue,
@@ -10,14 +18,30 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 
-import { useTheme } from "../context/ThemeContext";
+// --- Local Imports ---
+import { useTheme } from "@/context/ThemeContext";
 import { createStyles } from "./GamesListUI.styles";
 import { GameCategories } from "@/components/games/GameCategories";
 import { SearchBar } from "@/components/common/SearchBar";
-import { ALL_GAMES, GAME_CATEGORIES } from "@/data/dummyData";
 import { Game } from "@/types";
 
-// --- 1. DEFINE POSTER CARD LOCALLY TO ENSURE VERTICAL LOOK ---
+// --- Backend Hook ---
+import { useGameCatalog } from "@/hooks/useGameCatalog";
+
+// Constants
+const CATEGORY_LIST = [
+  "All",
+  "Puzzle",
+  "Action",
+  "Strategy",
+  "Racing",
+  "Sports",
+  "Adventure",
+  "Casual",
+  "Arcade",
+];
+
+// --- 1. POSTER CARD (Vertical) ---
 const LibraryGameCard = ({ item, styles }: { item: Game; styles: any }) => {
   const scale = useSharedValue(1);
   const animatedStyle = useAnimatedStyle(() => ({
@@ -27,23 +51,23 @@ const LibraryGameCard = ({ item, styles }: { item: Game; styles: any }) => {
   const onPressIn = () => (scale.value = withSpring(0.95));
   const onPressOut = () => (scale.value = withSpring(1));
 
-  console.log(item.url);
+  // Construct Link params safely
+  const detailsLink: Href = {
+    pathname: "/game-details",
+    params: {
+      id: item.id,
+      title: item.title,
+      // Pass the full URL (already fixed by hook)
+      image: item.image,
+      category: item.category,
+      url: item.url,
+      orientation: item.orientation,
+      description: item.description || "",
+    },
+  };
+
   return (
-    <Link
-      href={{
-        pathname: "/game-details", // Point to the details page
-        params: {
-          id: item.id,
-          title: item.title,
-          image: item.image,
-          category: item.category,
-          url: item.url,
-          orientation: item.orientation,
-          description: item.description || "This is a super fun game...", // Pass description if you have it
-        },
-      }}
-      asChild
-    >
+    <Link href={detailsLink} asChild>
       <TouchableOpacity
         activeOpacity={1}
         onPressIn={onPressIn}
@@ -57,6 +81,7 @@ const LibraryGameCard = ({ item, styles }: { item: Game; styles: any }) => {
               style={styles.gameImage}
               resizeMode="cover"
             />
+            {/* Optional: Add rating logic here later */}
             <View style={styles.ratingBadge}>
               <Ionicons name="star" size={9} color="#FFD700" />
               <Text style={styles.ratingText}>4.5</Text>
@@ -65,7 +90,6 @@ const LibraryGameCard = ({ item, styles }: { item: Game; styles: any }) => {
 
           {/* Info Wrapper */}
           <View style={styles.infoWrapper}>
-            {/* Floating Play Button */}
             <View style={styles.playBtn}>
               <Ionicons
                 name="play"
@@ -91,24 +115,21 @@ export const GamesListUI: React.FC = () => {
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("All");
-
-  // Optimized Filtering Logic
-  const filteredGames = useMemo(() => {
-    return ALL_GAMES.filter((game) => {
-      const matchesCategory =
-        selectedCategory === "All" || game.category === selectedCategory;
-      const matchesSearch = game.title
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase());
-      return matchesCategory && matchesSearch;
-    });
-  }, [searchQuery, selectedCategory]);
+  // --- CONNECT TO BACKEND ---
+  // Use the hook instead of local state/dummy data
+  const {
+    games,
+    loading,
+    searchQuery,
+    setSearchQuery,
+    selectedCategory,
+    setSelectedCategory,
+    refresh,
+  } = useGameCatalog();
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
-      {/* FIXED HEADER SECTION */}
+      {/* HEADER SECTION */}
       <View style={styles.headerContainer}>
         <Text style={styles.pageTitle}>
           {t("gamesList.title", "Game Library")}
@@ -117,31 +138,51 @@ export const GamesListUI: React.FC = () => {
         <SearchBar
           placeholder={t("gamesList.searchPlaceholder", "Search for a game...")}
           value={searchQuery}
-          onChangeText={setSearchQuery}
+          onChangeText={setSearchQuery} // Updates hook state -> triggers fetch
         />
 
         <GameCategories
-          categories={GAME_CATEGORIES}
-          onSelectCategory={setSelectedCategory}
+          categories={CATEGORY_LIST}
+          selectedCategory={selectedCategory} // Pass current selection
+          onSelectCategory={setSelectedCategory} // Updates hook state -> triggers fetch
         />
       </View>
 
-      {/* SCROLLABLE GRID */}
-      <FlatList
-        data={filteredGames}
-        keyExtractor={(item) => item.id}
-        numColumns={2}
-        contentContainerStyle={styles.listContentContainer}
-        columnWrapperStyle={styles.columnWrapper}
-        renderItem={({ item }) => (
-          <LibraryGameCard item={item} styles={styles} />
-        )}
-        ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <Text style={{ color: "#888" }}>No games found.</Text>
-          </View>
-        }
-      />
+      {/* GAMES GRID */}
+      {loading && games.length === 0 ? (
+        // Initial Loading State
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          <ActivityIndicator size="large" color={theme.primary} />
+        </View>
+      ) : (
+        <FlatList
+          data={games}
+          keyExtractor={(item) => item.id}
+          numColumns={2}
+          contentContainerStyle={styles.listContentContainer}
+          columnWrapperStyle={styles.columnWrapper}
+          renderItem={({ item }) => (
+            <LibraryGameCard item={item} styles={styles} />
+          )}
+          // Add Pull-to-Refresh
+          refreshControl={
+            <RefreshControl
+              refreshing={loading}
+              onRefresh={refresh}
+              tintColor={theme.primary}
+            />
+          }
+          ListEmptyComponent={
+            <View style={styles.emptyState}>
+              <Text style={{ color: theme.textSecondary }}>
+                {loading ? "Searching..." : "No games found."}
+              </Text>
+            </View>
+          }
+        />
+      )}
     </SafeAreaView>
   );
 };
