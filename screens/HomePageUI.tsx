@@ -94,7 +94,6 @@ const createStyles = (theme: Theme) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: theme.backgroundPrimary, // Ensure background is set
     },
     center: {
       justifyContent: "center",

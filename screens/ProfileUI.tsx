@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,8 @@ import {
   Platform,
   Alert,
   Button,
+  ActivityIndicator,
+  RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
@@ -15,15 +17,17 @@ import { FontAwesome5, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { supabase } from "@/utils/supabase";
 
+// --- Local Imports ---
 import { useTheme } from "@/context/ThemeContext";
-import { USER_DATA } from "@/data/dummyData";
 import LanguageSelector from "@/components/profile/LanguageSelector";
 import ThemeToggle from "@/components/profile/ThemeToggle";
-
-// --- Components ---
 import ReferralSection from "@/components/profile/ReferralSection";
-import { AchievementsSection } from "@/components/profile/AchievementsSection"; // New
-import { ContactAction } from "@/components/profile/ContactAction"; // New
+import { AchievementsSection } from "@/components/profile/AchievementsSection";
+import { ContactAction } from "@/components/profile/ContactAction";
+
+// --- Utilities & Types ---
+import { getStorageUrl } from "@/utils/imageHelpers"; // Make sure you have this
+import { UserProfile } from "@/types";
 
 export const ProfileUI: React.FC = () => {
   const { t } = useTranslation();
@@ -31,41 +35,110 @@ export const ProfileUI: React.FC = () => {
   const styles = useMemo(() => createStyles(theme), [theme]);
   const router = useRouter();
 
-  const playerLevel = Math.floor(USER_DATA.coins / 1000) + 1;
+  // --- State ---
+  const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [rank, setRank] = useState<number>(0);
 
+  // --- Data Fetching ---
+  const fetchProfileData = useCallback(async () => {
+    try {
+      setLoading(true);
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const userId = session.user.id;
+
+      // 1. Fetch Profile Info
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .single();
+
+      if (profileError) throw profileError;
+
+      // 2. Fetch Rank from Leaderboard View
+      const { data: rankData } = await supabase
+        .from("leaderboard")
+        .select("rank")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      // 3. Set State
+      setProfile({
+        id: profileData.id,
+        username: profileData.username,
+        name: profileData.name || profileData.username || "Player",
+        // Use the helper to resolve full URL or placeholder
+        avatar: getStorageUrl("assets", profileData.avatar_url),
+        coins: profileData.coins,
+        joinDate: profileData.created_at,
+        level: profileData.level,
+        referralCode: profileData.referral_code,
+      } as unknown as UserProfile);
+
+      if (rankData) {
+        setRank(rankData.rank);
+      }
+    } catch (error: any) {
+      console.error("Error loading profile:", error.message);
+      Alert.alert("Error", "Could not load profile data");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchProfileData();
+  }, [fetchProfileData]);
+
+  // --- Actions ---
   const handleContactPress = () => {
-    // Navigate to your Contact Page
     router.push("/contact-us");
-
-    // Fallback if no page exists yet:
-    // Alert.alert("Contact Support", "Redirecting to support center...");
   };
+
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
-
     if (error) {
       Alert.alert("Error signing out", error.message);
     }
-    // No need to manually router.replace().
-    // The AuthContext in _layout.tsx will see the session vanish and redirect you.
+    // AuthContext handles redirect
   };
+
+  // --- Derived State ---
+  // Calculate level based on coins (1 Level per 1000 coins)
+  const playerLevel = profile ? Math.floor(profile.coins / 1000) + 1 : 1;
+
+  if (loading && !profile) {
+    return (
+      <View
+        style={[
+          styles.mainContainer,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
+      >
+        <ActivityIndicator size="large" color={theme.primary} />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.mainContainer}>
-      {/* --- HERO BACKGROUND --- */}
-      {/* <View style={styles.splashContainer}> */}
-      {/*   <LinearGradient */}
-      {/*     colors={[theme.primary, theme.backgroundPrimary]}  */}
-      {/*     start={{ x: 0.5, y: 0 }} */}
-      {/*     end={{ x: 0.5, y: 1 }} */}
-      {/*     style={styles.headerSplash} */}
-      {/*   /> */}
-      {/* </View> */}
-
       <SafeAreaView style={styles.safeArea} edges={["top"]}>
         <ScrollView
           contentContainerStyle={styles.scrollViewContent}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={loading}
+              onRefresh={fetchProfileData}
+              tintColor={theme.primary}
+            />
+          }
         >
           {/* --- HEADER BAR --- */}
           <View style={styles.headerRow}>
@@ -82,7 +155,7 @@ export const ProfileUI: React.FC = () => {
             <View style={styles.avatarContainer}>
               <View style={styles.avatarBorder}>
                 <Image
-                  source={{ uri: USER_DATA.avatarUrl }}
+                  source={{ uri: profile?.avatar }}
                   style={styles.avatar}
                 />
               </View>
@@ -91,14 +164,13 @@ export const ProfileUI: React.FC = () => {
               </View>
             </View>
 
-            <View style={styles.mainContainer}>
-              {/* Other profile info... */}
-
-              <Button title="Log Out" onPress={handleLogout} color="#ff4444" />
+            {/* Logout Button (Moved inside card for better layout or keep at bottom) */}
+            <View style={{ position: "absolute", top: 10, right: 10 }}>
+              {/* Optional: Small logout icon here instead of big button */}
             </View>
 
             <View style={styles.identityContent}>
-              <Text style={styles.username}>{USER_DATA.name}</Text>
+              <Text style={styles.username}>{profile?.name || "Guest"}</Text>
               <Text style={styles.userTitle}>
                 {t("profile.playerTitle", "Cyber Runner")}
               </Text>
@@ -114,7 +186,7 @@ export const ProfileUI: React.FC = () => {
                   style={{ marginBottom: 4 }}
                 />
                 <Text style={styles.statValue}>
-                  {USER_DATA.coins.toLocaleString()}
+                  {profile?.coins?.toLocaleString() || "0"}
                 </Text>
                 <Text style={styles.statLabel}>
                   {t("profile.credits", "CREDITS")}
@@ -128,7 +200,7 @@ export const ProfileUI: React.FC = () => {
                   color={theme.secondary}
                   style={{ marginBottom: 4 }}
                 />
-                <Text style={styles.statValue}>#42</Text>
+                <Text style={styles.statValue}>#{rank > 0 ? rank : "-"}</Text>
                 <Text style={styles.statLabel}>
                   {t("profile.rank", "GLOBAL")}
                 </Text>
@@ -142,25 +214,31 @@ export const ProfileUI: React.FC = () => {
                   style={{ marginBottom: 4 }}
                 />
                 <Text style={styles.statValue}>
-                  {new Date(USER_DATA.joinDate).getFullYear()}
+                  {profile?.joinDate
+                    ? new Date(profile.joinDate).getFullYear()
+                    : new Date().getFullYear()}
                 </Text>
                 <Text style={styles.statLabel}>
                   {t("profile.since", "MEMBER")}
                 </Text>
               </View>
             </View>
+
+            {/* Added Log Out button inside card or below stats */}
+            <View style={{ marginTop: 20, width: "100%" }}>
+              <Button title="Log Out" onPress={handleLogout} color="#ff4444" />
+            </View>
           </View>
 
-          {/* --- REFERRAL SECTION (The Ticket) --- */}
+          {/* --- REFERRAL SECTION --- */}
           <View style={styles.sectionContainer}>
-            <ReferralSection code={USER_DATA.referralCode} />
+            <ReferralSection code={profile?.referralCode || "LOADING"} />
           </View>
 
-          {/* --- ACHIEVEMENTS (Replacing Leaderboard) --- */}
-          {/* No container wrapper needed as component handles padding */}
+          {/* --- ACHIEVEMENTS --- */}
           <AchievementsSection />
 
-          {/* --- CONTACT SUPPORT BUTTON --- */}
+          {/* --- CONTACT SUPPORT --- */}
           <ContactAction onPress={handleContactPress} />
         </ScrollView>
       </SafeAreaView>
@@ -168,7 +246,7 @@ export const ProfileUI: React.FC = () => {
   );
 };
 
-// --- STYLES ---
+// --- STYLES (Unchanged from your snippet) ---
 const createStyles = (theme: any) =>
   StyleSheet.create({
     mainContainer: {
