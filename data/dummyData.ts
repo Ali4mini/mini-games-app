@@ -19,15 +19,15 @@ export const DAILY_REWARDS: DailyReward[] = [
   { day: 7, reward: 500, claimed: false }, // Big reward for a full week streak
 ];
 
-export const SPIN_WHEEL_PRIZES: (string | number)[] = [
-  100, // Prize for segment 0
-  "Try Again",
-  500,
-  25,
-  250,
-  "No Prize",
-  1000,
-  50,
+export const SPIN_WHEEL_PRIZES = [
+  { id: 1, label: "20", icon: "coins", value: 20 }, // Index 0 (30% chance)
+  { id: 2, label: "50", icon: "coins", value: 50 }, // Index 1 (25% chance)
+  { id: 3, label: "100", icon: "coins", value: 100 }, // Index 2 (20% chance)
+  { id: 4, label: "200", icon: "coins", value: 200 }, // Index 3 (10% chance)
+  { id: 5, label: "500", icon: "coins", value: 500 }, // Index 4 (5% chance)
+  { id: 6, label: "1K", icon: "coins", value: 1000 }, // Index 5 (2% chance)
+  { id: 7, label: "Ticket", icon: "ticket", value: 50 }, // Index 6 (8% chance)
+  { id: 8, label: "JACKPOT", icon: "trophy", value: 5000 }, // Index 7 (0% chance - super rare)
 ];
 
 // A longer list of games for the all games page with working images

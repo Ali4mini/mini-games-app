@@ -10,6 +10,7 @@ import i18n from "@/i18n";
 
 import { ThemeProvider, useTheme } from "@/context/ThemeContext";
 import { AuthProvider, useAuth } from "@/context/AuthContext"; // <--- 1. Import Auth
+import { UserStatsProvider } from "@/context/UserStatsContext";
 import { SplashScreen as AnimatedSplash } from "@/components/common/SplashScreen";
 
 SplashScreen.preventAutoHideAsync();
@@ -93,15 +94,12 @@ export default function RootLayout() {
     <I18nextProvider i18n={i18n}>
       <SafeAreaProvider>
         <ThemeProvider>
-          {/* 5. Wrap everything in AuthProvider */}
           <AuthProvider>
-            <RootNavigator />
+            {/* ADD THIS WRAPPER HERE */}
+            <UserStatsProvider>
+              <RootNavigator />
+            </UserStatsProvider>
           </AuthProvider>
-
-          {/* Splash screen stays outside AuthProvider to show regardless of auth state */}
-          {showAnimatedSplash && (
-            <AnimatedSplash onFinish={() => setShowAnimatedSplash(false)} />
-          )}
         </ThemeProvider>
       </SafeAreaProvider>
     </I18nextProvider>
