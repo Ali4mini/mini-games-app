@@ -6,8 +6,7 @@ export type ValidRoutes =
   | "/lucky-spin"
   | "/profile"
   | "/games-list"
-  | "/daily-check"
-  | "airdrop"
+  | "/airdrop"
   | "/leaderboard"; // Use specific routes for type safety
 
 export type GameCategories =

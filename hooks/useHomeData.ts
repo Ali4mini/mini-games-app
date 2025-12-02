@@ -69,7 +69,7 @@ export const useHomeData = () => {
       setBanners(bannerData as HeroBannerItem[]);
       setGames(gamesData as Game[]);
     } catch (error: any) {
-      console.error("Error fetching home data:", error.message);
+      console.error("Error fetching home data:", error);
       Alert.alert("Error", "Could not load data.");
     } finally {
       setLoading(false);

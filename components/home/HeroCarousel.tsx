@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -8,41 +8,46 @@ import {
   StyleSheet,
 } from "react-native";
 import Carousel from "react-native-reanimated-carousel";
-import { Link } from "expo-router";
-import { LinearGradient } from "expo-linear-gradient"; // New dependency for pro UI
-import { Ionicons } from "@expo/vector-icons"; // Assuming you use Expo vector icons
+import { Link } from "expo-router"; // Import Href type for safety
+import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
 
-import { useTheme } from "../../context/ThemeContext";
-import { HeroBannerItem } from "../../types";
+import { useTheme } from "@/context/ThemeContext";
+import { HeroBannerItem } from "@/types";
 
 type HeroCarouselProps = {
   data: HeroBannerItem[];
 };
 
 const { width: screenWidth } = Dimensions.get("window");
-// We make the card slightly smaller than screen width to show the "peek" effect
-const ITEM_WIDTH = screenWidth * 0.92;
 const ITEM_HEIGHT = 200;
 
 export const HeroCarousel: React.FC<HeroCarouselProps> = ({ data }) => {
   const theme = useTheme();
 
+  // 1. SAFETY CHECK: Backend might return empty array initially
+  if (!data || data.length === 0) {
+    return null; // Or return a Skeleton Loader here if you prefer
+  }
+
   const renderCarouselItem = ({ item }: { item: HeroBannerItem }) => (
+    // 2. ROUTING: We cast item.href to Href<string> to satisfy Expo Router types
     <Link href={item.href} asChild>
       <TouchableOpacity activeOpacity={0.9} style={styles.cardContainer}>
-        {/* 1. The Game Art */}
-        <Image source={item.image} style={styles.image} resizeMode="cover" />
+        {/* 3. IMAGE: The hook already formatted this to a full https:// URL */}
+        <Image
+          source={{ uri: item.image }}
+          style={styles.image}
+          resizeMode="cover"
+        />
 
-        {/* 2. Gradient Overlay for Text Readability */}
         <LinearGradient
           colors={["transparent", "rgba(0,0,0,0.6)", "rgba(0,0,0,0.9)"]}
           style={styles.gradient}
         />
 
-        {/* 3. Content & CTA */}
         <View style={styles.contentContainer}>
           <View style={styles.textWrapper}>
-            {/* Optional: Add a badge like "NEW" or "HOT" here */}
             <View style={styles.badge}>
               <Text style={styles.badgeText}>FEATURED</Text>
             </View>
@@ -55,7 +60,6 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ data }) => {
             </Text>
           </View>
 
-          {/* Play Button Icon */}
           <View
             style={[
               styles.playButton,
@@ -65,7 +69,7 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ data }) => {
             <Ionicons
               name="play"
               size={24}
-              color="#000"
+              color="#000" // Black icon usually looks best on bright primary colors
               style={{ marginLeft: 2 }}
             />
           </View>
@@ -84,7 +88,6 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ data }) => {
         autoPlayInterval={5000}
         data={data}
         scrollAnimationDuration={800}
-        // Parallax makes it look 3D and high-end
         mode="parallax"
         modeConfig={{
           parallaxScrollingScale: 0.9,
@@ -96,7 +99,6 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ data }) => {
   );
 };
 
-// Styles defined here for simplicity, but you can move them to .styles.ts
 const styles = StyleSheet.create({
   carouselContainer: {
     alignItems: "center",
@@ -106,11 +108,10 @@ const styles = StyleSheet.create({
   },
   cardContainer: {
     flex: 1,
-    borderRadius: 24, // Large rounded corners for a modern "Game Card" look
+    borderRadius: 24,
     overflow: "hidden",
-    backgroundColor: "#1a1a1a", // Fallback color
-    marginHorizontal: 5, // Small gap between slides
-    // Shadow for depth
+    backgroundColor: "#1a1a1a",
+    marginHorizontal: 5,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -159,7 +160,7 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   playButton: {
-    width: 50, // Slightly larger
+    width: 50,
     height: 50,
     borderRadius: 25,
     justifyContent: "center",
@@ -169,31 +170,24 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 6,
-
-    // ✨ NEW: Add this white border to make it pop off the background
     borderWidth: 2,
     borderColor: "#ffffff",
   },
-
   badge: {
-    // ✨ UPDATED: Darker background for better contrast
     backgroundColor: "rgba(0,0,0,0.6)",
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 8,
     alignSelf: "flex-start",
     marginBottom: 8,
-
-    // ✨ NEW: subtle border to define the shape
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.2)",
   },
-
   gradient: {
     position: "absolute",
     left: 0,
     right: 0,
     bottom: 0,
-    height: "80%", // ✨ UPDATED: Increased from 60% to 70% for safer text reading
+    height: "70%",
   },
 });
