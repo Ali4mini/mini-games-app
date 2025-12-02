@@ -1,6 +1,16 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
-import { View, Text, TouchableOpacity, ScrollView, Dimensions } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"; // <--- 1. Import hook
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  Dimensions,
+  ActivityIndicator,
+} from "react-native";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { LinearGradient } from "expo-linear-gradient";
 import ConfettiCannon from "react-native-confetti-cannon";
@@ -13,21 +23,25 @@ import Animated, {
 
 import { useTheme } from "@/context/ThemeContext";
 import { createStyles } from "./DailyCheckInUI.styles";
-import { DAILY_REWARDS } from "@/data/dummyData";
-import { DailyReward } from "@/types";
 
-const TODAY_INDEX = 3;
+// 1. Import Hook
+import { useDailyCheckIn, DailyRewardItem } from "@/hooks/useDailyCheckIn";
 
 export const DailyCheckInUI: React.FC = () => {
   const { t } = useTranslation();
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
-  const insets = useSafeAreaInsets(); // <--- 2. Get Insets
+  const insets = useSafeAreaInsets();
   const confettiRef = useRef<ConfettiCannon>(null);
 
-  const [rewards, setRewards] = useState<DailyReward[]>(DAILY_REWARDS);
-  const claimedCount = rewards.filter((reward) => reward.claimed).length;
-  const progressPercentage = (claimedCount / rewards.length) * 100;
+  // 2. Use Real Data
+  const { gridData, loading, canClaim, claimReward, currentStreak } =
+    useDailyCheckIn();
+
+  // Animation logic
+  const claimedCount = gridData.filter((r) => r.isClaimed).length;
+  // Progress is 0-100 based on 7 days
+  const progressPercentage = (claimedCount / 7) * 100;
   const animatedProgress = useSharedValue(0);
 
   useEffect(() => {
@@ -37,57 +51,81 @@ export const DailyCheckInUI: React.FC = () => {
     });
   }, [progressPercentage, animatedProgress]);
 
-  const todayReward = rewards[TODAY_INDEX];
-  const canClaim = todayReward && !todayReward.claimed;
-
-  const handleClaimReward = () => {
+  const handleClaimPress = async () => {
     if (!canClaim) return;
-    const updatedRewards = rewards.map((reward, index) => {
-      if (index === TODAY_INDEX) return { ...reward, claimed: true };
-      return reward;
-    });
-    setRewards(updatedRewards);
-    setTimeout(() => confettiRef.current?.start(), 300);
+
+    // Call server
+    const reward = await claimReward();
+
+    if (reward) {
+      // Only fire confetti if successful
+      setTimeout(() => confettiRef.current?.start(), 100);
+    }
   };
 
   const animatedProgressBarStyle = useAnimatedStyle(() => ({
     width: `${animatedProgress.value}%`,
   }));
 
-  const renderDayCell = (item: DailyReward, index: number) => {
-    const isToday = index === TODAY_INDEX;
-    const isFuture = index > TODAY_INDEX;
+  const renderDayCell = (item: DailyRewardItem) => {
     const isGrandPrize = item.day === 7;
 
+    // Style Mapping based on Hook Data
+    const cellStyle = [
+      styles.dayCell,
+      item.isClaimed && styles.dayCellClaimed,
+      item.isToday && styles.dayCellToday, // "Today" in CSS means Active Target
+      // If it's future and not active
+      !item.isClaimed && !item.isToday && styles.dayCellFuture,
+      isGrandPrize && styles.dayCellGrandPrize,
+    ];
+
     return (
-      <View
-        key={item.day}
-        style={[
-          styles.dayCell,
-          item.claimed && styles.dayCellClaimed,
-          isToday && styles.dayCellToday,
-          isFuture && !item.claimed && styles.dayCellFuture,
-          isGrandPrize && styles.dayCellGrandPrize,
-        ]}
-      >
-        <Text style={[styles.dayText, item.claimed && styles.dayTextClaimed]}>
+      <View key={item.day} style={cellStyle}>
+        <Text style={[styles.dayText, item.isClaimed && styles.dayTextClaimed]}>
           {t("dailyCheckIn.day", { day: item.day })}
         </Text>
-        <Text style={[styles.rewardText, item.claimed && styles.rewardTextClaimed]}>
+        <Text
+          style={[
+            styles.rewardText,
+            item.isClaimed && styles.rewardTextClaimed,
+          ]}
+        >
           💰 {item.reward}
         </Text>
+        {/* Optional: Add Checkmark Icon if claimed */}
+        {item.isClaimed && (
+          <Text
+            style={{ position: "absolute", bottom: 5, right: 5, fontSize: 10 }}
+          >
+            ✅
+          </Text>
+        )}
       </View>
     );
   };
 
+  if (loading && gridData.length === 0) {
+    return (
+      <View
+        style={[
+          styles.container,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
+      >
+        <ActivityIndicator size="large" color={theme.primary} />
+      </View>
+    );
+  }
+
+  // Determine current active reward to show on button
+  const nextReward = gridData.find((d) => d.isToday)?.reward || 0;
+
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
-      <ScrollView 
+      <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={[
-          styles.scrollContent, 
-          { paddingBottom: 140 } // <--- 3. Extra padding so grid doesn't hide behind footer
-        ]}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: 140 }]}
         showsVerticalScrollIndicator={false}
         bounces={false}
       >
@@ -98,29 +136,39 @@ export const DailyCheckInUI: React.FC = () => {
           <View style={styles.progressBarContainer}>
             <View style={styles.progressBarHeader}>
               <Text style={styles.progressText}>
-                {t("dailyCheckIn.progress", { claimed: claimedCount, total: rewards.length })}
+                {/* Show Streak instead of "3/7" claimed, it feels better */}
+                Current Streak: {currentStreak} Days
               </Text>
-              <Text style={styles.progressPercentage}>{Math.round(progressPercentage)}%</Text>
+              <Text style={styles.progressPercentage}>
+                {Math.round(progressPercentage)}%
+              </Text>
             </View>
-            <View style={[styles.progressBarBackground, { backgroundColor: theme.backgroundSecondary }]}>
-              <Animated.View style={[styles.progressBarFill, animatedProgressBarStyle, { backgroundColor: theme.buttonSecondary }]} />
+            <View
+              style={[
+                styles.progressBarBackground,
+                { backgroundColor: theme.backgroundSecondary },
+              ]}
+            >
+              <Animated.View
+                style={[
+                  styles.progressBarFill,
+                  animatedProgressBarStyle,
+                  { backgroundColor: theme.buttonSecondary },
+                ]}
+              />
             </View>
           </View>
         </View>
 
         <View style={styles.gridContainer}>
           <View style={styles.daysGrid}>
-            {rewards.map((item, index) => renderDayCell(item, index))}
+            {gridData.map((item) => renderDayCell(item))}
           </View>
         </View>
       </ScrollView>
 
-      {/* 4. Footer with Dynamic Bottom Padding */}
-      <View style={[
-        styles.footer, 
-        { paddingBottom: insets.bottom + 20 } // Pushes content up above the home bar
-      ]}>
-        <TouchableOpacity onPress={handleClaimReward} disabled={!canClaim}>
+      <View style={[styles.footer, { paddingBottom: insets.bottom + 20 }]}>
+        <TouchableOpacity onPress={handleClaimPress} disabled={!canClaim}>
           {canClaim ? (
             <LinearGradient
               colors={theme.buttonGradient}
@@ -129,15 +177,13 @@ export const DailyCheckInUI: React.FC = () => {
               style={styles.gradient}
             >
               <Text style={styles.buttonText}>
-                {t("dailyCheckIn.claimButton", { reward: todayReward.reward })}
+                {t("dailyCheckIn.claimButton", { reward: nextReward })}
               </Text>
             </LinearGradient>
           ) : (
             <View style={[styles.gradient, styles.buttonDisabled]}>
               <Text style={styles.buttonDisabledText}>
-                {todayReward.claimed
-                  ? t("dailyCheckIn.claimedButton")
-                  : t("dailyCheckIn.comeBackTomorrow")}
+                {t("dailyCheckIn.comeBackTomorrow")}
               </Text>
             </View>
           )}
@@ -149,7 +195,14 @@ export const DailyCheckInUI: React.FC = () => {
         count={60}
         origin={{ x: -10, y: 0 }}
         fallSpeed={2000}
-        colors={["#ff0000", "#00ff00", "#0000ff", "#ffff00", "#ff00ff", "#00ffff"]}
+        colors={[
+          "#ff0000",
+          "#00ff00",
+          "#0000ff",
+          "#ffff00",
+          "#ff00ff",
+          "#00ffff",
+        ]}
         fadeOut={true}
         autoStart={false}
       />
