@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,30 +9,57 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { StatusBar } from "expo-status-bar";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Link, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
 import { supabase } from "@/utils/supabase";
 
-// --- Theme Imports ---
-import { useTheme } from "@/context/ThemeContext";
+// --- Native Auth Imports ---
+// NOTE: These will crash in Expo Go. You must use a Development Build.
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
+import { LoginManager, AccessToken } from "react-native-fbsdk-next";
+
+// --- Components ---
+import SocialButton from "@/components/common/SocialButton";
 
 // --- Validation Schema ---
 const loginSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
-  password: z
-    .string()
-    .min(6, { message: "Password must be at least 6 characters" }),
+  password: z.string().min(1, { message: "Password is required" }),
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
 
 export default function LoginScreen() {
   const router = useRouter();
-  const theme = useTheme(); // Gets your active color object (light or dark)
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // --- Theme Colors (Earnado Palette) ---
+  const colors = {
+    background: "#0b0d18",
+    inputBg: "#1c1e2e",
+    textPrimary: "#FFFFFF",
+    textSecondary: "#A0A0B0",
+    textPlaceholder: "#5A5A6E",
+    accentPurple: "#D500F9",
+    accentBlue: "#651FFF",
+    error: "#FF5252",
+  };
+
+  // --- Configure Google (Run once) ---
+  useEffect(() => {
+    GoogleSignin.configure({
+      // Get this from your Google Cloud Console (OAuth 2.0 Client IDs)
+      webClientId: "YOUR_WEB_CLIENT_ID.apps.googleusercontent.com",
+      iosClientId: "YOUR_IOS_CLIENT_ID.apps.googleusercontent.com",
+    });
+  }, []);
 
   const {
     control,
@@ -42,214 +69,344 @@ export default function LoginScreen() {
     resolver: zodResolver(loginSchema),
   });
 
-  const onSubmit = async (data: LoginForm) => {
-    console.log("1. Submit button clicked");
-    console.log("2. Attempting login with:", data.email);
-
+  // --- 1. Email/Password Login ---
+  const onEmailSubmit = async (data: LoginForm) => {
     setIsSubmitting(true);
-
     try {
-      // Log the specific call
-      console.log("3. Calling supabase.auth.signInWithPassword...");
-
-      const { data: responseData, error } =
-        await supabase.auth.signInWithPassword({
-          email: data.email,
-          password: data.password,
-        });
-
-      console.log("4. Supabase responded!");
+      const { error } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password: data.password,
+      });
 
       if (error) {
-        console.error("5. Login Error:", error);
         Alert.alert("Login Failed", error.message);
       } else {
-        console.log("5. Login Success:", responseData);
-        // Alert.alert("Success", "Logged in!");
+        // Success: Router automatically handles session state if configured,
+        // or manually redirect:
+        router.replace("/(tabs)/home");
       }
     } catch (err) {
-      console.error("CRITICAL ERROR:", err);
       Alert.alert("Error", "An unexpected error occurred.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Dynamic Styles based on Theme
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      justifyContent: "center",
-      padding: 24,
-      // No background color here so BlobBackground shows through
-    },
-    card: {
-      backgroundColor: theme.backgroundSecondary, // e.g., Slate 800
-      padding: 30,
-      borderRadius: 24,
-      shadowColor: theme.primary,
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.1,
-      shadowRadius: 12,
-      elevation: 5,
-      borderWidth: 1,
-      borderColor: theme.backgroundTertiary,
-    },
-    title: {
-      fontFamily: "LilitaOne", // Using your custom font
-      fontSize: 32,
-      color: theme.textPrimary,
-      textAlign: "center",
-      marginBottom: 8,
-    },
-    subtitle: {
-      fontSize: 16,
-      color: theme.textSecondary,
-      textAlign: "center",
-      marginBottom: 30,
-    },
-    inputContainer: {
-      marginBottom: 16,
-    },
-    label: {
-      fontSize: 14,
-      color: theme.textSecondary,
-      marginBottom: 6,
-      fontWeight: "600",
-    },
-    input: {
-      backgroundColor: theme.backgroundTertiary, // e.g., Slate 700
-      color: theme.textPrimary,
-      height: 50,
-      borderRadius: 12,
-      paddingHorizontal: 16,
-      borderWidth: 1,
-      borderColor: theme.tabBarInactive,
-      fontSize: 16,
-    },
-    inputError: {
-      borderColor: theme.error,
-    },
-    errorText: {
-      color: theme.error,
-      fontSize: 12,
-      marginTop: 4,
-      marginLeft: 4,
-    },
-    button: {
-      backgroundColor: theme.buttonPrimary, // e.g., Violet 600
-      height: 54,
-      borderRadius: 14,
-      justifyContent: "center",
-      alignItems: "center",
-      marginTop: 10,
-      shadowColor: theme.buttonPrimary,
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.3,
-      shadowRadius: 8,
-      elevation: 4,
-    },
-    buttonText: {
-      color: theme.primaryContent,
-      fontSize: 18,
-      fontWeight: "bold",
-      fontFamily: "LilitaOne",
-    },
-    footer: {
-      marginTop: 24,
-      flexDirection: "row",
-      justifyContent: "center",
-    },
-    footerText: {
-      color: theme.textSecondary,
-      fontSize: 14,
-    },
-    linkText: {
-      color: theme.secondary, // Cyan 500 (Pop color)
-      fontSize: 14,
-      fontWeight: "bold",
-      marginLeft: 5,
-    },
-  });
+  // --- 2. Google Login Logic ---
+  const performGoogleLogin = async () => {
+    try {
+      setIsSubmitting(true);
+      await GoogleSignin.hasPlayServices();
+      const userInfo = await GoogleSignin.signIn();
+
+      if (userInfo.data?.idToken) {
+        const { error } = await supabase.auth.signInWithIdToken({
+          provider: "google",
+          token: userInfo.data.idToken,
+        });
+        if (error) throw error;
+        // Navigation handles itself on session change usually
+      } else {
+        throw new Error("No ID token present!");
+      }
+    } catch (error: any) {
+      if (error.code === "SIGN_IN_CANCELLED") {
+        // user cancelled the login flow
+      } else {
+        Alert.alert("Google Login Error", error.message || "Failed to sign in");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // --- 3. Facebook Login Logic ---
+  const performFacebookLogin = async () => {
+    try {
+      setIsSubmitting(true);
+      const result = await LoginManager.logInWithPermissions([
+        "public_profile",
+        "email",
+      ]);
+
+      if (result.isCancelled) {
+        setIsSubmitting(false);
+        return;
+      }
+
+      const data = await AccessToken.getCurrentAccessToken();
+      if (!data) throw new Error("Something went wrong obtaining access token");
+
+      const { error } = await supabase.auth.signInWithIdToken({
+        provider: "facebook",
+        token: data.accessToken,
+      });
+
+      if (error) throw error;
+    } catch (error: any) {
+      Alert.alert("Facebook Login Error", error.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={styles.container}
-    >
-      <View style={styles.card}>
-        <Text style={styles.title}>WELCOME BACK</Text>
-        <Text style={styles.subtitle}>Ready to play?</Text>
+    <SafeAreaView style={styles.container}>
+      <StatusBar style="light" />
 
-        {/* Email Input */}
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Email</Text>
-          <Controller
-            control={control}
-            name="email"
-            render={({ field: { onChange, value } }) => (
-              <TextInput
-                style={[styles.input, errors.email && styles.inputError]}
-                placeholder="player@example.com"
-                placeholderTextColor={theme.textTertiary}
-                autoCapitalize="none"
-                keyboardType="email-address"
-                value={value}
-                onChangeText={onChange}
-              />
-            )}
-          />
-          {errors.email && (
-            <Text style={styles.errorText}>{errors.email.message}</Text>
-          )}
-        </View>
-
-        {/* Password Input */}
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Password</Text>
-          <Controller
-            control={control}
-            name="password"
-            render={({ field: { onChange, value } }) => (
-              <TextInput
-                style={[styles.input, errors.password && styles.inputError]}
-                placeholder="••••••••"
-                placeholderTextColor={theme.textTertiary}
-                secureTextEntry
-                value={value}
-                onChangeText={onChange}
-              />
-            )}
-          />
-          {errors.password && (
-            <Text style={styles.errorText}>{errors.password.message}</Text>
-          )}
-        </View>
-
-        {/* Submit Button */}
-        <TouchableOpacity
-          style={styles.button}
-          onPress={handleSubmit(onSubmit)}
-          disabled={isSubmitting}
-          activeOpacity={0.8}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
-          {isSubmitting ? (
-            <ActivityIndicator color={theme.primaryContent} />
-          ) : (
-            <Text style={styles.buttonText}>LOG IN</Text>
-          )}
-        </TouchableOpacity>
+          {/* --- Header --- */}
+          <View style={styles.headerContainer}>
+            <Text style={styles.brandTitle}>Earnado</Text>
+            <Text style={styles.subHeader}>Welcome back!</Text>
+          </View>
 
-        {/* Footer Link */}
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>New here?</Text>
-          <Link href="/(auth)/signup" asChild>
-            <TouchableOpacity>
+          {/* --- Form --- */}
+          <View style={styles.formSection}>
+            {/* Email */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Email</Text>
+              <Controller
+                control={control}
+                name="email"
+                render={({ field: { onChange, value } }) => (
+                  <TextInput
+                    style={[styles.input, errors.email && styles.inputError]}
+                    placeholder="player@earnado.com"
+                    placeholderTextColor={colors.textPlaceholder}
+                    autoCapitalize="none"
+                    keyboardType="email-address"
+                    value={value}
+                    onChangeText={onChange}
+                    selectionColor={colors.accentPurple}
+                  />
+                )}
+              />
+              {errors.email && (
+                <Text style={styles.errorText}>{errors.email.message}</Text>
+              )}
+            </View>
+
+            {/* Password */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Password</Text>
+              <Controller
+                control={control}
+                name="password"
+                render={({ field: { onChange, value } }) => (
+                  <TextInput
+                    style={[styles.input, errors.password && styles.inputError]}
+                    placeholder="••••••••"
+                    placeholderTextColor={colors.textPlaceholder}
+                    secureTextEntry
+                    value={value}
+                    onChangeText={onChange}
+                    selectionColor={colors.accentPurple}
+                  />
+                )}
+              />
+              {errors.password && (
+                <Text style={styles.errorText}>{errors.password.message}</Text>
+              )}
+              <TouchableOpacity style={styles.forgotPass}>
+                <Text style={styles.forgotPassText}>Forgot Password?</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Login Button */}
+            <TouchableOpacity
+              onPress={handleSubmit(onEmailSubmit)}
+              disabled={isSubmitting}
+              activeOpacity={0.8}
+              style={styles.buttonWrapper}
+            >
+              <LinearGradient
+                colors={[colors.accentPurple, colors.accentBlue]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.gradientButton}
+              >
+                {isSubmitting ? (
+                  <ActivityIndicator color="#FFF" />
+                ) : (
+                  <Text style={styles.buttonText}>LOG IN</Text>
+                )}
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+
+          {/* --- Social Section --- */}
+          <View style={styles.socialSection}>
+            <View style={styles.divider}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>OR</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            <SocialButton
+              provider="google"
+              onPress={performGoogleLogin}
+              isLoading={isSubmitting}
+            />
+            <SocialButton
+              provider="facebook"
+              onPress={performFacebookLogin}
+              isLoading={isSubmitting}
+            />
+          </View>
+
+          {/* --- Footer --- */}
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>New here?</Text>
+            {/* Uses router.replace to avoid nav loops */}
+            <TouchableOpacity onPress={() => router.replace("/signup")}>
               <Text style={styles.linkText}>Create Account</Text>
             </TouchableOpacity>
-          </Link>
-        </View>
-      </View>
-    </KeyboardAvoidingView>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#0b0d18", // Matches the Earnado Dark Theme
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: 24,
+    paddingBottom: 40,
+    justifyContent: "center", // Vertically centers content if screen is tall
+  },
+  headerContainer: {
+    alignItems: "center",
+    marginBottom: 40,
+    marginTop: 20,
+  },
+  brandTitle: {
+    fontSize: 42,
+    fontWeight: "800",
+    color: "#fff",
+    fontFamily: "LilitaOne", // Custom font
+    marginBottom: 8,
+    textShadowColor: "rgba(213, 0, 249, 0.6)", // Neon Glow
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 18,
+  },
+  subHeader: {
+    fontSize: 16,
+    color: "#A0A0B0",
+    fontFamily: "Poppins-Regular",
+  },
+  formSection: {
+    width: "100%",
+  },
+  inputContainer: {
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 14,
+    color: "#A0A0B0",
+    marginBottom: 8,
+    marginLeft: 4,
+    fontFamily: "Poppins-Medium",
+  },
+  input: {
+    backgroundColor: "#1c1e2e", // Dark Navy/Gray
+    color: "#FFFFFF",
+    height: 56,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.05)",
+    fontSize: 16,
+    fontFamily: "Poppins-Regular",
+  },
+  inputError: {
+    borderColor: "#FF5252",
+    borderWidth: 1,
+  },
+  errorText: {
+    color: "#FF5252",
+    fontSize: 12,
+    marginTop: 6,
+    marginLeft: 4,
+  },
+  forgotPass: {
+    alignSelf: "flex-end",
+    marginTop: 8,
+  },
+  forgotPassText: {
+    color: "#A0A0B0",
+    fontSize: 13,
+  },
+  buttonWrapper: {
+    marginTop: 20,
+    shadowColor: "#D500F9",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  gradientButton: {
+    height: 58,
+    borderRadius: 29, // Pill shape
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  buttonText: {
+    color: "#FFFFFF",
+    fontSize: 18,
+    fontWeight: "bold",
+    letterSpacing: 1,
+    fontFamily: "Poppins-Bold",
+  },
+  socialSection: {
+    marginTop: 32,
+    marginBottom: 10,
+  },
+  divider: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "rgba(160, 160, 176, 0.2)",
+  },
+  dividerText: {
+    color: "#A0A0B0",
+    paddingHorizontal: 10,
+    fontSize: 14,
+    fontFamily: "Poppins-Medium",
+  },
+  footer: {
+    marginTop: 20,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  footerText: {
+    color: "#A0A0B0",
+    fontSize: 14,
+    marginRight: 6,
+    fontFamily: "Poppins-Regular",
+  },
+  linkText: {
+    color: "#06B6D4", // Cyan
+    fontSize: 14,
+    fontWeight: "bold",
+    fontFamily: "Poppins-Bold",
+  },
+});
