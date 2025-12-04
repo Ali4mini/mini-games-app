@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -20,13 +20,7 @@ import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { supabase } from "@/utils/supabase";
 
-// --- Native Auth Imports ---
-// NOTE: These will crash in Expo Go. You must use a Development Build.
-import { GoogleSignin } from "@react-native-google-signin/google-signin";
-import { LoginManager, AccessToken } from "react-native-fbsdk-next";
-
 // --- Components ---
-import SocialButton from "@/components/common/SocialButton";
 
 // --- Validation Schema ---
 const loginSchema = z.object({
@@ -52,15 +46,6 @@ export default function LoginScreen() {
     error: "#FF5252",
   };
 
-  // --- Configure Google (Run once) ---
-  useEffect(() => {
-    GoogleSignin.configure({
-      // Get this from your Google Cloud Console (OAuth 2.0 Client IDs)
-      webClientId: "YOUR_WEB_CLIENT_ID.apps.googleusercontent.com",
-      iosClientId: "YOUR_IOS_CLIENT_ID.apps.googleusercontent.com",
-    });
-  }, []);
-
   const {
     control,
     handleSubmit,
@@ -83,68 +68,10 @@ export default function LoginScreen() {
       } else {
         // Success: Router automatically handles session state if configured,
         // or manually redirect:
-        router.replace("/(tabs)/home");
+        router.replace("/");
       }
     } catch (err) {
       Alert.alert("Error", "An unexpected error occurred.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  // --- 2. Google Login Logic ---
-  const performGoogleLogin = async () => {
-    try {
-      setIsSubmitting(true);
-      await GoogleSignin.hasPlayServices();
-      const userInfo = await GoogleSignin.signIn();
-
-      if (userInfo.data?.idToken) {
-        const { error } = await supabase.auth.signInWithIdToken({
-          provider: "google",
-          token: userInfo.data.idToken,
-        });
-        if (error) throw error;
-        // Navigation handles itself on session change usually
-      } else {
-        throw new Error("No ID token present!");
-      }
-    } catch (error: any) {
-      if (error.code === "SIGN_IN_CANCELLED") {
-        // user cancelled the login flow
-      } else {
-        Alert.alert("Google Login Error", error.message || "Failed to sign in");
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  // --- 3. Facebook Login Logic ---
-  const performFacebookLogin = async () => {
-    try {
-      setIsSubmitting(true);
-      const result = await LoginManager.logInWithPermissions([
-        "public_profile",
-        "email",
-      ]);
-
-      if (result.isCancelled) {
-        setIsSubmitting(false);
-        return;
-      }
-
-      const data = await AccessToken.getCurrentAccessToken();
-      if (!data) throw new Error("Something went wrong obtaining access token");
-
-      const { error } = await supabase.auth.signInWithIdToken({
-        provider: "facebook",
-        token: data.accessToken,
-      });
-
-      if (error) throw error;
-    } catch (error: any) {
-      Alert.alert("Facebook Login Error", error.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -250,17 +177,6 @@ export default function LoginScreen() {
               <Text style={styles.dividerText}>OR</Text>
               <View style={styles.dividerLine} />
             </View>
-
-            <SocialButton
-              provider="google"
-              onPress={performGoogleLogin}
-              isLoading={isSubmitting}
-            />
-            <SocialButton
-              provider="facebook"
-              onPress={performFacebookLogin}
-              isLoading={isSubmitting}
-            />
           </View>
 
           {/* --- Footer --- */}
