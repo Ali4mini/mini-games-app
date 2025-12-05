@@ -9,7 +9,16 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anonymous.minigamesapp",
+      "infoPlist": {
+        "NSUserTrackingUsageDescription": "This identifier will be used to deliver personalized ads to you.",
+        "SKAdNetworkItems": [
+          { "SKAdNetworkIdentifier": "cstr6suwn9.skadnetwork" },
+          { "SKAdNetworkIdentifier": "4dzt52r2t5.skadnetwork" },
+          { "SKAdNetworkIdentifier": "bvpn9ufu9n.skadnetwork" }
+        ]
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -42,7 +51,33 @@
         }
       ],
       "expo-font",
-      "expo-localization"
+      "expo-localization",
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-7396391927360129~1235488792",
+          "iosAppId": "ca-app-pub-xxxxxxxx~xxxxxxxx",
+          "userTrackingUsageDescription": "This identifier will be used to deliver personalized ads to you."
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "extraMavenRepos": [
+              "https://img.ads.unity3d.com/obj/mobile-ads-android-unity-ads-maven/"
+            ],
+            "dependencies": [
+              "implementation 'com.google.ads.mediation:unity:4.16.4.0'"
+            ]
+          },
+          "ios": {
+            "useFrameworks": "static",
+            "pods": [{ "name": "GoogleMobileAdsMediationUnity" }]
+          }
+        }
+      ],
+      "expo-tracking-transparency"
     ],
     "experiments": {
       "typedRoutes": true,

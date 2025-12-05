@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useRef } from "react";
 import {
   View,
   Text,
@@ -18,22 +18,20 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 
-// --- Local Imports ---
 import { useTheme } from "@/context/ThemeContext";
 import { Game, Theme } from "@/types";
 import { GameCategories } from "@/components/games/GameCategories";
-import { GAME_CATEGORIES } from "@/data/dummyData"; // Keep CATEGORIES, remove FEATURED_GAMES
-
-// --- Hook Import ---
+import { GAME_CATEGORIES } from "@/data/dummyData";
 import { useFeaturedGames } from "@/hooks/useFeaturedGames";
 
-// Get screen width to calculate grid size
+// --- AD IMPORTS ---
+import { useInterstitialAd } from "@/hooks/ads/useInterstitialAd"; // <--- 1. Import Hook
+
 const { width } = Dimensions.get("window");
 const GAP = 15;
-// Width = (Screen - PaddingLeft - PaddingRight - Gap) / 2
 const ITEM_WIDTH = (width - 20 - 20 - GAP) / 2;
 
-// --- Sub-Component ---
+// ... [Keep FeaturedGameCard Component exactly as it is] ...
 const FeaturedGameCard = ({
   item,
   styles,
@@ -43,6 +41,7 @@ const FeaturedGameCard = ({
   styles: any;
   theme: Theme;
 }) => {
+  // ... (Code hidden for brevity, keep your original code here)
   const scale = useSharedValue(1);
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -55,15 +54,7 @@ const FeaturedGameCard = ({
     <Link
       href={{
         pathname: "/game-details",
-        params: {
-          id: item.id,
-          title: item.title,
-          image: item.image,
-          category: item.category,
-          url: item.url,
-          orientation: item.orientation,
-          description: item.description || "",
-        },
+        params: { ...item, description: item.description || "" },
       }}
       asChild
     >
@@ -73,21 +64,17 @@ const FeaturedGameCard = ({
         onPressOut={onPressOut}
       >
         <Animated.View style={[styles.cardContainer, animatedStyle]}>
-          {/* Image Area */}
           <View style={styles.imageWrapper}>
             <Image
               source={{ uri: item.image }}
               style={styles.posterImage}
               resizeMode="cover"
             />
-
             <View style={styles.ratingBadge}>
               <Ionicons name="star" size={10} color="#FFD700" />
               <Text style={styles.ratingText}>4.5</Text>
             </View>
           </View>
-
-          {/* Info Area */}
           <View style={styles.infoWrapper}>
             <View style={styles.playBtn}>
               <Ionicons
@@ -97,7 +84,6 @@ const FeaturedGameCard = ({
                 style={{ marginLeft: 2 }}
               />
             </View>
-
             <Text style={styles.gameTitle} numberOfLines={1}>
               {item.title}
             </Text>
@@ -109,29 +95,45 @@ const FeaturedGameCard = ({
   );
 };
 
-// --- Main Component ---
 export const FeaturedGames: React.FC = () => {
   const { t } = useTranslation();
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
-
-  // 1. Use the Hook
   const { games, loading } = useFeaturedGames();
   const [selectedCategory, setSelectedCategory] = useState("All");
 
-  // 2. Filter Client-Side (Performance is better for small lists)
+  // --- 2. AD LOGIC START ---
+  const { showInterstitial, loaded: adLoaded } = useInterstitialAd();
+  const lastAdTime = useRef(0); // Tracks when we last showed an ad
+
+  const handleCategorySelect = (category: string) => {
+    const now = Date.now();
+    const TIME_BETWEEN_ADS = 2 * 60 * 1000; // 2 Minutes in milliseconds
+
+    // Show ad IF:
+    // 1. Ad is actually loaded from AdMob
+    // 2. It's been more than 2 minutes since the last one
+    // 3. The category actually changed
+    if (
+      adLoaded &&
+      category !== selectedCategory &&
+      now - lastAdTime.current > TIME_BETWEEN_ADS
+    ) {
+      showInterstitial();
+      lastAdTime.current = now; // Update timestamp
+    }
+
+    setSelectedCategory(category);
+  };
+  // --- AD LOGIC END ---
+
   const displayGames = useMemo(() => {
     let filtered = games;
     if (selectedCategory !== "All") {
       filtered = games.filter((game) => game.category === selectedCategory);
     }
-    // Limit to 8 just in case DB returns too many
     return filtered.slice(0, 8);
   }, [selectedCategory, games]);
-
-  const handleCategorySelect = (category: string) => {
-    setSelectedCategory(category);
-  };
 
   if (loading && games.length === 0) {
     return (
@@ -147,8 +149,8 @@ export const FeaturedGames: React.FC = () => {
 
       <GameCategories
         categories={GAME_CATEGORIES}
-        selectedCategory={selectedCategory} // Ensure this prop exists in your GameCategories component
-        onSelectCategory={handleCategorySelect}
+        selectedCategory={selectedCategory}
+        onSelectCategory={handleCategorySelect} // <--- Pass our new handler
       />
 
       <FlatList
@@ -166,7 +168,7 @@ export const FeaturedGames: React.FC = () => {
         }
         ListFooterComponent={
           displayGames.length > 0 ? (
-            <Link href="/(tabs)/games" asChild>
+            <Link href="/games-list" asChild>
               <TouchableOpacity style={styles.viewAllButton}>
                 <Text style={styles.viewAllText}>View All Games</Text>
                 <Ionicons
@@ -183,13 +185,11 @@ export const FeaturedGames: React.FC = () => {
   );
 };
 
-// --- STYLES (Unchanged) ---
+// ... (Keep Styles Unchanged)
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
-    section: {
-      marginTop: 10,
-      paddingBottom: 80,
-    },
+    // ... your existing styles
+    section: { marginTop: 10, paddingBottom: 80 },
     sectionTitle: {
       fontSize: 20,
       fontWeight: "800",
@@ -197,14 +197,8 @@ const createStyles = (theme: Theme) =>
       paddingHorizontal: 20,
       marginBottom: 5,
     },
-    gridContent: {
-      paddingHorizontal: 20,
-      paddingBottom: 20,
-    },
-    columnWrapper: {
-      justifyContent: "space-between",
-      marginBottom: 20,
-    },
+    gridContent: { paddingHorizontal: 20, paddingBottom: 20 },
+    columnWrapper: { justifyContent: "space-between", marginBottom: 20 },
     emptyText: {
       color: theme.textTertiary,
       textAlign: "center",
@@ -229,10 +223,7 @@ const createStyles = (theme: Theme) =>
       overflow: "hidden",
       position: "relative",
     },
-    posterImage: {
-      width: "100%",
-      height: "100%",
-    },
+    posterImage: { width: "100%", height: "100%" },
     ratingBadge: {
       position: "absolute",
       top: 8,
@@ -245,26 +236,15 @@ const createStyles = (theme: Theme) =>
       borderRadius: 6,
       gap: 3,
     },
-    ratingText: {
-      color: "#FFFFFF",
-      fontSize: 10,
-      fontWeight: "bold",
-    },
-    infoWrapper: {
-      padding: 10,
-      paddingTop: 15,
-      position: "relative",
-    },
+    ratingText: { color: "#FFFFFF", fontSize: 10, fontWeight: "bold" },
+    infoWrapper: { padding: 10, paddingTop: 15, position: "relative" },
     gameTitle: {
       color: theme.textPrimary,
       fontSize: 13,
       fontWeight: "700",
       marginBottom: 2,
     },
-    gameCategory: {
-      color: theme.textTertiary,
-      fontSize: 11,
-    },
+    gameCategory: { color: theme.textTertiary, fontSize: 11 },
     playBtn: {
       position: "absolute",
       top: -18,
@@ -296,9 +276,5 @@ const createStyles = (theme: Theme) =>
       borderColor: theme.backgroundTertiary,
       gap: 8,
     },
-    viewAllText: {
-      color: theme.textPrimary,
-      fontWeight: "700",
-      fontSize: 14,
-    },
+    viewAllText: { color: theme.textPrimary, fontWeight: "700", fontSize: 14 },
   });

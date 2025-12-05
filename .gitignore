@@ -44,3 +44,6 @@ app-example
 
 
 .env
+
+/backend/backups
+/backend/volumes
