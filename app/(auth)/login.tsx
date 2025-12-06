@@ -18,7 +18,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
-import { supabase } from "@/utils/supabase";
+import { supabase, supabaseUrl } from "@/utils/supabase";
 
 // --- Components ---
 
@@ -148,6 +148,7 @@ export default function LoginScreen() {
               </TouchableOpacity>
             </View>
 
+            <View>{supabaseUrl}</View>
             {/* Login Button */}
             <TouchableOpacity
               onPress={handleSubmit(onEmailSubmit)}
