@@ -1,16 +1,12 @@
-// 1. THIS MUST BE AT THE VERY TOP
+// THIS MUST BE AT THE VERY TOP
 import "react-native-url-polyfill/auto";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createClient } from "@supabase/supabase-js";
 
-// 2. Debugging: Log these to your terminal to make sure they are loaded!
-// const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
-export const supabaseUrl = "https://rotten-ravens-pump.loca.lt";
-const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
-
-console.log("Supabase URL:", supabaseUrl); // Should not be undefined
-console.log("Supabase Key Present:", !!supabaseAnonKey); // Should be true
+const supabaseUrl = "https://mysteryplay.fun";
+const supabaseAnonKey =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyAgCiAgICAicm9sZSI6ICJhbm9uIiwKICAgICJpc3MiOiAic3VwYWJhc2UtZGVtbyIsCiAgICAiaWF0IjogMTY0MTc2OTIwMCwKICAgICJleHAiOiAxNzk5NTM1NjAwCn0.dc_X5iR_VP_qT0zsiyj_I_OZ2T9FtRU2BBNWN8Bu4GE";
 
 export const supabase = createClient(supabaseUrl || "", supabaseAnonKey || "", {
   auth: {
