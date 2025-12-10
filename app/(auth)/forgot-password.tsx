@@ -23,30 +23,24 @@ import { Ionicons } from "@expo/vector-icons";
 import MaskedView from "@react-native-masked-view/masked-view";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 import { BlurView } from "expo-blur";
-import { Link } from "expo-router";
 
 // --- Validation Schema ---
-const loginSchema = z.object({
+const forgotPasswordSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
-  password: z.string().min(1, { message: "Password is required" }),
 });
 
-type LoginForm = z.infer<typeof loginSchema>;
+type ForgotPasswordForm = z.infer<typeof forgotPasswordSchema>;
 
-export default function LoginScreen() {
+export default function ForgotPasswordScreen() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [focusedField, setFocusedField] = useState<"email" | "password" | null>(
-    null,
-  );
+  const [focusedField, setFocusedField] = useState<"email" | null>(null);
 
   // --- Theme Colors ---
   const colors = {
     textPrimary: "#FFFFFF",
-    textSecondary: "#A0A0B0",
     textPlaceholder: "#B0B0C0",
     accentPurple: "#D500F9",
-    accentBlue: "#651FFF",
     accentCyan: "#06B6D4",
   };
 
@@ -54,22 +48,30 @@ export default function LoginScreen() {
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginForm>({
-    resolver: zodResolver(loginSchema),
+  } = useForm<ForgotPasswordForm>({
+    resolver: zodResolver(forgotPasswordSchema),
   });
 
-  const onEmailSubmit = async (data: LoginForm) => {
+  const onSubmit = async (data: ForgotPasswordForm) => {
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: data.email,
-        password: data.password,
+      const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
+        redirectTo: "yourappscheme://reset-password", // Update this with your actual deep link if needed
       });
 
       if (error) {
-        Alert.alert("Login Failed", error.message);
+        Alert.alert("Error", error.message);
       } else {
-        router.replace("/");
+        Alert.alert(
+          "Check your Email",
+          "If an account exists, we've sent a password reset link.",
+          [
+            {
+              text: "Back to Login",
+              onPress: () => router.replace("/(auth)/login"),
+            },
+          ],
+        );
       }
     } catch (err) {
       Alert.alert("Error", "An unexpected error occurred.");
@@ -78,6 +80,7 @@ export default function LoginScreen() {
     }
   };
 
+  // Gradient Text Helper
   const GradientText = (props: any) => {
     return (
       <MaskedView maskElement={<Text {...props} />}>
@@ -106,16 +109,28 @@ export default function LoginScreen() {
           keyboardShouldPersistTaps="handled"
           removeClippedSubviews={false}
         >
+          {/* --- Back Button --- */}
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
+            <Ionicons name="arrow-back" size={24} color="#FFF" />
+          </TouchableOpacity>
+
           {/* --- Header --- */}
           <Animated.View
             entering={FadeInDown.delay(100).springify()}
             style={styles.headerContainer}
           >
             <View style={styles.iconContainer}>
-              <Ionicons name="game-controller" size={40} color="#fff" />
+              <Ionicons name="key-outline" size={48} color="#fff" />
             </View>
-            <GradientText style={styles.brandTitle}>Earnado</GradientText>
-            <Text style={styles.subHeader}>Welcome back, Player!</Text>
+            <GradientText style={styles.headerTitle}>
+              Unlock Access
+            </GradientText>
+            <Text style={styles.subHeader}>
+              Enter your email to recover your password.
+            </Text>
           </Animated.View>
 
           {/* --- Form --- */}
@@ -166,60 +181,9 @@ export default function LoginScreen() {
               )}
             </View>
 
-            {/* Password Input */}
-            <View style={styles.inputWrapper}>
-              <Text style={styles.label}>Password</Text>
-              <Controller
-                control={control}
-                name="password"
-                render={({ field: { onChange, value } }) => (
-                  <BlurView
-                    intensity={30}
-                    tint="dark"
-                    style={[
-                      styles.blurContainer,
-                      focusedField === "password" && styles.blurFocused,
-                      errors.password && styles.blurError,
-                    ]}
-                  >
-                    <Ionicons
-                      name="lock-closed-outline"
-                      size={20}
-                      color={colors.textPlaceholder}
-                      style={styles.inputIcon}
-                    />
-                    <TextInput
-                      style={styles.input}
-                      placeholder="••••••••"
-                      placeholderTextColor={colors.textPlaceholder}
-                      secureTextEntry
-                      value={value}
-                      onChangeText={onChange}
-                      onFocus={() => setFocusedField("password")}
-                      onBlur={() => setFocusedField(null)}
-                      cursorColor={colors.accentCyan}
-                      selectionColor={colors.accentCyan}
-                    />
-                  </BlurView>
-                )}
-              />
-              {errors.password && (
-                <Text style={styles.errorText}>{errors.password.message}</Text>
-              )}
-
-              <TouchableOpacity style={styles.forgotPass}>
-                <Link
-                  href={"/(auth)/forgot-password"}
-                  style={styles.forgotPassText}
-                >
-                  Forgot Password?
-                </Link>
-              </TouchableOpacity>
-            </View>
-
-            {/* --- UPDATED LOGIN BUTTON (No Inner Line) --- */}
+            {/* Gradient Button */}
             <TouchableOpacity
-              onPress={handleSubmit(onEmailSubmit)}
+              onPress={handleSubmit(onSubmit)}
               disabled={isSubmitting}
               activeOpacity={0.8}
               style={styles.buttonShadowWrapper}
@@ -230,33 +194,20 @@ export default function LoginScreen() {
                 end={{ x: 1, y: 0 }}
                 style={styles.gradientButton}
               >
-                {/* REMOVED: <View style={styles.innerHighlight} /> */}
-
                 {isSubmitting ? (
                   <ActivityIndicator color="#FFF" />
                 ) : (
-                  <Text style={styles.buttonText}>LOG IN</Text>
+                  <Text style={styles.buttonText}>SEND RESET LINK</Text>
                 )}
               </LinearGradient>
             </TouchableOpacity>
           </Animated.View>
 
           {/* --- Footer --- */}
-          <Animated.View
-            entering={FadeInUp.delay(300).springify()}
-            style={styles.socialSection}
-          >
-            <View style={styles.divider}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>OR</Text>
-              <View style={styles.dividerLine} />
-            </View>
-          </Animated.View>
-
-          <Animated.View entering={FadeInUp.delay(400)} style={styles.footer}>
-            <Text style={styles.footerText}>New here?</Text>
-            <TouchableOpacity onPress={() => router.replace("/signup")}>
-              <Text style={styles.linkText}>Create Account</Text>
+          <Animated.View entering={FadeInUp.delay(300)} style={styles.footer}>
+            <Text style={styles.footerText}>Remembered it?</Text>
+            <TouchableOpacity onPress={() => router.replace("/(auth)/login")}>
+              <Text style={styles.linkText}>Log In</Text>
             </TouchableOpacity>
           </Animated.View>
         </ScrollView>
@@ -276,30 +227,40 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
     justifyContent: "center",
   },
+  backButton: {
+    position: "absolute",
+    top: 20,
+    left: 0,
+    zIndex: 10,
+    padding: 10,
+  },
   headerContainer: {
     alignItems: "center",
     marginBottom: 40,
     marginTop: 60,
   },
   iconContainer: {
-    marginBottom: 10,
-    shadowColor: "#06B6D4",
+    marginBottom: 16,
+    shadowColor: "#D500F9",
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 15,
+    shadowOpacity: 0.6,
+    shadowRadius: 20,
     elevation: 10,
   },
-  brandTitle: {
-    fontSize: 48,
+  headerTitle: {
+    fontSize: 32,
     fontWeight: "800",
     fontFamily: "LilitaOne",
-    marginBottom: 8,
+    marginBottom: 10,
+    textAlign: "center",
   },
   subHeader: {
-    fontSize: 16,
+    fontSize: 15,
     color: "#A0A0B0",
     fontFamily: "Poppins-Regular",
-    letterSpacing: 0.5,
+    textAlign: "center",
+    paddingHorizontal: 20,
+    lineHeight: 22,
   },
   formSection: {
     width: "100%",
@@ -314,6 +275,8 @@ const styles = StyleSheet.create({
     marginLeft: 4,
     fontFamily: "Poppins-Medium",
   },
+
+  // --- BLUR INPUT ---
   blurContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -347,16 +310,8 @@ const styles = StyleSheet.create({
     marginTop: 6,
     marginLeft: 4,
   },
-  forgotPass: {
-    alignSelf: "flex-end",
-    marginTop: 8,
-  },
-  forgotPassText: {
-    color: "#A0A0B0",
-    fontSize: 13,
-  },
 
-  // --- BUTTON STYLES (Cleaned up) ---
+  // --- BUTTON ---
   buttonShadowWrapper: {
     marginTop: 20,
     shadowColor: "#D500F9",
@@ -370,44 +325,21 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     justifyContent: "center",
     alignItems: "center",
-    position: "relative",
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.2)",
     overflow: "hidden",
   },
-  // Removed "innerHighlight" style entirely
   buttonText: {
     color: "#FFFFFF",
     fontSize: 18,
     fontWeight: "bold",
     letterSpacing: 1.5,
     fontFamily: "Poppins-Bold",
-    textShadowColor: "rgba(0,0,0,0.2)",
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
   },
-  socialSection: {
-    marginTop: 32,
-    marginBottom: 10,
-  },
-  divider: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: "rgba(160, 160, 176, 0.2)",
-  },
-  dividerText: {
-    color: "#A0A0B0",
-    paddingHorizontal: 10,
-    fontSize: 14,
-    fontFamily: "Poppins-Medium",
-  },
+
+  // --- FOOTER ---
   footer: {
-    marginTop: 20,
+    marginTop: 32,
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
