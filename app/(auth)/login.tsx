@@ -19,8 +19,10 @@ import * as z from "zod";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { supabase } from "@/utils/supabase";
-
-// --- Components ---
+import { Ionicons } from "@expo/vector-icons";
+import MaskedView from "@react-native-masked-view/masked-view";
+import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
+import { BlurView } from "expo-blur";
 
 // --- Validation Schema ---
 const loginSchema = z.object({
@@ -33,17 +35,18 @@ type LoginForm = z.infer<typeof loginSchema>;
 export default function LoginScreen() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [focusedField, setFocusedField] = useState<"email" | "password" | null>(
+    null,
+  );
 
-  // --- Theme Colors (Earnado Palette) ---
+  // --- Theme Colors ---
   const colors = {
-    background: "#0b0d18",
-    inputBg: "#1c1e2e",
     textPrimary: "#FFFFFF",
     textSecondary: "#A0A0B0",
-    textPlaceholder: "#5A5A6E",
+    textPlaceholder: "#B0B0C0",
     accentPurple: "#D500F9",
     accentBlue: "#651FFF",
-    error: "#FF5252",
+    accentCyan: "#06B6D4",
   };
 
   const {
@@ -54,7 +57,6 @@ export default function LoginScreen() {
     resolver: zodResolver(loginSchema),
   });
 
-  // --- 1. Email/Password Login ---
   const onEmailSubmit = async (data: LoginForm) => {
     setIsSubmitting(true);
     try {
@@ -66,8 +68,6 @@ export default function LoginScreen() {
       if (error) {
         Alert.alert("Login Failed", error.message);
       } else {
-        // Success: Router automatically handles session state if configured,
-        // or manually redirect:
         router.replace("/");
       }
     } catch (err) {
@@ -77,44 +77,87 @@ export default function LoginScreen() {
     }
   };
 
+  const GradientText = (props: any) => {
+    return (
+      <MaskedView maskElement={<Text {...props} />}>
+        <LinearGradient
+          colors={[colors.accentCyan, colors.accentPurple]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+        >
+          <Text {...props} style={[props.style, { opacity: 0 }]} />
+        </LinearGradient>
+      </MaskedView>
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={{ flex: 1 }}
       >
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          removeClippedSubviews={false}
         >
           {/* --- Header --- */}
-          <View style={styles.headerContainer}>
-            <Text style={styles.brandTitle}>Earnado</Text>
-            <Text style={styles.subHeader}>Welcome back!</Text>
-          </View>
+          <Animated.View
+            entering={FadeInDown.delay(100).springify()}
+            style={styles.headerContainer}
+          >
+            <View style={styles.iconContainer}>
+              <Ionicons name="game-controller" size={40} color="#fff" />
+            </View>
+            <GradientText style={styles.brandTitle}>Earnado</GradientText>
+            <Text style={styles.subHeader}>Welcome back, Player!</Text>
+          </Animated.View>
 
           {/* --- Form --- */}
-          <View style={styles.formSection}>
-            {/* Email */}
-            <View style={styles.inputContainer}>
+          <Animated.View
+            entering={FadeInDown.delay(200).springify()}
+            style={styles.formSection}
+          >
+            {/* Email Input */}
+            <View style={styles.inputWrapper}>
               <Text style={styles.label}>Email</Text>
               <Controller
                 control={control}
                 name="email"
                 render={({ field: { onChange, value } }) => (
-                  <TextInput
-                    style={[styles.input, errors.email && styles.inputError]}
-                    placeholder="player@earnado.com"
-                    placeholderTextColor={colors.textPlaceholder}
-                    autoCapitalize="none"
-                    keyboardType="email-address"
-                    value={value}
-                    onChangeText={onChange}
-                    selectionColor={colors.accentPurple}
-                  />
+                  <BlurView
+                    intensity={30}
+                    tint="dark"
+                    style={[
+                      styles.blurContainer,
+                      focusedField === "email" && styles.blurFocused,
+                      errors.email && styles.blurError,
+                    ]}
+                  >
+                    <Ionicons
+                      name="mail-outline"
+                      size={20}
+                      color={colors.textPlaceholder}
+                      style={styles.inputIcon}
+                    />
+                    <TextInput
+                      style={styles.input}
+                      placeholder="player@earnado.com"
+                      placeholderTextColor={colors.textPlaceholder}
+                      autoCapitalize="none"
+                      keyboardType="email-address"
+                      value={value}
+                      onChangeText={onChange}
+                      onFocus={() => setFocusedField("email")}
+                      onBlur={() => setFocusedField(null)}
+                      cursorColor={colors.accentCyan}
+                      selectionColor={colors.accentCyan}
+                    />
+                  </BlurView>
                 )}
               />
               {errors.email && (
@@ -122,45 +165,67 @@ export default function LoginScreen() {
               )}
             </View>
 
-            {/* Password */}
-            <View style={styles.inputContainer}>
+            {/* Password Input */}
+            <View style={styles.inputWrapper}>
               <Text style={styles.label}>Password</Text>
               <Controller
                 control={control}
                 name="password"
                 render={({ field: { onChange, value } }) => (
-                  <TextInput
-                    style={[styles.input, errors.password && styles.inputError]}
-                    placeholder="••••••••"
-                    placeholderTextColor={colors.textPlaceholder}
-                    secureTextEntry
-                    value={value}
-                    onChangeText={onChange}
-                    selectionColor={colors.accentPurple}
-                  />
+                  <BlurView
+                    intensity={30}
+                    tint="dark"
+                    style={[
+                      styles.blurContainer,
+                      focusedField === "password" && styles.blurFocused,
+                      errors.password && styles.blurError,
+                    ]}
+                  >
+                    <Ionicons
+                      name="lock-closed-outline"
+                      size={20}
+                      color={colors.textPlaceholder}
+                      style={styles.inputIcon}
+                    />
+                    <TextInput
+                      style={styles.input}
+                      placeholder="••••••••"
+                      placeholderTextColor={colors.textPlaceholder}
+                      secureTextEntry
+                      value={value}
+                      onChangeText={onChange}
+                      onFocus={() => setFocusedField("password")}
+                      onBlur={() => setFocusedField(null)}
+                      cursorColor={colors.accentCyan}
+                      selectionColor={colors.accentCyan}
+                    />
+                  </BlurView>
                 )}
               />
               {errors.password && (
                 <Text style={styles.errorText}>{errors.password.message}</Text>
               )}
+
               <TouchableOpacity style={styles.forgotPass}>
                 <Text style={styles.forgotPassText}>Forgot Password?</Text>
               </TouchableOpacity>
             </View>
 
-            {/* Login Button */}
+            {/* --- UPDATED LOGIN BUTTON (No Inner Line) --- */}
             <TouchableOpacity
               onPress={handleSubmit(onEmailSubmit)}
               disabled={isSubmitting}
               activeOpacity={0.8}
-              style={styles.buttonWrapper}
+              style={styles.buttonShadowWrapper}
             >
               <LinearGradient
-                colors={[colors.accentPurple, colors.accentBlue]}
+                colors={["#D500F9", "#651FFF"]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={styles.gradientButton}
               >
+                {/* REMOVED: <View style={styles.innerHighlight} /> */}
+
                 {isSubmitting ? (
                   <ActivityIndicator color="#FFF" />
                 ) : (
@@ -168,25 +233,26 @@ export default function LoginScreen() {
                 )}
               </LinearGradient>
             </TouchableOpacity>
-          </View>
+          </Animated.View>
 
-          {/* --- Social Section --- */}
-          <View style={styles.socialSection}>
+          {/* --- Footer --- */}
+          <Animated.View
+            entering={FadeInUp.delay(300).springify()}
+            style={styles.socialSection}
+          >
             <View style={styles.divider}>
               <View style={styles.dividerLine} />
               <Text style={styles.dividerText}>OR</Text>
               <View style={styles.dividerLine} />
             </View>
-          </View>
+          </Animated.View>
 
-          {/* --- Footer --- */}
-          <View style={styles.footer}>
+          <Animated.View entering={FadeInUp.delay(400)} style={styles.footer}>
             <Text style={styles.footerText}>New here?</Text>
-            {/* Uses router.replace to avoid nav loops */}
             <TouchableOpacity onPress={() => router.replace("/signup")}>
               <Text style={styles.linkText}>Create Account</Text>
             </TouchableOpacity>
-          </View>
+          </Animated.View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -196,38 +262,43 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0b0d18", // Matches the Earnado Dark Theme
+    backgroundColor: "transparent",
   },
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: 24,
     paddingBottom: 40,
-    justifyContent: "center", // Vertically centers content if screen is tall
+    justifyContent: "center",
   },
   headerContainer: {
     alignItems: "center",
     marginBottom: 40,
-    marginTop: 20,
+    marginTop: 60,
+  },
+  iconContainer: {
+    marginBottom: 10,
+    shadowColor: "#06B6D4",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 15,
+    elevation: 10,
   },
   brandTitle: {
-    fontSize: 42,
+    fontSize: 48,
     fontWeight: "800",
-    color: "#fff",
-    fontFamily: "LilitaOne", // Custom font
+    fontFamily: "LilitaOne",
     marginBottom: 8,
-    textShadowColor: "rgba(213, 0, 249, 0.6)", // Neon Glow
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 18,
   },
   subHeader: {
     fontSize: 16,
     color: "#A0A0B0",
     fontFamily: "Poppins-Regular",
+    letterSpacing: 0.5,
   },
   formSection: {
     width: "100%",
   },
-  inputContainer: {
+  inputWrapper: {
     marginBottom: 20,
   },
   label: {
@@ -237,20 +308,32 @@ const styles = StyleSheet.create({
     marginLeft: 4,
     fontFamily: "Poppins-Medium",
   },
-  input: {
-    backgroundColor: "#1c1e2e", // Dark Navy/Gray
-    color: "#FFFFFF",
-    height: 56,
+  blurContainer: {
+    flexDirection: "row",
+    alignItems: "center",
     borderRadius: 16,
-    paddingHorizontal: 16,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
+    borderColor: "rgba(255,255,255,0.1)",
+    height: 58,
+    paddingHorizontal: 16,
+    overflow: "hidden",
+  },
+  blurFocused: {
+    borderColor: "#06B6D4",
+    backgroundColor: "rgba(6, 182, 212, 0.1)",
+  },
+  blurError: {
+    borderColor: "#FF5252",
+  },
+  inputIcon: {
+    marginRight: 12,
+  },
+  input: {
+    flex: 1,
+    color: "#FFFFFF",
     fontSize: 16,
     fontFamily: "Poppins-Regular",
-  },
-  inputError: {
-    borderColor: "#FF5252",
-    borderWidth: 1,
+    height: "100%",
   },
   errorText: {
     color: "#FF5252",
@@ -266,26 +349,36 @@ const styles = StyleSheet.create({
     color: "#A0A0B0",
     fontSize: 13,
   },
-  buttonWrapper: {
+
+  // --- BUTTON STYLES (Cleaned up) ---
+  buttonShadowWrapper: {
     marginTop: 20,
     shadowColor: "#D500F9",
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowOpacity: 0.5,
+    shadowRadius: 16,
+    elevation: 12,
   },
   gradientButton: {
-    height: 58,
-    borderRadius: 29, // Pill shape
+    height: 60,
+    borderRadius: 30,
     justifyContent: "center",
     alignItems: "center",
+    position: "relative",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.2)",
+    overflow: "hidden",
   },
+  // Removed "innerHighlight" style entirely
   buttonText: {
     color: "#FFFFFF",
     fontSize: 18,
     fontWeight: "bold",
-    letterSpacing: 1,
+    letterSpacing: 1.5,
     fontFamily: "Poppins-Bold",
+    textShadowColor: "rgba(0,0,0,0.2)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   socialSection: {
     marginTop: 32,
@@ -320,7 +413,7 @@ const styles = StyleSheet.create({
     fontFamily: "Poppins-Regular",
   },
   linkText: {
-    color: "#06B6D4", // Cyan
+    color: "#06B6D4",
     fontSize: 14,
     fontWeight: "bold",
     fontFamily: "Poppins-Bold",

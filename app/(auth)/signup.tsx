@@ -17,8 +17,12 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Link, useRouter } from "expo-router";
-import { LinearGradient } from "expo-linear-gradient"; // Required for the button
+import { LinearGradient } from "expo-linear-gradient";
 import { supabase } from "@/utils/supabase";
+import { Ionicons } from "@expo/vector-icons";
+import MaskedView from "@react-native-masked-view/masked-view";
+import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
+import { BlurView } from "expo-blur";
 
 // --- Validation Schema ---
 const signupSchema = z.object({
@@ -32,18 +36,18 @@ type SignupForm = z.infer<typeof signupSchema>;
 export default function SignupScreen() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [focusedField, setFocusedField] = useState<
+    "username" | "email" | "password" | null
+  >(null);
 
-  // --- Earnado Theme Palette ---
+  // --- Theme Colors ---
   const colors = {
-    background: "#0b0d18", // Deep Navy
-    inputBg: "#1c1e2e", // Input Background
     textPrimary: "#FFFFFF",
     textSecondary: "#A0A0B0",
-    textPlaceholder: "#5A5A6E",
-    // Cyan to Blue Gradient Colors for Signup
-    gradientStart: "#06B6D4",
-    gradientEnd: "#2979FF",
-    error: "#FF5252",
+    textPlaceholder: "#B0B0C0",
+    accentPurple: "#D500F9",
+    accentBlue: "#651FFF",
+    accentCyan: "#06B6D4",
   };
 
   const {
@@ -80,44 +84,88 @@ export default function SignupScreen() {
     setIsSubmitting(false);
   };
 
+  const GradientText = (props: any) => {
+    return (
+      <MaskedView maskElement={<Text {...props} />}>
+        <LinearGradient
+          colors={[colors.accentCyan, colors.accentPurple]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+        >
+          <Text {...props} style={[props.style, { opacity: 0 }]} />
+        </LinearGradient>
+      </MaskedView>
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={{ flex: 1 }}
       >
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          removeClippedSubviews={false}
         >
-          {/* Header Section */}
-          <View style={styles.headerContainer}>
-            <Text style={styles.brandTitle}>Earnado</Text>
+          {/* --- Header --- */}
+          <Animated.View
+            entering={FadeInDown.delay(100).springify()}
+            style={styles.headerContainer}
+          >
+            <View style={styles.iconContainer}>
+              {/* Changed icon to Person Add for signup context */}
+              <Ionicons name="person-add" size={40} color="#fff" />
+            </View>
+            <GradientText style={styles.brandTitle}>Earnado</GradientText>
             <Text style={styles.headerTitle}>JOIN THE GAME</Text>
             <Text style={styles.subtitle}>Create your legend.</Text>
-          </View>
+          </Animated.View>
 
-          {/* Form Section */}
-          <View style={styles.formContainer}>
+          {/* --- Form Section --- */}
+          <Animated.View
+            entering={FadeInDown.delay(200).springify()}
+            style={styles.formContainer}
+          >
             {/* Username Input */}
-            <View style={styles.inputContainer}>
+            <View style={styles.inputWrapper}>
               <Text style={styles.label}>Username</Text>
               <Controller
                 control={control}
                 name="username"
                 render={({ field: { onChange, value } }) => (
-                  <TextInput
-                    style={[styles.input, errors.username && styles.inputError]}
-                    placeholder="GamerTag123"
-                    placeholderTextColor={colors.textPlaceholder}
-                    autoCapitalize="none"
-                    value={value}
-                    onChangeText={onChange}
-                    selectionColor={colors.gradientStart}
-                  />
+                  <BlurView
+                    intensity={30}
+                    tint="dark"
+                    style={[
+                      styles.blurContainer,
+                      focusedField === "username" && styles.blurFocused,
+                      errors.username && styles.blurError,
+                    ]}
+                  >
+                    <Ionicons
+                      name="person-outline"
+                      size={20}
+                      color={colors.textPlaceholder}
+                      style={styles.inputIcon}
+                    />
+                    <TextInput
+                      style={styles.input}
+                      placeholder="GamerTag123"
+                      placeholderTextColor={colors.textPlaceholder}
+                      autoCapitalize="none"
+                      value={value}
+                      onChangeText={onChange}
+                      onFocus={() => setFocusedField("username")}
+                      onBlur={() => setFocusedField(null)}
+                      cursorColor={colors.accentCyan}
+                      selectionColor={colors.accentCyan}
+                    />
+                  </BlurView>
                 )}
               />
               {errors.username && (
@@ -126,22 +174,41 @@ export default function SignupScreen() {
             </View>
 
             {/* Email Input */}
-            <View style={styles.inputContainer}>
+            <View style={styles.inputWrapper}>
               <Text style={styles.label}>Email</Text>
               <Controller
                 control={control}
                 name="email"
                 render={({ field: { onChange, value } }) => (
-                  <TextInput
-                    style={[styles.input, errors.email && styles.inputError]}
-                    placeholder="player@example.com"
-                    placeholderTextColor={colors.textPlaceholder}
-                    autoCapitalize="none"
-                    keyboardType="email-address"
-                    value={value}
-                    onChangeText={onChange}
-                    selectionColor={colors.gradientStart}
-                  />
+                  <BlurView
+                    intensity={30}
+                    tint="dark"
+                    style={[
+                      styles.blurContainer,
+                      focusedField === "email" && styles.blurFocused,
+                      errors.email && styles.blurError,
+                    ]}
+                  >
+                    <Ionicons
+                      name="mail-outline"
+                      size={20}
+                      color={colors.textPlaceholder}
+                      style={styles.inputIcon}
+                    />
+                    <TextInput
+                      style={styles.input}
+                      placeholder="player@example.com"
+                      placeholderTextColor={colors.textPlaceholder}
+                      autoCapitalize="none"
+                      keyboardType="email-address"
+                      value={value}
+                      onChangeText={onChange}
+                      onFocus={() => setFocusedField("email")}
+                      onBlur={() => setFocusedField(null)}
+                      cursorColor={colors.accentCyan}
+                      selectionColor={colors.accentCyan}
+                    />
+                  </BlurView>
                 )}
               />
               {errors.email && (
@@ -150,21 +217,40 @@ export default function SignupScreen() {
             </View>
 
             {/* Password Input */}
-            <View style={styles.inputContainer}>
+            <View style={styles.inputWrapper}>
               <Text style={styles.label}>Password</Text>
               <Controller
                 control={control}
                 name="password"
                 render={({ field: { onChange, value } }) => (
-                  <TextInput
-                    style={[styles.input, errors.password && styles.inputError]}
-                    placeholder="••••••••"
-                    placeholderTextColor={colors.textPlaceholder}
-                    secureTextEntry
-                    value={value}
-                    onChangeText={onChange}
-                    selectionColor={colors.gradientStart}
-                  />
+                  <BlurView
+                    intensity={30}
+                    tint="dark"
+                    style={[
+                      styles.blurContainer,
+                      focusedField === "password" && styles.blurFocused,
+                      errors.password && styles.blurError,
+                    ]}
+                  >
+                    <Ionicons
+                      name="lock-closed-outline"
+                      size={20}
+                      color={colors.textPlaceholder}
+                      style={styles.inputIcon}
+                    />
+                    <TextInput
+                      style={styles.input}
+                      placeholder="••••••••"
+                      placeholderTextColor={colors.textPlaceholder}
+                      secureTextEntry
+                      value={value}
+                      onChangeText={onChange}
+                      onFocus={() => setFocusedField("password")}
+                      onBlur={() => setFocusedField(null)}
+                      cursorColor={colors.accentCyan}
+                      selectionColor={colors.accentCyan}
+                    />
+                  </BlurView>
                 )}
               />
               {errors.password && (
@@ -172,15 +258,15 @@ export default function SignupScreen() {
               )}
             </View>
 
-            {/* Gradient Action Button */}
+            {/* Gradient Action Button (Matching Login Style) */}
             <TouchableOpacity
               onPress={handleSubmit(onSubmit)}
               disabled={isSubmitting}
               activeOpacity={0.8}
-              style={styles.buttonWrapper}
+              style={styles.buttonShadowWrapper}
             >
               <LinearGradient
-                colors={[colors.gradientStart, colors.gradientEnd]}
+                colors={["#D500F9", "#651FFF"]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={styles.gradientButton}
@@ -194,15 +280,15 @@ export default function SignupScreen() {
             </TouchableOpacity>
 
             {/* Footer Link */}
-            <View style={styles.footer}>
+            <Animated.View entering={FadeInUp.delay(300)} style={styles.footer}>
               <Text style={styles.footerText}>Already a player?</Text>
               <Link href="/(auth)/login" asChild>
                 <TouchableOpacity>
                   <Text style={styles.linkText}>Log In</Text>
                 </TouchableOpacity>
               </Link>
-            </View>
-          </View>
+            </Animated.View>
+          </Animated.View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -212,7 +298,7 @@ export default function SignupScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0b0d18", // Deep Navy
+    backgroundColor: "transparent", // Transparent for background blobs
   },
   scrollContent: {
     flexGrow: 1,
@@ -222,14 +308,22 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     alignItems: "center",
-    marginBottom: 40,
+    marginBottom: 30,
+  },
+  iconContainer: {
+    marginBottom: 10,
+    shadowColor: "#06B6D4",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 15,
+    elevation: 10,
   },
   brandTitle: {
     fontSize: 24,
     color: "#fff",
     fontFamily: "LilitaOne",
     opacity: 0.8,
-    marginBottom: 10,
+    marginBottom: 4,
   },
   headerTitle: {
     fontSize: 34,
@@ -250,7 +344,7 @@ const styles = StyleSheet.create({
   formContainer: {
     width: "100%",
   },
-  inputContainer: {
+  inputWrapper: {
     marginBottom: 20,
   },
   label: {
@@ -260,20 +354,34 @@ const styles = StyleSheet.create({
     marginLeft: 4,
     fontFamily: "Poppins-Medium",
   },
-  input: {
-    backgroundColor: "#1c1e2e", // Dark Navy
-    color: "#FFFFFF",
-    height: 56,
+
+  // --- BLUR INPUT STYLES ---
+  blurContainer: {
+    flexDirection: "row",
+    alignItems: "center",
     borderRadius: 16,
-    paddingHorizontal: 16,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
+    borderColor: "rgba(255,255,255,0.1)",
+    height: 58,
+    paddingHorizontal: 16,
+    overflow: "hidden",
+  },
+  blurFocused: {
+    borderColor: "#06B6D4",
+    backgroundColor: "rgba(6, 182, 212, 0.1)",
+  },
+  blurError: {
+    borderColor: "#FF5252",
+  },
+  inputIcon: {
+    marginRight: 12,
+  },
+  input: {
+    flex: 1,
+    color: "#FFFFFF",
     fontSize: 16,
     fontFamily: "Poppins-Regular",
-  },
-  inputError: {
-    borderColor: "#FF5252",
-    borderWidth: 1,
+    height: "100%",
   },
   errorText: {
     color: "#FF5252",
@@ -281,26 +389,35 @@ const styles = StyleSheet.create({
     marginTop: 6,
     marginLeft: 4,
   },
-  buttonWrapper: {
+
+  // --- BUTTON STYLES ---
+  buttonShadowWrapper: {
     marginTop: 20,
-    shadowColor: "#06B6D4",
+    shadowColor: "#D500F9",
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowOpacity: 0.5,
+    shadowRadius: 16,
+    elevation: 12,
   },
   gradientButton: {
-    height: 58,
-    borderRadius: 29, // Pill shape
+    height: 60,
+    borderRadius: 30,
     justifyContent: "center",
     alignItems: "center",
+    position: "relative",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.2)",
+    overflow: "hidden",
   },
   buttonText: {
     color: "#FFFFFF",
     fontSize: 18,
     fontWeight: "bold",
-    letterSpacing: 1,
+    letterSpacing: 1.5,
     fontFamily: "Poppins-Bold",
+    textShadowColor: "rgba(0,0,0,0.2)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   footer: {
     marginTop: 32,
@@ -316,7 +433,7 @@ const styles = StyleSheet.create({
     fontFamily: "Poppins-Regular",
   },
   linkText: {
-    color: "#D500F9", // Purple for the Login link
+    color: "#06B6D4", // Cyan to match theme (changed from old Purple)
     fontSize: 14,
     fontWeight: "bold",
     fontFamily: "Poppins-Bold",

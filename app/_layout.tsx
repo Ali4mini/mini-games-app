@@ -12,6 +12,9 @@ import { ThemeProvider, useTheme } from "@/context/ThemeContext";
 import { AuthProvider, useAuth } from "@/context/AuthContext"; // <--- 1. Import Auth
 import { UserStatsProvider } from "@/context/UserStatsContext";
 import { SplashScreen as AnimatedSplash } from "@/components/common/SplashScreen";
+import { enableFreeze } from "react-native-screens";
+
+enableFreeze(false);
 
 SplashScreen.preventAutoHideAsync();
 
