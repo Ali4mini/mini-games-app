@@ -12,6 +12,8 @@ import {
   TouchableOpacity,
   Modal,
   TouchableWithoutFeedback,
+  TextInput, // Added
+  KeyboardAvoidingView, // Added
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
@@ -21,6 +23,10 @@ import {
   Ionicons,
 } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import * as ImagePicker from "expo-image-picker"; // Added
+import * as FileSystem from "expo-file-system"; // Added for upload helper
+import { decode } from "base64-arraybuffer"; // You might need this for Supabase storage, typically: npm install base64-arraybuffer
+
 import { supabase } from "@/utils/supabase";
 
 // --- Local Imports ---
@@ -29,7 +35,6 @@ import LanguageSelector from "@/components/profile/LanguageSelector";
 import ThemeToggle from "@/components/profile/ThemeToggle";
 import ReferralSection from "@/components/profile/ReferralSection";
 import { AchievementsSection } from "@/components/profile/AchievementsSection";
-// Note: ContactAction is now moved inside settings, or you can keep it as a footer
 
 // --- Utilities & Types ---
 import { getStorageUrl } from "@/utils/imageHelpers";
@@ -45,7 +50,17 @@ export const ProfileUI: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [rank, setRank] = useState<number>(0);
-  const [isSettingsVisible, setSettingsVisible] = useState(false); // New State for Modal
+  const [isSettingsVisible, setSettingsVisible] = useState(false);
+
+  // --- NEW: Edit Profile State ---
+  const [isEditVisible, setEditVisible] = useState(false);
+  const [updating, setUpdating] = useState(false);
+  const [editForm, setEditForm] = useState({
+    name: "",
+    username: "",
+    avatarUri: "", // Local URI for preview
+    hasNewAvatar: false,
+  });
 
   // --- Data Fetching ---
   const fetchProfileData = useCallback(async () => {
@@ -76,7 +91,7 @@ export const ProfileUI: React.FC = () => {
         id: profileData.id,
         username: profileData.username,
         name: profileData.name || profileData.username || "Player",
-        avatar: getStorageUrl("assets", profileData.avatar_url),
+        avatar: getStorageUrl("assets", profileData.avatar_url), // Assuming 'assets' is your bucket
         coins: profileData.coins,
         joinDate: profileData.created_at,
         level: profileData.level,
@@ -95,6 +110,93 @@ export const ProfileUI: React.FC = () => {
     fetchProfileData();
   }, [fetchProfileData]);
 
+  // --- NEW: Edit Actions ---
+
+  // 1. Open Modal and hydrate state
+  const handleOpenEdit = () => {
+    if (!profile) return;
+    setEditForm({
+      name: profile.name,
+      username: profile.username,
+      avatarUri: profile.avatar,
+      hasNewAvatar: false,
+    });
+    setEditVisible(true);
+  };
+
+  // 2. Pick Image
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.5,
+      base64: true, // Request base64 for easier upload
+    });
+
+    if (!result.canceled) {
+      setEditForm((prev) => ({
+        ...prev,
+        avatarUri: result.assets[0].uri,
+        hasNewAvatar: true,
+        base64: result.assets[0].base64, // Store base64 temporarily
+      }));
+    }
+  };
+
+  // 3. Save Changes
+  const handleSaveProfile = async () => {
+    if (!profile) return;
+    try {
+      setUpdating(true);
+
+      let avatarPath = null;
+
+      // A. Upload Image if changed
+      if (editForm.hasNewAvatar && editForm.base64) {
+        const fileName = `${profile.id}/${Date.now()}.jpg`;
+
+        // Upload to Supabase Storage ('assets' bucket)
+        const { error: uploadError } = await supabase.storage
+          .from("assets")
+          .upload(fileName, decode(editForm.base64), {
+            contentType: "image/jpeg",
+            upsert: true,
+          });
+
+        if (uploadError) throw uploadError;
+        avatarPath = fileName;
+      }
+
+      // B. Update Database
+      const updates: any = {
+        name: editForm.name,
+        username: editForm.username,
+        updated_at: new Date(),
+      };
+
+      // Only update avatar_url if a new one was uploaded
+      if (avatarPath) {
+        updates.avatar_url = avatarPath;
+      }
+
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update(updates)
+        .eq("id", profile.id);
+
+      if (updateError) throw updateError;
+
+      Alert.alert("Success", "Profile updated successfully!");
+      setEditVisible(false);
+      fetchProfileData(); // Refresh UI
+    } catch (error: any) {
+      Alert.alert("Error", error.message);
+    } finally {
+      setUpdating(false);
+    }
+  };
+
   // --- Actions ---
   const handleContactPress = () => {
     setSettingsVisible(false);
@@ -102,11 +204,9 @@ export const ProfileUI: React.FC = () => {
   };
 
   const handleLogout = async () => {
-    setSettingsVisible(false); // Close modal first
+    setSettingsVisible(false);
     const { error } = await supabase.auth.signOut();
-    if (error) {
-      Alert.alert("Error signing out", error.message);
-    }
+    if (error) Alert.alert("Error signing out", error.message);
   };
 
   const playerLevel = profile ? Math.floor(profile.coins / 1000) + 1 : 1;
@@ -127,12 +227,9 @@ export const ProfileUI: React.FC = () => {
   return (
     <View style={styles.mainContainer}>
       <SafeAreaView style={styles.safeArea} edges={["top"]}>
-        {/* --- HEADER BAR (Cleaned Up) --- */}
+        {/* --- HEADER BAR --- */}
         <View style={styles.headerRow}>
-          {/* Left side: Empty or Logo */}
           <View />
-
-          {/* Right side: Settings Button */}
           <TouchableOpacity
             style={styles.iconButtonWrapper}
             onPress={() => setSettingsVisible(true)}
@@ -175,8 +272,11 @@ export const ProfileUI: React.FC = () => {
                 style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
               >
                 <Text style={styles.username}>{profile?.name || "Guest"}</Text>
-                {/* Tiny Edit Icon - Functionality to be added later */}
-                <Ionicons name="pencil" size={14} color={theme.textTertiary} />
+
+                {/* --- UPDATED: Edit Icon is now functional --- */}
+                <TouchableOpacity onPress={handleOpenEdit} hitSlop={10}>
+                  <Ionicons name="pencil" size={16} color={theme.primary} />
+                </TouchableOpacity>
               </View>
               <Text style={styles.userTitle}>
                 {t("profile.playerTitle", "Cyber Runner")}
@@ -199,9 +299,7 @@ export const ProfileUI: React.FC = () => {
                   {t("profile.credits", "CREDITS")}
                 </Text>
               </TouchableOpacity>
-
               <View style={styles.verticalDivider} />
-
               <TouchableOpacity style={styles.statBox}>
                 <FontAwesome5
                   name="trophy"
@@ -214,11 +312,8 @@ export const ProfileUI: React.FC = () => {
                   {t("profile.rank", "GLOBAL")}
                 </Text>
               </TouchableOpacity>
-
               <View style={styles.verticalDivider} />
-
               <TouchableOpacity style={styles.statBox}>
-                {/* Changed from Clock to Fire for Streak/Retention vibes */}
                 <MaterialCommunityIcons
                   name="fire"
                   size={18}
@@ -238,12 +333,11 @@ export const ProfileUI: React.FC = () => {
 
           {/* --- ACHIEVEMENTS --- */}
           <AchievementsSection />
-
           <View style={{ height: 40 }} />
         </ScrollView>
       </SafeAreaView>
 
-      {/* --- SETTINGS MODAL / SIDE PANEL --- */}
+      {/* --- SETTINGS MODAL --- */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -254,7 +348,6 @@ export const ProfileUI: React.FC = () => {
           <View style={styles.modalOverlay}>
             <TouchableWithoutFeedback>
               <View style={styles.modalContent}>
-                {/* Modal Header */}
                 <View style={styles.modalHeader}>
                   <Text style={styles.modalTitle}>Settings</Text>
                   <TouchableOpacity onPress={() => setSettingsVisible(false)}>
@@ -266,7 +359,6 @@ export const ProfileUI: React.FC = () => {
                   </TouchableOpacity>
                 </View>
 
-                {/* Section: Preferences */}
                 <Text style={styles.sectionHeader}>PREFERENCES</Text>
                 <View style={styles.settingRow}>
                   <View style={styles.settingLabelContainer}>
@@ -292,7 +384,6 @@ export const ProfileUI: React.FC = () => {
                   <LanguageSelector />
                 </View>
 
-                {/* Section: Support */}
                 <Text style={styles.sectionHeader}>SUPPORT</Text>
                 <TouchableOpacity
                   style={styles.settingRow}
@@ -313,7 +404,6 @@ export const ProfileUI: React.FC = () => {
                   />
                 </TouchableOpacity>
 
-                {/* Section: Account */}
                 <Text style={styles.sectionHeader}>ACCOUNT</Text>
                 <TouchableOpacity
                   style={styles.logoutButton}
@@ -329,6 +419,84 @@ export const ProfileUI: React.FC = () => {
           </View>
         </TouchableWithoutFeedback>
       </Modal>
+
+      {/* --- NEW: EDIT PROFILE MODAL --- */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={isEditVisible}
+        onRequestClose={() => setEditVisible(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={styles.modalOverlay}
+        >
+          <View style={[styles.modalContent, styles.editModalContent]}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Edit Profile</Text>
+              <TouchableOpacity onPress={() => setEditVisible(false)}>
+                <Ionicons name="close" size={24} color={theme.textPrimary} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView contentContainerStyle={{ alignItems: "center" }}>
+              {/* Avatar Picker */}
+              <TouchableOpacity
+                onPress={pickImage}
+                style={styles.editAvatarContainer}
+              >
+                <Image
+                  source={{ uri: editForm.avatarUri || profile?.avatar }}
+                  style={styles.editAvatar}
+                />
+                <View style={styles.editAvatarOverlay}>
+                  <Ionicons name="camera" size={24} color="#fff" />
+                </View>
+              </TouchableOpacity>
+
+              {/* Form Fields */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Display Name</Text>
+                <TextInput
+                  style={styles.inputField}
+                  value={editForm.name}
+                  onChangeText={(text) =>
+                    setEditForm((prev) => ({ ...prev, name: text }))
+                  }
+                  placeholder="Enter name"
+                  placeholderTextColor={theme.textTertiary}
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Username</Text>
+                <TextInput
+                  style={styles.inputField}
+                  value={editForm.username}
+                  onChangeText={(text) =>
+                    setEditForm((prev) => ({ ...prev, username: text }))
+                  }
+                  placeholder="Enter username"
+                  placeholderTextColor={theme.textTertiary}
+                  autoCapitalize="none"
+                />
+              </View>
+
+              <TouchableOpacity
+                style={styles.saveButton}
+                onPress={handleSaveProfile}
+                disabled={updating}
+              >
+                {updating ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.saveButtonText}>Save Changes</Text>
+                )}
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </View>
   );
 };
@@ -338,7 +506,7 @@ const createStyles = (theme: any) =>
   StyleSheet.create({
     mainContainer: {
       flex: 1,
-      backgroundColor: theme.backgroundPrimary || "#12141D", // Fallback to dark
+      backgroundColor: theme.backgroundPrimary || "#12141D",
     },
     safeArea: {
       flex: 1,
@@ -371,7 +539,6 @@ const createStyles = (theme: any) =>
       paddingHorizontal: 16,
       borderWidth: 1,
       borderColor: "rgba(255,255,255,0.05)",
-      // Cyberpunk glow effect
       shadowColor: theme.primary,
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.15,
@@ -419,6 +586,7 @@ const createStyles = (theme: any) =>
       fontSize: 22,
       fontWeight: "bold",
       color: theme.textPrimary,
+      marginTop: 15,
     },
     userTitle: {
       fontSize: 13,
@@ -430,7 +598,7 @@ const createStyles = (theme: any) =>
       flexDirection: "row",
       justifyContent: "space-between",
       width: "100%",
-      backgroundColor: theme.backgroundPrimary, // Inner card background
+      backgroundColor: theme.backgroundPrimary,
       borderRadius: 16,
       paddingVertical: 16,
       paddingHorizontal: 10,
@@ -461,8 +629,6 @@ const createStyles = (theme: any) =>
     sectionContainer: {
       marginTop: 24,
     },
-
-    // --- MODAL STYLES ---
     modalOverlay: {
       flex: 1,
       backgroundColor: "rgba(0,0,0,0.7)",
@@ -536,5 +702,70 @@ const createStyles = (theme: any) =>
       color: theme.textTertiary,
       fontSize: 12,
       marginTop: 20,
+    },
+
+    // --- NEW: EDIT MODAL STYLES ---
+    editModalContent: {
+      minHeight: "60%",
+    },
+    editAvatarContainer: {
+      width: 100,
+      height: 100,
+      borderRadius: 50,
+      marginBottom: 30,
+      position: "relative",
+    },
+    editAvatar: {
+      width: 100,
+      height: 100,
+      borderRadius: 50,
+    },
+    editAvatarOverlay: {
+      position: "absolute",
+      width: 100,
+      height: 100,
+      borderRadius: 50,
+      backgroundColor: "rgba(0,0,0,0.4)",
+      justifyContent: "center",
+      alignItems: "center",
+      borderWidth: 2,
+      borderColor: theme.primary,
+    },
+    inputGroup: {
+      width: "100%",
+      marginBottom: 20,
+    },
+    inputLabel: {
+      color: theme.textSecondary,
+      fontSize: 12,
+      marginBottom: 8,
+      marginLeft: 4,
+      fontWeight: "600",
+    },
+    inputField: {
+      backgroundColor: theme.backgroundPrimary,
+      borderRadius: 12,
+      padding: 16,
+      color: theme.textPrimary,
+      borderWidth: 1,
+      borderColor: "rgba(255,255,255,0.1)",
+      fontSize: 16,
+    },
+    saveButton: {
+      backgroundColor: theme.primary,
+      width: "100%",
+      padding: 16,
+      borderRadius: 16,
+      alignItems: "center",
+      marginTop: 20,
+      shadowColor: theme.primary,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+    },
+    saveButtonText: {
+      color: "#fff",
+      fontWeight: "bold",
+      fontSize: 16,
     },
   });

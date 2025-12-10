@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/utils/supabase";
 import { UserProfile, HeroBannerItem, Game } from "@/types";
 import { Alert } from "react-native";
+import { getStorageUrl } from "@/utils/imageHelpers";
 
 export const useHomeData = () => {
   const [loading, setLoading] = useState(true);
@@ -53,13 +54,14 @@ export const useHomeData = () => {
 
       if (gamesError) throw gamesError;
 
+      console.log(profileData);
       // Set State
       setProfile({
         id: profileData.id,
         username: profileData.username,
         // Fallback for name if it's null in DB
         name: profileData.name || profileData.username || "Player",
-        avatar: profileData.avatar_url || "https://via.placeholder.com/150",
+        avatar: getStorageUrl("assets", profileData.avatar_url),
         coins: profileData.coins,
         joinDate: profileData.created_at,
         level: profileData.level,
@@ -91,6 +93,7 @@ export const useHomeData = () => {
         (payload) => {
           // If the update is for the current user, update their coins in state
           if (profile && payload.new.id === profile.id) {
+            console.log("profile", profile);
             setProfile((prev) =>
               prev ? { ...prev, coins: payload.new.coins } : null,
             );
