@@ -69,7 +69,7 @@ export default function LoginScreen() {
       if (error) {
         Alert.alert("Login Failed", error.message);
       } else {
-        router.replace("/");
+        router.replace("/(tabs)");
       }
     } catch (err) {
       Alert.alert("Error", "An unexpected error occurred.");
