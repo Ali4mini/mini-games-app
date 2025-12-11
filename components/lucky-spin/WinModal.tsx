@@ -1,11 +1,11 @@
 import React, { useEffect } from "react";
-import { 
-  View, 
-  Text, 
-  TouchableOpacity, 
-  Modal, 
-  StyleSheet, 
-  Dimensions 
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Modal,
+  StyleSheet,
+  Dimensions,
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import { LinearGradient } from "expo-linear-gradient";
@@ -16,8 +16,8 @@ import Animated, {
   useSharedValue,
   withSequence,
   withDelay,
-  Easing,
-  withTiming
+  withTiming,
+  runOnJS, // Required to call JS functions (onClose) from UI thread
 } from "react-native-reanimated";
 
 type WinModalProps = {
@@ -36,128 +36,173 @@ export const WinModal: React.FC<WinModalProps> = ({
   theme,
 }) => {
   const { t } = useTranslation();
-  
-  // Animation Values
+
+  // --- Animation Values ---
   const scale = useSharedValue(0);
   const opacity = useSharedValue(0);
   const glowScale = useSharedValue(1);
   const rotate = useSharedValue(0);
 
-useEffect(() => {
+  // --- Effect: Handle Entrance Animations ---
+  useEffect(() => {
     if (visible) {
-      // 1. ENTRY: Snappy Spring (High Stiffness = Fast)
-      scale.value = withSpring(1, { 
-        damping: 15, 
-        stiffness: 400, // Was 100. Higher = Faster/Snappier
-        mass: 0.8       // Lighter mass = Less inertia
+      // 1. Reset values (Start invisible)
+      scale.value = 0;
+      opacity.value = 0;
+      rotate.value = 0;
+      glowScale.value = 1;
+
+      // 2. ENTRY: Snappy Spring
+      scale.value = withSpring(1, {
+        damping: 15,
+        stiffness: 200,
+        mass: 0.8,
       });
-      
+
       opacity.value = withTiming(1, { duration: 150 });
 
-      // 2. DECORATION: Faster Pulse
+      // 3. DECORATION: Pulse the background glow
       glowScale.value = withSequence(
         withTiming(1.2, { duration: 0 }),
-        withDelay(100, // Reduced delay from 300ms
+        withDelay(
+          100,
           withSequence(
-             withTiming(1.5, { duration: 500 }), // Faster pulse (was 800ms)
-             withTiming(1.2, { duration: 500 })
-          )
-        )
+            withTiming(1.5, { duration: 500 }),
+            withTiming(1.2, { duration: 500 }),
+          ),
+        ),
       );
 
-      // 3. DECORATION: Faster Wiggle
+      // 4. DECORATION: Wiggle the Trophy
       rotate.value = withSequence(
-        withTiming(-10, { duration: 50 }), // Faster wiggle (was 100ms)
+        withTiming(-10, { duration: 50 }),
         withTiming(10, { duration: 50 }),
         withTiming(-10, { duration: 50 }),
-        withTiming(0, { duration: 50 })
+        withTiming(0, { duration: 50 }),
       );
-
-    } else {
-      // EXIT: Quick exit
-      scale.value = withTiming(0, { duration: 150 });
-      opacity.value = withTiming(0, { duration: 150 });
     }
   }, [visible]);
 
+  // --- Function: Handle Exit Animation ---
+  const handleClose = () => {
+    // 1. Fade Out
+    opacity.value = withTiming(0, { duration: 150 });
+
+    // 2. Shrink Out
+    scale.value = withTiming(0, { duration: 150 }, (finished) => {
+      // 3. ONLY after animation finishes, tell parent to hide Modal
+      if (finished) {
+        runOnJS(onClose)();
+      }
+    });
+  };
+
+  // --- Styles ---
   const modalAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
     opacity: opacity.value,
   }));
 
   const iconStyle = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${rotate.value}deg` }]
+    transform: [{ rotate: `${rotate.value}deg` }],
+  }));
+
+  const glowStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: glowScale.value }],
   }));
 
   return (
     <Modal
       transparent={true}
       visible={visible}
-      animationType="none"
-      onRequestClose={onClose}
+      animationType="none" // We handle animation manually via Reanimated
+      onRequestClose={handleClose} // Handle Android Back Button
     >
       <View style={styles.overlay}>
+        {/* Backdrop: Tap to close */}
         <TouchableOpacity
           style={StyleSheet.absoluteFill}
-          onPress={onClose}
+          onPress={handleClose}
           activeOpacity={1}
         />
-        
-        <Animated.View style={[
-            styles.modalContainer, 
-            { 
-              backgroundColor: theme.backgroundSecondary, 
-              borderColor: theme.primary 
-            }, 
-            modalAnimatedStyle
-        ]}>
-            {/* --- DECORATIVE GLOW BEHIND ICON --- */}
-            <View style={[styles.glowBackground, { backgroundColor: theme.primary }]} />
 
-            {/* --- ICON --- */}
-            <Animated.View style={[styles.iconWrapper, iconStyle]}>
-                <LinearGradient
-                  colors={[theme.secondary, theme.primary]}
-                  style={styles.iconGradientCircle}
-                >
-                   <FontAwesome5 name="trophy" size={40} color="#FFF" />
-                </LinearGradient>
-            </Animated.View>
+        <Animated.View
+          style={[
+            styles.modalContainer,
+            {
+              backgroundColor: theme.backgroundSecondary,
+              borderColor: theme.primary,
+            },
+            modalAnimatedStyle,
+          ]}
+        >
+          {/* --- DECORATIVE GLOW BEHIND ICON --- */}
+          <Animated.View
+            style={[
+              styles.glowBackground,
+              { backgroundColor: theme.primary },
+              glowStyle,
+            ]}
+          />
 
-            {/* --- TEXT CONTENT --- */}
-            <View style={styles.content}>
-                <Text style={[styles.title, { color: theme.textPrimary }]}>
-                  {t("luckySpin.congratulations", "HUGE WIN!")}
-                </Text>
-                
-                <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-                  {t("luckySpin.youWonLabel", "You've acquired:")}
-                </Text>
-
-                <View style={[styles.prizeBox, { backgroundColor: theme.backgroundPrimary, borderColor: theme.backgroundTertiary }]}>
-                   <Text style={[styles.prizeText, { color: theme.secondary }]}>
-                     {prize}
-                   </Text>
-                </View>
-            </View>
-
-            {/* --- ACTION BUTTON --- */}
-            <TouchableOpacity
-              onPress={onClose}
-              activeOpacity={0.8}
-              style={styles.buttonWrapper}
+          {/* --- ICON --- */}
+          <Animated.View style={[styles.iconWrapper, iconStyle]}>
+            <LinearGradient
+              colors={[theme.secondary, theme.primary]}
+              style={styles.iconGradientCircle}
             >
-               <LinearGradient
-                 colors={theme.buttonGradient || [theme.primary, theme.secondary]}
-                 start={{ x: 0, y: 0 }}
-                 end={{ x: 1, y: 0 }}
-                 style={styles.gradientButton}
-               >
-                 <Text style={styles.buttonText}>{t("luckySpin.claim", "CLAIM REWARD")}</Text>
-                 <MaterialCommunityIcons name="arrow-right-circle" size={20} color="#FFF" style={{ marginLeft: 8 }}/>
-               </LinearGradient>
-            </TouchableOpacity>
+              <FontAwesome5 name="trophy" size={40} color="#FFF" />
+            </LinearGradient>
+          </Animated.View>
 
+          {/* --- TEXT CONTENT --- */}
+          <View style={styles.content}>
+            <Text style={[styles.title, { color: theme.textPrimary }]}>
+              {t("luckySpin.congratulations", "HUGE WIN!")}
+            </Text>
+
+            <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
+              {t("luckySpin.youWonLabel", "You've acquired:")}
+            </Text>
+
+            <View
+              style={[
+                styles.prizeBox,
+                {
+                  backgroundColor: theme.backgroundPrimary,
+                  borderColor: theme.backgroundTertiary,
+                },
+              ]}
+            >
+              <Text style={[styles.prizeText, { color: theme.secondary }]}>
+                {prize}
+              </Text>
+            </View>
+          </View>
+
+          {/* --- ACTION BUTTON --- */}
+          <TouchableOpacity
+            onPress={handleClose}
+            activeOpacity={0.8}
+            style={styles.buttonWrapper}
+          >
+            <LinearGradient
+              colors={theme.buttonGradient || [theme.primary, theme.secondary]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.gradientButton}
+            >
+              <Text style={styles.buttonText}>
+                {t("luckySpin.claim", "CLAIM REWARD")}
+              </Text>
+              <MaterialCommunityIcons
+                name="arrow-right-circle"
+                size={20}
+                color="#FFF"
+                style={{ marginLeft: 8 }}
+              />
+            </LinearGradient>
+          </TouchableOpacity>
         </Animated.View>
       </View>
     </Modal>
@@ -167,7 +212,7 @@ useEffect(() => {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.7)", // Darker overlay for better contrast
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -178,25 +223,23 @@ const styles = StyleSheet.create({
     paddingVertical: 30,
     paddingHorizontal: 24,
     alignItems: "center",
-    borderWidth: 1.5, // Neon border
-    
-    // Cyberpunk Glow
-    shadowColor: "#7C3AED", // Violet shadow
-    shadowOffset: { width: 0, height: 0 },
+    borderWidth: 1.5,
+    // Shadows
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.5,
     shadowRadius: 20,
-    elevation: 10,
+    elevation: 20,
+    zIndex: 100,
   },
-  
   // Icon Styles
   glowBackground: {
-    position: 'absolute',
-    top: 40,
+    position: "absolute",
+    top: 30,
     width: 100,
     height: 100,
     borderRadius: 50,
-    opacity: 0.2,
-    transform: [{ scale: 1.5 }],
+    opacity: 0.25,
   },
   iconWrapper: {
     marginBottom: 20,
@@ -210,23 +253,22 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     borderWidth: 2,
-    borderColor: '#FFF',
+    borderColor: "#FFF",
   },
-
   // Text Styles
   content: {
     alignItems: "center",
-    width: '100%',
+    width: "100%",
   },
   title: {
-    fontSize: 24,
-    fontWeight: "900", // Heavy font
+    fontSize: 26,
+    fontWeight: "900",
     textAlign: "center",
     textTransform: "uppercase",
-    letterSpacing: 1,
+    letterSpacing: 1.5,
     marginBottom: 8,
   },
   subtitle: {
@@ -235,28 +277,26 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     fontWeight: "500",
   },
-  
   // Prize Box
   prizeBox: {
-    width: '100%',
-    paddingVertical: 16,
+    width: "100%",
+    paddingVertical: 18,
     borderRadius: 16,
-    borderWidth: 1,
-    borderStyle: 'dashed', // Ticket/Coupon feel
-    alignItems: 'center',
+    borderWidth: 1.5,
+    borderStyle: "dashed",
+    alignItems: "center",
     marginBottom: 24,
   },
   prizeText: {
-    fontSize: 28, // Big Prize Text
-    fontWeight: "bold",
+    fontSize: 30,
+    fontWeight: "800",
     textAlign: "center",
-    letterSpacing: 0.5,
+    letterSpacing: 1,
     textTransform: "uppercase",
   },
-
   // Button
   buttonWrapper: {
-    width: '100%',
+    width: "100%",
     borderRadius: 16,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
@@ -267,15 +307,15 @@ const styles = StyleSheet.create({
   gradientButton: {
     paddingVertical: 16,
     borderRadius: 16,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
   },
   buttonText: {
     color: "white",
     fontWeight: "900",
     fontSize: 16,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
+    letterSpacing: 1.2,
+    textTransform: "uppercase",
   },
 });

@@ -24,7 +24,6 @@ import {
 } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker"; // Added
-import * as FileSystem from "expo-file-system"; // Added for upload helper
 import { decode } from "base64-arraybuffer"; // You might need this for Supabase storage, typically: npm install base64-arraybuffer
 
 import { supabase } from "@/utils/supabase";

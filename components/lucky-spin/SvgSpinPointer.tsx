@@ -1,69 +1,36 @@
-// SvgSpinPointer.tsx
 import React from "react";
-import Svg, { Path, G } from "react-native-svg";
+import Svg, { Path, G, Defs, LinearGradient, Stop } from "react-native-svg";
 
-type SvgSpinPointerProps = {
+type Props = {
   size?: number;
-  color?: string;
-  strokeColor?: string;
 };
 
-export const SvgSpinPointer: React.FC<SvgSpinPointerProps> = ({
-  size = 40,
-  color = "#F43F5E",
-  strokeColor = "#FFFFFF",
-}) => {
-  // Create a pointer pointing DOWNWARD (toward the wheel)
-  const pointerPath = `
-    M ${size / 2} ${size}
-    L ${size * 0.8} ${size * 0.4}
-    L ${size * 0.6} ${size * 0.4}
-    L ${size * 0.6} 0
-    L ${size * 0.4} 0
-    L ${size * 0.4} ${size * 0.4}
-    L ${size * 0.2} ${size * 0.4}
-    Z
-  `;
-
-  // Create a highlight effect
-  const highlightPath = `
-    M ${size / 2} ${size - 2}
-    L ${size * 0.75} ${size * 0.45}
-    L ${size * 0.55} ${size * 0.45}
-    L ${size * 0.55} 2
-    L ${size * 0.45} 2
-    L ${size * 0.45} ${size * 0.45}
-    L ${size * 0.25} ${size * 0.45}
-    Z
-  `;
-
+export const SvgSpinPointer: React.FC<Props> = ({ size = 50 }) => {
   return (
-    <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+    <Svg width={size} height={size} viewBox="0 0 50 50">
+      <Defs>
+        <LinearGradient id="pointerGrad" x1="0" y1="0" x2="0" y2="1">
+          <Stop offset="0" stopColor="#FFD700" />
+          <Stop offset="1" stopColor="#FFA500" />
+        </LinearGradient>
+      </Defs>
       <G>
-        {/* Shadow/outline */}
+        {/* Drop Shadow (Simulated) */}
         <Path
-          d={pointerPath}
-          fill={strokeColor}
+          d="M 25 50 L 40 15 L 10 15 Z"
+          fill="black"
           opacity="0.3"
-          transform={`translate(0, -2)`}
+          transform="translate(0, 4)"
         />
-
-        {/* Main pointer */}
+        {/* Main Pointer Body */}
         <Path
-          d={pointerPath}
-          fill={color}
-          stroke={strokeColor}
-          strokeWidth="1"
+          d="M 25 48 L 40 15 L 35 5 L 15 5 L 10 15 Z"
+          fill="url(#pointerGrad)"
+          stroke="#FFF"
+          strokeWidth="1.5"
         />
-
-        {/* Highlight for 3D effect */}
-        <Path d={highlightPath} fill="rgba(255,255,255,0.3)" />
-
-        {/* Add a small shine effect at the tip */}
-        <Path
-          d={`M ${size * 0.45} ${size - 3} L ${size * 0.55} ${size - 3} L ${size / 2} ${size - 8} Z`}
-          fill="rgba(255,255,255,0.6)"
-        />
+        {/* The Mounting Pin */}
+        <Path d="M 25 15 L 25 5" stroke="rgba(0,0,0,0.2)" strokeWidth="1" />
       </G>
     </Svg>
   );

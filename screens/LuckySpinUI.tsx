@@ -19,6 +19,7 @@ import Animated, {
   withTiming,
   Easing,
   runOnJS,
+  cancelAnimation,
 } from "react-native-reanimated";
 import { useTranslation } from "react-i18next";
 
@@ -90,36 +91,77 @@ export const LuckySpinUI: React.FC = () => {
   };
 
   const handleSpin = async () => {
-    // Check against global stats
+    // Prevent double clicking or spinning with no spins
     if (isSpinning || stats.spinsLeft <= 0) return;
 
     setIsSpinning(true);
 
-    const result = await playSpin();
+    // 1. START "LOADING" SPIN
+    // We start spinning fast immediately to give instant feedback
+    const startRotation = rotation.value;
+    rotation.value = withTiming(startRotation + 360 * 50, {
+      duration: 10000, // Long duration just to keep it moving linearly
+      easing: Easing.linear,
+    });
 
-    if (!result) {
+    try {
+      // 2. FETCH DATA + MINIMUM DELAY
+      // We run the API call AND a 1-second timer in parallel.
+      // This ensures the wheel spins for at least 1 second (visual comfort),
+      // but doesn't add extra delay if the network takes 2 seconds.
+      const startTime = Date.now();
+
+      const [result] = await Promise.all([
+        playSpin(), // The Network Request
+        new Promise((resolve) => setTimeout(resolve, 1000)), // Min visual spin time
+      ]);
+
+      if (!result) {
+        cancelAnimation(rotation);
+        rotation.value = startRotation;
+        setIsSpinning(false);
+        return;
+      }
+
+      const { winnerIndex, rewardAmount } = result;
+
+      // 3. CALCULATE LANDING (Math)
+      cancelAnimation(rotation);
+      const currentRotation = rotation.value;
+      const segmentAngle = 360 / WHEEL_SEGMENTS;
+
+      // Randomize landing spot slightly within the segment
+      const randomOffset = (Math.random() - 0.5) * (segmentAngle * 0.5);
+      const winningAngle = -(winnerIndex * segmentAngle) + randomOffset;
+
+      // Normalize
+      const normalizedCurrent = currentRotation % 360;
+      let distanceToAngle = winningAngle - normalizedCurrent;
+      while (distanceToAngle < 0) distanceToAngle += 360;
+
+      // --- OPTIMIZATION HERE ---
+      // Reduced from 3 rotations to 2 (faster stop)
+      const extraRotations = 360 * 2;
+      const finalRotation = currentRotation + distanceToAngle + extraRotations;
+
+      // 4. STOPPING ANIMATION
+      // Reduced duration from 3500ms to 2500ms (snappier)
+      rotation.value = withTiming(
+        finalRotation,
+        {
+          duration: 2500,
+          easing: Easing.bezier(0.1, 0.4, 0.2, 1), // "Ease Out"
+        },
+        (finished) => {
+          if (finished) runOnJS(onSpinComplete)(rewardAmount);
+        },
+      );
+    } catch (e) {
+      console.error(e);
+      cancelAnimation(rotation);
       setIsSpinning(false);
-      return;
+      Alert.alert("Error", "Connection failed. Please try again.");
     }
-
-    const { winnerIndex, rewardAmount } = result;
-
-    const segmentAngle = 360 / WHEEL_SEGMENTS;
-    const randomOffset = (Math.random() - 0.5) * (segmentAngle * 0.6);
-    const targetAngle = -(winnerIndex * segmentAngle) + randomOffset;
-
-    const currentRotation = rotation.value;
-    const rotations = 360 * 5;
-    const nextRotation =
-      currentRotation + rotations + (targetAngle - (currentRotation % 360));
-
-    rotation.value = withTiming(
-      nextRotation,
-      { duration: 4000, easing: Easing.bezier(0.25, 0.1, 0.25, 1) },
-      (finished) => {
-        if (finished) runOnJS(onSpinComplete)(rewardAmount);
-      },
-    );
   };
 
   const handleModalClose = () => {

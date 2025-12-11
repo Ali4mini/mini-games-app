@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from "react";
-import { Stack, useRouter, useSegments } from "expo-router"; // Added useRouter, useSegments
+import React, { useEffect, useState, useRef } from "react";
+import { AppState, AppStateStatus } from "react-native"; // 1. Import AppState
+import { Stack, useRouter, useSegments } from "expo-router";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -8,8 +9,12 @@ import { StatusBar } from "expo-status-bar";
 import BlobBackground from "@/components/common/BlobBackground";
 import i18n from "@/i18n";
 
+// --- 2. ADMOB IMPORTS ---
+import { AppOpenAd, AdEventType } from "react-native-google-mobile-ads";
+import { getAdUnitId } from "@/utils/adsConfig"; // Your helper file
+
 import { ThemeProvider, useTheme } from "@/context/ThemeContext";
-import { AuthProvider, useAuth } from "@/context/AuthContext"; // <--- 1. Import Auth
+import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { UserStatsProvider } from "@/context/UserStatsContext";
 import { SplashScreen as AnimatedSplash } from "@/components/common/SplashScreen";
 import { enableFreeze } from "react-native-screens";
@@ -18,25 +23,71 @@ enableFreeze(false);
 
 SplashScreen.preventAutoHideAsync();
 
+// --- 3. INITIALIZE AD OUTSIDE COMPONENT ---
+// This ensures the ad object isn't recreated on every render
+const appOpenAd = AppOpenAd.createForAdRequest(getAdUnitId("appOpen"), {
+  requestNonPersonalizedAdsOnly: true,
+});
+
 const RootNavigator = () => {
   const theme = useTheme();
-
-  // 2. Hooks for Auth and Navigation
   const { session, loading: authLoading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
 
-  // 3. The Gatekeeper: Manage Redirects
+  // Track if ad is ready to show
+  const [isAdLoaded, setIsAdLoaded] = useState(false);
+
+  // --- 4. APP OPEN AD LOGIC ---
   useEffect(() => {
-    if (authLoading) return; // Wait until supabase checks the session
+    // A. Event Listener: When Ad Loads
+    const loadListener = appOpenAd.addAdEventListener(
+      AdEventType.LOADED,
+      () => {
+        setIsAdLoaded(true);
+      },
+    );
+
+    // B. Event Listener: When Ad Closes (Load the NEXT one immediately)
+    const closeListener = appOpenAd.addAdEventListener(
+      AdEventType.CLOSED,
+      () => {
+        setIsAdLoaded(false);
+        appOpenAd.load();
+      },
+    );
+
+    // C. Event Listener: App State Changes (Background -> Foreground)
+    const appStateListener = AppState.addEventListener(
+      "change",
+      (nextAppState) => {
+        if (nextAppState === "active" && isAdLoaded) {
+          // Show ad when user comes back to app
+          appOpenAd.show();
+        }
+      },
+    );
+
+    // D. Initial Load (Cold Start)
+    appOpenAd.load();
+
+    // Cleanup listeners on unmount
+    return () => {
+      loadListener();
+      closeListener();
+      appStateListener.remove();
+    };
+  }, [isAdLoaded]);
+
+  // --- AUTH REDIRECT LOGIC ---
+  useEffect(() => {
+    if (authLoading) return;
 
     const inAuthGroup = segments[0] === "(auth)";
 
     if (!session && !inAuthGroup) {
-      // User is NOT logged in, and not in the login/signup screens -> Redirect to Login
       router.replace("/(auth)/login");
     } else if (session && inAuthGroup) {
-      // User IS logged in, but is on login/signup screens -> Redirect to Home
       router.replace("/(tabs)");
     }
   }, [session, authLoading, segments]);
@@ -55,13 +106,9 @@ const RootNavigator = () => {
           contentStyle: { backgroundColor: "transparent" },
         }}
       >
-        {/* 4. Add the Auth Route Group */}
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-
-        {/* Your Existing Routes */}
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="game-details" options={{ headerShown: false }} />
-
         <Stack.Screen
           name="game-player"
           options={{
@@ -69,7 +116,6 @@ const RootNavigator = () => {
             contentStyle: { backgroundColor: "#000" },
           }}
         />
-
         <Stack.Screen name="airdrop" options={{ headerShown: false }} />
       </Stack>
     </BlobBackground>
@@ -98,7 +144,6 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <ThemeProvider>
           <AuthProvider>
-            {/* ADD THIS WRAPPER HERE */}
             <UserStatsProvider>
               <RootNavigator />
             </UserStatsProvider>
