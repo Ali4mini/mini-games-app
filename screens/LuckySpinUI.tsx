@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   Dimensions,
   StyleSheet,
+  Alert,
 } from "react-native";
 import {
   SafeAreaView,
@@ -35,6 +36,7 @@ import { SPIN_WHEEL_PRIZES } from "@/data/dummyData";
 import { SvgSpinWheel } from "@/components/lucky-spin/SvgSpinWheel";
 import { SvgSpinPointer } from "@/components/lucky-spin/SvgSpinPointer";
 import { WinModal } from "@/components/lucky-spin/WinModal";
+import { useRewardAd } from "@/hooks/ads/useRewardedAd";
 
 const WHEEL_SEGMENTS = SPIN_WHEEL_PRIZES.length;
 const WHEEL_SIZE = 340;
@@ -70,7 +72,7 @@ export const LuckySpinUI: React.FC = () => {
   const [winningPrize, setWinningPrize] = useState<string | number | null>(
     null,
   );
-
+  const { showAd, isAdLoaded } = useRewardAd();
   const confettiRef = useRef<ConfettiCannon>(null);
 
   const animatedStyle = useAnimatedStyle(() => {
@@ -91,6 +93,16 @@ export const LuckySpinUI: React.FC = () => {
   };
 
   const handleSpin = async () => {
+    if (stats.spinsLeft <= 0) {
+      if (isAdLoaded) {
+        showAd();
+      } else {
+        Alert.alert("Loading...", "Finding a video for you.");
+      }
+      return;
+    }
+
+    // CASE B: Normal Spin Logic (Keep your existing code below)
     // Prevent double clicking or spinning with no spins
     if (isSpinning || stats.spinsLeft <= 0) return;
 
@@ -224,35 +236,46 @@ export const LuckySpinUI: React.FC = () => {
               </Animated.View>
 
               {/* CENTER BUTTON */}
+              {/* CENTER BUTTON */}
               <TouchableOpacity
                 onPress={handleSpin}
-                disabled={isSpinning || !hasSpins}
+                // Disable only if spinning. Enable if 0 spins (so they can click to watch ad)
+                disabled={isSpinning}
                 activeOpacity={0.9}
-                style={[styles.centerButtonWrapper]}
+                style={styles.centerButtonOuter}
               >
                 <LinearGradient
                   colors={
-                    isSpinning || !hasSpins
-                      ? [theme.textTertiary, theme.backgroundTertiary]
-                      : theme.buttonGradient
+                    isSpinning
+                      ? ["#475569", "#1e293b"] // Grey (Spinning)
+                      : !hasSpins
+                        ? ["#F59E0B", "#D97706"] // Gold/Orange (Watch Ad)
+                        : ["#38bdf8", "#2563eb"] // Blue (Ready to Spin)
                   }
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.centerButtonGradient}
+                  style={styles.centerButtonInner}
                 >
-                  <View style={styles.centerButtonInnerRim}>
-                    <Text style={styles.centerButtonText}>
-                      {isSpinning ? "..." : "SPIN"}
-                    </Text>
-                  </View>
-                </LinearGradient>
+                  <View style={styles.centerButtonHighlight} />
 
-                <View
-                  style={[
-                    styles.centerButtonShadow,
-                    { borderColor: theme.backgroundPrimary },
-                  ]}
-                />
+                  {/* Conditional Icon/Text */}
+                  {isSpinning ? (
+                    <Text style={styles.centerButtonText}>...</Text>
+                  ) : !hasSpins ? (
+                    // OUT OF SPINS -> SHOW VIDEO ICON
+                    <View style={{ alignItems: "center" }}>
+                      <MaterialCommunityIcons
+                        name="play-box-outline"
+                        size={24}
+                        color="#FFF"
+                      />
+                      <Text style={[styles.centerButtonText, { fontSize: 10 }]}>
+                        FREE
+                      </Text>
+                    </View>
+                  ) : (
+                    // HAS SPINS -> SHOW SPIN TEXT
+                    <Text style={styles.centerButtonText}>SPIN</Text>
+                  )}
+                </LinearGradient>
               </TouchableOpacity>
             </View>
           </View>
@@ -521,6 +544,38 @@ const createStyles = (theme: any, insets: any) => {
     statValue: {
       fontSize: 18,
       fontWeight: "800",
+    },
+    centerButtonInner: {
+      width: 66,
+      height: 66,
+      borderRadius: 33,
+      justifyContent: "center",
+      alignItems: "center",
+      borderWidth: 1,
+      borderColor: "rgba(255,255,255,0.3)",
+    },
+    centerButtonHighlight: {
+      position: "absolute",
+      top: 6,
+      width: 40,
+      height: 20,
+      borderRadius: 20,
+      backgroundColor: "rgba(255,255,255,0.25)",
+    },
+    centerButtonOuter: {
+      position: "absolute",
+      width: 76,
+      height: 76,
+      borderRadius: 38,
+      backgroundColor: "#e2e8f0",
+      justifyContent: "center",
+      alignItems: "center",
+      zIndex: 20,
+      elevation: 10,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.4,
+      shadowRadius: 5,
     },
   });
 };
