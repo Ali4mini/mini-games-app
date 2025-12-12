@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -16,14 +16,20 @@ import { StatusBar } from "expo-status-bar";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
-import { supabase } from "@/utils/supabase";
+import { supabase } from "@/utils/supabase"; // Ensure this is your configured client
 import { Ionicons } from "@expo/vector-icons";
 import MaskedView from "@react-native-masked-view/masked-view";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 import { BlurView } from "expo-blur";
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
+
+// 1. IMPORT GOOGLE SIGN IN
+import {
+  GoogleSignin,
+  GoogleSigninButton,
+  statusCodes,
+} from "@react-native-google-signin/google-signin";
 
 // --- Validation Schema ---
 const loginSchema = z.object({
@@ -57,6 +63,60 @@ export default function LoginScreen() {
   } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
   });
+
+  // 2. CONFIGURE GOOGLE SIGN IN
+  useEffect(() => {
+    GoogleSignin.configure({
+      // ⚠️ REPLACE THIS with the Web Client ID from your Google Cloud Console
+      // This MUST match the 'GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID' in your docker-compose.yml
+      webClientId:
+        "157056951354-r483kv15tbq5639ls1reo4o6rn346rmu.apps.googleusercontent.com",
+      offlineAccess: true,
+    });
+  }, []);
+
+  // 3. HANDLE GOOGLE LOGIN
+  const handleGoogleLogin = async () => {
+    setIsSubmitting(true);
+    try {
+      // Check for Play Services
+      await GoogleSignin.hasPlayServices();
+
+      // Native Google Sign In
+      const userInfo = await GoogleSignin.signIn();
+
+      // Get the ID Token
+      const idToken = userInfo.data?.idToken || userInfo.idToken;
+
+      if (!idToken) throw new Error("No ID Token found");
+
+      // Exchange for Supabase Session
+      const { error } = await supabase.auth.signInWithIdToken({
+        provider: "google",
+        token: idToken,
+      });
+
+      if (error) {
+        Alert.alert("Supabase Error", error.message);
+      } else {
+        // Success!
+        router.replace("/(tabs)");
+      }
+    } catch (error: any) {
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+        console.log("User cancelled");
+      } else if (error.code === statusCodes.IN_PROGRESS) {
+        console.log("In progress");
+      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        Alert.alert("Error", "Google Play Services are not available");
+      } else {
+        console.error(error);
+        Alert.alert("Login Error", error.message || "An error occurred");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const onEmailSubmit = async (data: LoginForm) => {
     setIsSubmitting(true);
@@ -217,7 +277,7 @@ export default function LoginScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* --- UPDATED LOGIN BUTTON (No Inner Line) --- */}
+            {/* --- Login Button --- */}
             <TouchableOpacity
               onPress={handleSubmit(onEmailSubmit)}
               disabled={isSubmitting}
@@ -230,8 +290,6 @@ export default function LoginScreen() {
                 end={{ x: 1, y: 0 }}
                 style={styles.gradientButton}
               >
-                {/* REMOVED: <View style={styles.innerHighlight} /> */}
-
                 {isSubmitting ? (
                   <ActivityIndicator color="#FFF" />
                 ) : (
@@ -241,7 +299,7 @@ export default function LoginScreen() {
             </TouchableOpacity>
           </Animated.View>
 
-          {/* --- Footer --- */}
+          {/* --- Footer / Social Section --- */}
           <Animated.View
             entering={FadeInUp.delay(300).springify()}
             style={styles.socialSection}
@@ -250,6 +308,16 @@ export default function LoginScreen() {
               <View style={styles.dividerLine} />
               <Text style={styles.dividerText}>OR</Text>
               <View style={styles.dividerLine} />
+            </View>
+
+            {/* 4. GOOGLE BUTTON ADDED HERE */}
+            <View style={{ alignItems: "center", marginTop: 10 }}>
+              <GoogleSigninButton
+                size={GoogleSigninButton.Size.Wide}
+                color={GoogleSigninButton.Color.Dark} // Dark theme to match app
+                onPress={handleGoogleLogin}
+                disabled={isSubmitting}
+              />
             </View>
           </Animated.View>
 
@@ -268,7 +336,7 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "transparent",
+    backgroundColor: "transparent", // Assuming you have a background in a parent component
   },
   scrollContent: {
     flexGrow: 1,
@@ -355,8 +423,6 @@ const styles = StyleSheet.create({
     color: "#A0A0B0",
     fontSize: 13,
   },
-
-  // --- BUTTON STYLES (Cleaned up) ---
   buttonShadowWrapper: {
     marginTop: 20,
     shadowColor: "#D500F9",
@@ -375,7 +441,6 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255,255,255,0.2)",
     overflow: "hidden",
   },
-  // Removed "innerHighlight" style entirely
   buttonText: {
     color: "#FFFFFF",
     fontSize: 18,
