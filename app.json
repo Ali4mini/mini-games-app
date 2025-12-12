@@ -29,7 +29,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.minigamesapp",
+      "package": "com.anonymous.mysteryplay",
       "usesCleartextTraffic": true
     },
     "web": {
