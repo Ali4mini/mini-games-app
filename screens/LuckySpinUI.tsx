@@ -23,20 +23,20 @@ import Animated, {
   cancelAnimation,
 } from "react-native-reanimated";
 import { useTranslation } from "react-i18next";
+import { supabase } from "@/utils/supabase";
 
+// --- CONTEXTS & HOOKS ---
 import { useTheme } from "@/context/ThemeContext";
-// 1. IMPORT GLOBAL STATS (For Realtime Coins/Spins)
 import { useUserStats } from "@/context/UserStatsContext";
-// 2. IMPORT TIMER
 import { useDailyTimer } from "@/hooks/useDailyTimer";
-// 3. IMPORT GAME LOGIC
 import { useLuckySpin } from "@/hooks/useLuckySpin";
+import { useRewardAd } from "@/hooks/ads/useRewardedAd";
 
+// --- COMPONENTS & DATA ---
 import { SPIN_WHEEL_PRIZES } from "@/data/dummyData";
 import { SvgSpinWheel } from "@/components/lucky-spin/SvgSpinWheel";
 import { SvgSpinPointer } from "@/components/lucky-spin/SvgSpinPointer";
 import { WinModal } from "@/components/lucky-spin/WinModal";
-import { useRewardAd } from "@/hooks/ads/useRewardedAd";
 
 const WHEEL_SEGMENTS = SPIN_WHEEL_PRIZES.length;
 const WHEEL_SIZE = 340;
@@ -61,18 +61,21 @@ export const LuckySpinUI: React.FC = () => {
   const styles = useMemo(() => createStyles(theme, insets), [theme, insets]);
 
   // --- HOOKS ---
-  const { playSpin } = useLuckySpin(); // Logic for spinning
-  const { stats } = useUserStats(); // Global Realtime Data (Coins/Spins)
-  const timeLeft = useDailyTimer(); // Countdown Hook
+  const { playSpin } = useLuckySpin(); // API Logic
+  const { stats, refreshStats } = useUserStats(); // Global Stats
+  const timeLeft = useDailyTimer(); // Countdown Timer
+  const { showAd, isAdLoaded } = useRewardAd(); // Ad Logic
 
+  // --- LOCAL STATE ---
   const rotation = useSharedValue(0);
   const [isSpinning, setIsSpinning] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [showWinModal, setShowWinModal] = useState(false);
-  const [winningPrize, setWinningPrize] = useState<string | number | null>(
-    null,
-  );
-  const { showAd, isAdLoaded } = useRewardAd();
+
+  // Modal Data
+  const [winningPrizeLabel, setWinningPrizeLabel] = useState("");
+  const [winningAmount, setWinningAmount] = useState(0);
+
   const confettiRef = useRef<ConfettiCannon>(null);
 
   const animatedStyle = useAnimatedStyle(() => {
@@ -81,51 +84,65 @@ export const LuckySpinUI: React.FC = () => {
     };
   });
 
+  // --- EVENT: SPIN FINISHED ---
   const onSpinComplete = (rewardAmount: number) => {
     let prizeText = `+${rewardAmount} COINS`;
     if (rewardAmount >= 5000) prizeText = "JACKPOT! (+5000)";
 
-    setWinningPrize(prizeText);
+    setWinningPrizeLabel(prizeText);
+    setWinningAmount(rewardAmount); // Store raw number for doubling logic
+
     setShowConfetti(true);
     setTimeout(() => confettiRef.current?.start(), 100);
     setTimeout(() => setShowWinModal(true), 600);
     setIsSpinning(false);
+
+    // Refresh stats to show new coin balance immediately in HUD
+    refreshStats();
   };
 
-  const handleSpin = async () => {
-    if (stats.spinsLeft <= 0) {
-      if (isAdLoaded) {
-        showAd();
-      } else {
-        Alert.alert("Loading...", "Finding a video for you.");
-      }
+  // --- LOGIC: WATCH AD FOR FREE SPIN ---
+  const handleWatchAdForSpin = () => {
+    if (!isAdLoaded) {
+      Alert.alert("Loading...", "Please wait a moment for the video to load.");
       return;
     }
 
-    // CASE B: Normal Spin Logic (Keep your existing code below)
-    // Prevent double clicking or spinning with no spins
-    if (isSpinning || stats.spinsLeft <= 0) return;
+    // Pass the specific logic: Add 1 spin
+    showAd(async () => {
+      const { error } = await supabase.rpc("add_one_spin");
+      if (error) {
+        Alert.alert("Error", "Could not add spin. Please try again.");
+      } else {
+        Alert.alert("Success!", "You've earned 1 Free Spin!");
+      }
+    });
+  };
+
+  // --- LOGIC: MAIN SPIN ACTION ---
+  const handleSpin = async () => {
+    // 1. Check Spins. If 0, trigger Ad flow.
+    if (stats.spinsLeft <= 0) {
+      handleWatchAdForSpin();
+      return;
+    }
+
+    if (isSpinning) return;
 
     setIsSpinning(true);
 
-    // 1. START "LOADING" SPIN
-    // We start spinning fast immediately to give instant feedback
+    // 2. Start "Loading" Animation (Fast spin)
     const startRotation = rotation.value;
     rotation.value = withTiming(startRotation + 360 * 50, {
-      duration: 10000, // Long duration just to keep it moving linearly
+      duration: 10000,
       easing: Easing.linear,
     });
 
     try {
-      // 2. FETCH DATA + MINIMUM DELAY
-      // We run the API call AND a 1-second timer in parallel.
-      // This ensures the wheel spins for at least 1 second (visual comfort),
-      // but doesn't add extra delay if the network takes 2 seconds.
-      const startTime = Date.now();
-
+      // 3. Fetch Result + Min Delay
       const [result] = await Promise.all([
-        playSpin(), // The Network Request
-        new Promise((resolve) => setTimeout(resolve, 1000)), // Min visual spin time
+        playSpin(),
+        new Promise((resolve) => setTimeout(resolve, 1000)),
       ]);
 
       if (!result) {
@@ -137,32 +154,29 @@ export const LuckySpinUI: React.FC = () => {
 
       const { winnerIndex, rewardAmount } = result;
 
-      // 3. CALCULATE LANDING (Math)
+      // 4. Calculate Landing Angle
       cancelAnimation(rotation);
       const currentRotation = rotation.value;
       const segmentAngle = 360 / WHEEL_SEGMENTS;
 
-      // Randomize landing spot slightly within the segment
+      // Add randomness within the segment
       const randomOffset = (Math.random() - 0.5) * (segmentAngle * 0.5);
       const winningAngle = -(winnerIndex * segmentAngle) + randomOffset;
 
-      // Normalize
+      // Normalize & Calculate distance
       const normalizedCurrent = currentRotation % 360;
       let distanceToAngle = winningAngle - normalizedCurrent;
       while (distanceToAngle < 0) distanceToAngle += 360;
 
-      // --- OPTIMIZATION HERE ---
-      // Reduced from 3 rotations to 2 (faster stop)
-      const extraRotations = 360 * 2;
+      const extraRotations = 360 * 2; // Spin 2 more times for effect
       const finalRotation = currentRotation + distanceToAngle + extraRotations;
 
-      // 4. STOPPING ANIMATION
-      // Reduced duration from 3500ms to 2500ms (snappier)
+      // 5. Final Deceleration Animation
       rotation.value = withTiming(
         finalRotation,
         {
           duration: 2500,
-          easing: Easing.bezier(0.1, 0.4, 0.2, 1), // "Ease Out"
+          easing: Easing.bezier(0.1, 0.4, 0.2, 1), // Ease Out
         },
         (finished) => {
           if (finished) runOnJS(onSpinComplete)(rewardAmount);
@@ -176,17 +190,43 @@ export const LuckySpinUI: React.FC = () => {
     }
   };
 
+  // --- LOGIC: WATCH AD TO DOUBLE REWARD ---
+  const handleDoubleReward = () => {
+    if (!isAdLoaded) {
+      Alert.alert("Ad Loading", "Please wait for the video to load.");
+      return;
+    }
+
+    // Pass the specific logic: Add coins equal to winning amount
+    showAd(async () => {
+      const { error } = await supabase.rpc("add_coins", {
+        amount: winningAmount,
+      });
+
+      if (error) {
+        Alert.alert("Error", "Could not double coins.");
+      } else {
+        handleModalClose();
+        setTimeout(() => {
+          Alert.alert(
+            "Doubled!",
+            `You received an extra ${winningAmount} coins!`,
+          );
+        }, 500);
+      }
+    });
+  };
+
   const handleModalClose = () => {
     setShowWinModal(false);
-    setWinningPrize(null);
     setTimeout(() => setShowConfetti(false), 500);
   };
 
-  // --- DERIVED STATE ---
   const hasSpins = stats.spinsLeft > 0;
 
   return (
     <View style={styles.container}>
+      {/* BACKGROUND GLOW */}
       <View style={styles.ambientGlowContainer}>
         <View
           style={[styles.ambientGlow, { backgroundColor: theme.primary }]}
@@ -204,7 +244,7 @@ export const LuckySpinUI: React.FC = () => {
           </Text>
         </View>
 
-        {/* WHEEL */}
+        {/* WHEEL SECTION */}
         <View style={styles.wheelSection}>
           <View
             style={[
@@ -212,6 +252,7 @@ export const LuckySpinUI: React.FC = () => {
               { borderColor: theme.backgroundTertiary },
             ]}
           >
+            {/* POINTER */}
             <View style={styles.pointerContainer}>
               <SvgSpinPointer
                 size={55}
@@ -226,6 +267,7 @@ export const LuckySpinUI: React.FC = () => {
                 { borderColor: theme.backgroundTertiary },
               ]}
             >
+              {/* SPINNING WHEEL SVG */}
               <Animated.View style={[styles.wheelContainer, animatedStyle]}>
                 <SvgSpinWheel
                   size={WHEEL_SIZE}
@@ -236,11 +278,9 @@ export const LuckySpinUI: React.FC = () => {
               </Animated.View>
 
               {/* CENTER BUTTON */}
-              {/* CENTER BUTTON */}
               <TouchableOpacity
                 onPress={handleSpin}
-                // Disable only if spinning. Enable if 0 spins (so they can click to watch ad)
-                disabled={isSpinning}
+                disabled={isSpinning} // Enable click even if 0 spins (to watch ad)
                 activeOpacity={0.9}
                 style={styles.centerButtonOuter}
               >
@@ -249,18 +289,17 @@ export const LuckySpinUI: React.FC = () => {
                     isSpinning
                       ? ["#475569", "#1e293b"] // Grey (Spinning)
                       : !hasSpins
-                        ? ["#F59E0B", "#D97706"] // Gold/Orange (Watch Ad)
-                        : ["#38bdf8", "#2563eb"] // Blue (Ready to Spin)
+                        ? ["#F59E0B", "#D97706"] // Gold (Ad/Free)
+                        : ["#38bdf8", "#2563eb"] // Blue (Spin)
                   }
                   style={styles.centerButtonInner}
                 >
                   <View style={styles.centerButtonHighlight} />
 
-                  {/* Conditional Icon/Text */}
                   {isSpinning ? (
                     <Text style={styles.centerButtonText}>...</Text>
                   ) : !hasSpins ? (
-                    // OUT OF SPINS -> SHOW VIDEO ICON
+                    // SHOW "FREE" + ICON
                     <View style={{ alignItems: "center" }}>
                       <MaterialCommunityIcons
                         name="play-box-outline"
@@ -272,7 +311,7 @@ export const LuckySpinUI: React.FC = () => {
                       </Text>
                     </View>
                   ) : (
-                    // HAS SPINS -> SHOW SPIN TEXT
+                    // SHOW "SPIN"
                     <Text style={styles.centerButtonText}>SPIN</Text>
                   )}
                 </LinearGradient>
@@ -284,7 +323,7 @@ export const LuckySpinUI: React.FC = () => {
         {/* HUD STATS */}
         <View style={styles.hudContainer}>
           <View style={styles.statsRow}>
-            {/* SPINS LEFT CARD */}
+            {/* SPINS LEFT */}
             <View
               style={[
                 styles.statBox,
@@ -318,7 +357,7 @@ export const LuckySpinUI: React.FC = () => {
               </View>
             </View>
 
-            {/* NEXT FREE CARD (THE TIMER) */}
+            {/* NEXT FREE TIMER */}
             <View
               style={[
                 styles.statBox,
@@ -339,12 +378,6 @@ export const LuckySpinUI: React.FC = () => {
                 >
                   {t("luckySpin.nextFree", "NEXT FREE")}
                 </Text>
-
-                {/* 
-                   LOGIC: 
-                   If they have spins, show "READY".
-                   If 0 spins, show Countdown.
-                */}
                 <Text
                   style={[
                     styles.statValue,
@@ -359,6 +392,7 @@ export const LuckySpinUI: React.FC = () => {
         </View>
       </SafeAreaView>
 
+      {/* CONFETTI */}
       {showConfetti && (
         <ConfettiCannon
           ref={confettiRef}
@@ -370,22 +404,22 @@ export const LuckySpinUI: React.FC = () => {
         />
       )}
 
-      {winningPrize && (
-        <WinModal
-          visible={showWinModal}
-          prize={winningPrize}
-          onClose={handleModalClose}
-          theme={theme}
-        />
-      )}
+      {/* WIN MODAL */}
+      <WinModal
+        visible={showWinModal}
+        prizeLabel={winningPrizeLabel}
+        prizeValue={winningAmount}
+        onClose={handleModalClose}
+        onDoubleClaim={handleDoubleReward}
+        isAdLoaded={isAdLoaded}
+        theme={theme}
+      />
     </View>
   );
 };
 
-// ... Styles remain the same ...
 const createStyles = (theme: any, insets: any) => {
   return StyleSheet.create({
-    // ... (Keep existing styles from previous step)
     container: {
       flex: 1,
       overflow: "hidden",
@@ -477,37 +511,43 @@ const createStyles = (theme: any, insets: any) => {
       shadowRadius: 5,
       elevation: 5,
     },
-    centerButtonGradient: {
-      width: "100%",
-      height: "100%",
-      borderRadius: CENTER_BUTTON_SIZE / 2,
-      padding: 3,
+    centerButtonInner: {
+      width: 66,
+      height: 66,
+      borderRadius: 33,
       justifyContent: "center",
       alignItems: "center",
+      borderWidth: 1,
+      borderColor: "rgba(255,255,255,0.3)",
     },
-    centerButtonInnerRim: {
-      flex: 1,
-      width: "100%",
-      borderRadius: CENTER_BUTTON_SIZE / 2,
-      borderWidth: 1.5,
-      borderColor: "rgba(255,255,255,0.4)",
+    centerButtonHighlight: {
+      position: "absolute",
+      top: 6,
+      width: 40,
+      height: 20,
+      borderRadius: 20,
+      backgroundColor: "rgba(255,255,255,0.25)",
+    },
+    centerButtonOuter: {
+      position: "absolute",
+      width: 76,
+      height: 76,
+      borderRadius: 38,
+      backgroundColor: "#e2e8f0",
       justifyContent: "center",
       alignItems: "center",
+      zIndex: 20,
+      elevation: 10,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.4,
+      shadowRadius: 5,
     },
     centerButtonText: {
       color: "#FFFFFF",
       fontWeight: "900",
       fontSize: 16,
       letterSpacing: 1,
-    },
-    centerButtonShadow: {
-      position: "absolute",
-      width: CENTER_BUTTON_SIZE + 6,
-      height: CENTER_BUTTON_SIZE + 6,
-      borderRadius: (CENTER_BUTTON_SIZE + 6) / 2,
-      borderWidth: 3,
-      zIndex: -1,
-      opacity: 0.2,
     },
     hudContainer: {
       paddingHorizontal: 20,
@@ -544,38 +584,6 @@ const createStyles = (theme: any, insets: any) => {
     statValue: {
       fontSize: 18,
       fontWeight: "800",
-    },
-    centerButtonInner: {
-      width: 66,
-      height: 66,
-      borderRadius: 33,
-      justifyContent: "center",
-      alignItems: "center",
-      borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.3)",
-    },
-    centerButtonHighlight: {
-      position: "absolute",
-      top: 6,
-      width: 40,
-      height: 20,
-      borderRadius: 20,
-      backgroundColor: "rgba(255,255,255,0.25)",
-    },
-    centerButtonOuter: {
-      position: "absolute",
-      width: 76,
-      height: 76,
-      borderRadius: 38,
-      backgroundColor: "#e2e8f0",
-      justifyContent: "center",
-      alignItems: "center",
-      zIndex: 20,
-      elevation: 10,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.4,
-      shadowRadius: 5,
     },
   });
 };

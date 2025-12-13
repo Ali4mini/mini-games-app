@@ -1,8 +1,7 @@
 /*
-  SUPABASE DATABASE RECONSTRUCTION SCRIPT
+  SUPABASE DATABASE RECONSTRUCTION SCRIPT (UPDATED)
   ---------------------------------------
-  This script recreates the entire database schema to match your
-  React Native project hooks and types.
+  Includes Auto-Generated Unique Referral Codes
 */
 
 -- ==========================================
@@ -20,11 +19,14 @@ DROP TABLE IF EXISTS public.banners;
 DROP TABLE IF EXISTS public.games;
 DROP TABLE IF EXISTS public.profiles CASCADE;
 
+-- Drop Functions
+DROP FUNCTION IF EXISTS public.generate_unique_referral_code CASCADE;
+
 -- Drop Enums
 DROP TYPE IF EXISTS game_category CASCADE;
 DROP TYPE IF EXISTS game_orientation CASCADE;
 
--- Cleanup Storage Policies (To allow re-running script without errors)
+-- Cleanup Storage Policies
 DROP POLICY IF EXISTS "Public Access" ON storage.objects;
 DROP POLICY IF EXISTS "Authenticated Insert" ON storage.objects;
 DROP POLICY IF EXISTS "Owner Update" ON storage.objects;
@@ -41,38 +43,68 @@ CREATE TYPE game_category AS ENUM (
 CREATE TYPE game_orientation AS ENUM ('landscape', 'portrait');
 
 -- ==========================================
--- 2.5. STORAGE CONFIGURATION (Create Bucket)
+-- 2.5. STORAGE CONFIGURATION
 -- ==========================================
--- Creates the 'assets' bucket for avatars
 INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-VALUES (
-  'assets', 
-  'assets', 
-  true, 
-  5242880, -- 5MB Limit
-  '{image/*}' -- Images only
-)
+VALUES ('assets', 'assets', true, 5242880, '{image/*}')
 ON CONFLICT (id) DO UPDATE SET 
   public = true,
   file_size_limit = 5242880,
   allowed_mime_types = '{image/*}';
 
 -- ==========================================
--- 3. CREATE TABLES
+-- 3. HELPER FUNCTIONS (Must be before tables)
+-- ==========================================
+
+-- Function to generate unique 6-character referral code
+CREATE OR REPLACE FUNCTION public.generate_unique_referral_code(length INT DEFAULT 6)
+RETURNS TEXT AS $$
+DECLARE
+  chars TEXT := 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  result TEXT := '';
+  i INT;
+  exists_check BOOLEAN;
+BEGIN
+  LOOP
+    result := '';
+    FOR i IN 1..length LOOP
+      result := result || substr(chars, floor(random() * length(chars) + 1)::int, 1);
+    END LOOP;
+    
+    -- Check if it exists in profiles (will be created in next step)
+    -- We perform a safe check; if table doesn't exist yet, this runs fine during creation
+    BEGIN
+      PERFORM 1 FROM public.profiles WHERE referral_code = result;
+      IF FOUND THEN exists_check := true; ELSE exists_check := false; END IF;
+    EXCEPTION WHEN undefined_table THEN
+      -- Table doesn't exist yet (first run), so code is definitely unique
+      exists_check := false;
+    END;
+
+    IF NOT exists_check THEN
+      RETURN result;
+    END IF;
+  END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+-- ==========================================
+-- 4. CREATE TABLES
 -- ==========================================
 
 -- PROFILES
--- Stores user data. ID matches Auth ID for real users.
 CREATE TABLE public.profiles (
   id UUID PRIMARY KEY, -- Matches auth.users.id
   username TEXT UNIQUE,
-  name TEXT, -- Matches 'name' in your UserProfile type
+  name TEXT, 
   avatar_url TEXT,
   coins INTEGER DEFAULT 100,
   level INTEGER DEFAULT 1,
   daily_streak INTEGER DEFAULT 0,
   total_games_played INTEGER DEFAULT 0,
-  referral_code TEXT UNIQUE,
+  
+  -- ADDED: Auto-generated unique referral code
+  referral_code TEXT UNIQUE DEFAULT public.generate_unique_referral_code(),
   
   -- Game Specific Stats
   daily_spins_left INTEGER DEFAULT 3,
@@ -84,12 +116,11 @@ CREATE TABLE public.profiles (
 );
 
 -- GAMES
--- Stores the game catalog
 CREATE TABLE public.games (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   title TEXT NOT NULL,
-  image TEXT NOT NULL, -- Renamed from image_url
-  url TEXT NOT NULL,   -- Renamed from game_url
+  image TEXT NOT NULL,
+  url TEXT NOT NULL,
   orientation game_orientation DEFAULT 'portrait',
   description TEXT,
   category game_category,
@@ -98,7 +129,6 @@ CREATE TABLE public.games (
 );
 
 -- FEATURED GAMES
--- Links to games for the home slider
 CREATE TABLE public.featured_games (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   game_id UUID NOT NULL REFERENCES public.games(id) ON DELETE CASCADE,
@@ -107,21 +137,20 @@ CREATE TABLE public.featured_games (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- BANNERS (was hero_banners)
--- Home screen carousel
+-- BANNERS
 CREATE TABLE public.banners (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   title TEXT NOT NULL,
   subtitle TEXT,
-  image TEXT NOT NULL, -- Renamed from image_url
-  href TEXT NOT NULL,  -- Renamed from link_path
+  image TEXT NOT NULL,
+  href TEXT NOT NULL,
   is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- DAILY REWARDS CONFIG (was rules)
+-- DAILY REWARDS CONFIG
 CREATE TABLE public.daily_rewards_config (
-  day_number INTEGER PRIMARY KEY, -- 1 to 7
+  day_number INTEGER PRIMARY KEY,
   reward_amount INTEGER NOT NULL
 );
 
@@ -175,11 +204,9 @@ CREATE TABLE public.daily_reward_claims (
 );
 
 -- ==========================================
--- 4. CREATE VIEWS
+-- 5. CREATE VIEWS
 -- ==========================================
 
--- LEADERBOARD VIEW
--- Dynamic ranking calculation
 CREATE VIEW public.leaderboard AS
 SELECT 
   id AS user_id,
@@ -191,7 +218,7 @@ FROM
   public.profiles;
 
 -- ==========================================
--- 5. ENABLE ROW LEVEL SECURITY (RLS)
+-- 6. ENABLE ROW LEVEL SECURITY (RLS)
 -- ==========================================
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.games ENABLE ROW LEVEL SECURITY;
@@ -201,8 +228,6 @@ ALTER TABLE public.daily_rewards_config ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.spin_wheel_prizes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.achievements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_achievements ENABLE ROW LEVEL SECURITY;
-
--- Storage RLS (Standard Supabase)
 ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
 
 -- Database Policies
@@ -215,48 +240,37 @@ CREATE POLICY "Public Read Banners" ON public.banners FOR SELECT USING (true);
 CREATE POLICY "Public Read Config" ON public.daily_rewards_config FOR SELECT USING (true);
 CREATE POLICY "Public Read Prizes" ON public.spin_wheel_prizes FOR SELECT USING (true);
 CREATE POLICY "Public Read Achievements" ON public.achievements FOR SELECT USING (true);
+CREATE POLICY "Users Read Own Achievement Progress" ON public.user_achievements FOR SELECT USING (auth.uid() = user_id);
 
-CREATE POLICY "Users Read Own Achievement Progress" ON public.user_achievements 
-FOR SELECT USING (auth.uid() = user_id);
-
--- Storage Policies for 'assets' bucket
-CREATE POLICY "Public Access" ON storage.objects FOR SELECT
-USING ( bucket_id = 'assets' );
-
-CREATE POLICY "Authenticated Insert" ON storage.objects FOR INSERT
-TO authenticated
-WITH CHECK ( bucket_id = 'assets' AND auth.uid() = owner );
-
-CREATE POLICY "Owner Update" ON storage.objects FOR UPDATE
-TO authenticated
-USING ( bucket_id = 'assets' AND auth.uid() = owner );
-
-CREATE POLICY "Owner Delete" ON storage.objects FOR DELETE
-TO authenticated
-USING ( bucket_id = 'assets' AND auth.uid() = owner );
+-- Storage Policies
+CREATE POLICY "Public Access" ON storage.objects FOR SELECT USING ( bucket_id = 'assets' );
+CREATE POLICY "Authenticated Insert" ON storage.objects FOR INSERT TO authenticated WITH CHECK ( bucket_id = 'assets' AND auth.uid() = owner );
+CREATE POLICY "Owner Update" ON storage.objects FOR UPDATE TO authenticated USING ( bucket_id = 'assets' AND auth.uid() = owner );
+CREATE POLICY "Owner Delete" ON storage.objects FOR DELETE TO authenticated USING ( bucket_id = 'assets' AND auth.uid() = owner );
 
 -- ==========================================
--- 6. INDEXES
+-- 7. INDEXES
 -- ==========================================
 CREATE INDEX IF NOT EXISTS idx_games_category ON public.games(category);
 CREATE INDEX IF NOT EXISTS idx_games_title ON public.games USING GIN (to_tsvector('english', title));
 
 -- ==========================================
--- 7. FUNCTIONS & TRIGGERS
+-- 8. FUNCTIONS & TRIGGERS (LOGIC)
 -- ==========================================
 
 -- A. Auto-create Profile on Sign Up
 CREATE OR REPLACE FUNCTION public.handle_new_user() 
 RETURNS TRIGGER AS $$
 BEGIN
+  -- Note: referral_code will be auto-generated by the DEFAULT value in table definition
   INSERT INTO public.profiles (id, name, avatar_url, username, coins, daily_spins_left)
   VALUES (
     new.id, 
     COALESCE(new.raw_user_meta_data->>'full_name', 'Player'), 
     new.raw_user_meta_data->>'avatar_url',
-    new.email, -- Fallback username
-    100, -- Starting coins
-    3    -- Starting spins
+    new.email, 
+    100, 
+    3
   );
   RETURN new;
 END;
@@ -283,36 +297,25 @@ DECLARE
   is_new_day BOOLEAN;
 BEGIN
   current_user_id := auth.uid();
-  IF current_user_id IS NULL THEN
-    RETURN json_build_object('success', false, 'message', 'Not logged in');
-  END IF;
+  IF current_user_id IS NULL THEN RETURN json_build_object('success', false, 'message', 'Not logged in'); END IF;
 
   SELECT * INTO user_profile FROM public.profiles WHERE id = current_user_id;
 
-  -- Reset Logic
   is_new_day := (user_profile.last_spin_date::date < CURRENT_DATE);
   IF is_new_day THEN
     UPDATE public.profiles SET daily_spins_left = 3, last_spin_date = NOW() WHERE id = current_user_id;
     user_profile.daily_spins_left := 3;
   END IF;
 
-  IF user_profile.daily_spins_left <= 0 THEN
-    RETURN json_build_object('success', false, 'message', 'No spins left for today!');
-  END IF;
+  IF user_profile.daily_spins_left <= 0 THEN RETURN json_build_object('success', false, 'message', 'No spins left for today!'); END IF;
 
-  -- Weighted Random Logic
   rand_val := floor(random() * 100) + 1;
   FOR prize IN prize_pool LOOP
     cumulative_sum := cumulative_sum + prize.probability_percentage;
-    IF rand_val <= cumulative_sum THEN
-      selected_prize := prize;
-      EXIT;
-    END IF;
+    IF rand_val <= cumulative_sum THEN selected_prize := prize; EXIT; END IF;
   END LOOP;
 
-  IF selected_prize IS NULL THEN
-    SELECT * INTO selected_prize FROM public.spin_wheel_prizes WHERE id = 1;
-  END IF;
+  IF selected_prize IS NULL THEN SELECT * INTO selected_prize FROM public.spin_wheel_prizes WHERE id = 1; END IF;
 
   UPDATE public.profiles
   SET daily_spins_left = daily_spins_left - 1, coins = coins + selected_prize.value, last_spin_date = NOW()
@@ -338,16 +341,12 @@ DECLARE
   cycle_day INTEGER;
 BEGIN
   curr_user_id := auth.uid();
-  IF curr_user_id IS NULL THEN
-    RETURN json_build_object('success', false, 'message', 'Not logged in');
-  END IF;
+  IF curr_user_id IS NULL THEN RETURN json_build_object('success', false, 'message', 'Not logged in'); END IF;
 
   SELECT * INTO user_prof FROM public.profiles WHERE id = curr_user_id;
 
   is_already_claimed := (user_prof.last_check_in::date = CURRENT_DATE);
-  IF is_already_claimed THEN
-    RETURN json_build_object('success', false, 'message', 'Already claimed today.');
-  END IF;
+  IF is_already_claimed THEN RETURN json_build_object('success', false, 'message', 'Already claimed today.'); END IF;
 
   is_streak_broken := (user_prof.last_check_in::date < (CURRENT_DATE - INTERVAL '1 day'));
   IF is_streak_broken THEN new_streak := 1; ELSE new_streak := user_prof.daily_streak + 1; END IF;
@@ -364,10 +363,10 @@ END;
 $$;
 
 -- ==========================================
--- 8. SEED DATA
+-- 9. SEED DATA
 -- ==========================================
 
--- A. Games
+-- Games
 INSERT INTO public.games (title, image, url, orientation, category, description)
 VALUES 
 ('Om Nom Run', 'https://img.cdn.famobi.com/portal/html5games/images/tmp/OmNomRunTeaser.jpg', 'https://play.famobi.com/om-nom-run', 'portrait', 'Action', 'Join Om Nom in an exciting running adventure!'),
@@ -381,38 +380,30 @@ VALUES
 ('Gold Miner Tom', 'https://img.cdn.famobi.com/portal/html5games/images/tmp/GoldMinerTomTeaser.jpg', 'https://play.famobi.com/gold-miner-tom', 'landscape', 'Adventure', 'Help Tom use his claw to mine for gold.'),
 ('Diamond Rush', 'https://img.cdn.famobi.com/portal/html5games/images/tmp/DiamondRushTeaser.jpg', 'https://play.famobi.com/diamond-rush', 'portrait', 'Puzzle', 'A fast-paced match-3 game.');
 
--- B. Featured Games (First 5)
+-- Featured
 INSERT INTO public.featured_games (game_id, display_order, is_active)
-SELECT id, row_number() OVER (ORDER BY created_at), true
-FROM public.games
-LIMIT 5;
+SELECT id, row_number() OVER (ORDER BY created_at), true FROM public.games LIMIT 5;
 
--- C. Banners
+-- Banners
 INSERT INTO public.banners (title, subtitle, image, href)
 VALUES 
 ('Spin the Wheel!', 'Win daily prizes and coins.', 'https://placehold.co/600x400/png?text=Spin+Wheel', '/lucky-spin'),
 ('Invite a Friend', 'Earn 500 coins for every friend you invite.', 'https://placehold.co/600x400/png?text=Invite+Friend', '/profile'),
 ('New Games Added!', 'Check out the latest additions to our library.', 'https://placehold.co/600x400/png?text=New+Games', '/games-list');
 
--- D. Spin Wheel Prizes (Set sequence manually to match IDs)
+-- Spin Wheel Prizes
 INSERT INTO public.spin_wheel_prizes (id, label, icon, value, probability_percentage)
 VALUES 
-(1, '20', 'coins', 20, 30),
-(2, '50', 'coins', 50, 25),
-(3, '100', 'coins', 100, 20),
-(4, '200', 'coins', 200, 10),
-(5, '500', 'coins', 500, 5),
-(6, '1K', 'coins', 1000, 2),
-(7, 'Ticket', 'ticket', 50, 8),
-(8, 'JACKPOT', 'trophy', 5000, 0);
-
+(1, '20', 'coins', 20, 30), (2, '50', 'coins', 50, 25), (3, '100', 'coins', 100, 20),
+(4, '200', 'coins', 200, 10), (5, '500', 'coins', 500, 5), (6, '1K', 'coins', 1000, 2),
+(7, 'Ticket', 'ticket', 50, 8), (8, 'JACKPOT', 'trophy', 5000, 0);
 SELECT setval('public.spin_wheel_prizes_id_seq', 8, true);
 
--- E. Daily Rewards
+-- Daily Rewards
 INSERT INTO public.daily_rewards_config (day_number, reward_amount)
 VALUES (1, 50), (2, 75), (3, 100), (4, 125), (5, 150), (6, 200), (7, 500);
 
--- F. Achievements
+-- Achievements
 INSERT INTO public.achievements (title, description, icon, target_value, reward_coins)
 VALUES 
 ('Novice Gamer', 'Play your first 10 games', 'gamepad', 10, 50),
@@ -420,7 +411,7 @@ VALUES
 ('High Roller', 'Accumulate 1000 coins', 'coins', 1000, 500),
 ('Spin Doctor', 'Spin the lucky wheel 50 times', 'aperture', 50, 300);
 
--- G. Dummy Users (For Leaderboard)
+-- Dummy Users
 INSERT INTO public.profiles (id, username, name, avatar_url, coins, daily_streak, total_games_played)
 VALUES 
 (gen_random_uuid(), 'TopGamer', 'Top Gamer', 'https://via.placeholder.com/40x40/FF6B6B/FFFFFF?textPrimary=TG', 15420, 28, 142),
@@ -429,7 +420,8 @@ VALUES
 (gen_random_uuid(), 'LuckyWinner', 'Lucky Winner', 'https://via.placeholder.com/40x40/96CEB4/FFFFFF?textPrimary=LW', 11560, 18, 110),
 (gen_random_uuid(), 'GameChamp', 'Game Champ', 'https://via.placeholder.com/40x40/FFEAA7/000000?textPrimary=GC', 10890, 22, 130);
 
--- H. BACKFILL EXISTING AUTH USERS (Fixes "Result contains 0 rows" error)
+-- BACKFILL EXISTING AUTH USERS
+-- Automatically triggers default referral code generation
 INSERT INTO public.profiles (id, username, name, avatar_url, coins, daily_spins_left)
 SELECT 
     id, 

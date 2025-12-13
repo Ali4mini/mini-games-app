@@ -17,13 +17,16 @@ import Animated, {
   withSequence,
   withDelay,
   withTiming,
-  runOnJS, // Required to call JS functions (onClose) from UI thread
+  runOnJS,
 } from "react-native-reanimated";
 
 type WinModalProps = {
   visible: boolean;
-  prize: string | number;
+  prizeLabel: string; // e.g. "+50 Coins"
+  prizeValue: number; // e.g. 50
   onClose: () => void;
+  onDoubleClaim: () => void; // <--- NEW PROP
+  isAdLoaded: boolean; // <--- NEW PROP
   theme: any;
 };
 
@@ -31,49 +34,32 @@ const { width } = Dimensions.get("window");
 
 export const WinModal: React.FC<WinModalProps> = ({
   visible,
-  prize,
+  prizeLabel,
+  prizeValue,
   onClose,
+  onDoubleClaim,
+  isAdLoaded,
   theme,
 }) => {
   const { t } = useTranslation();
 
-  // --- Animation Values ---
+  // --- Animations ---
   const scale = useSharedValue(0);
   const opacity = useSharedValue(0);
   const glowScale = useSharedValue(1);
   const rotate = useSharedValue(0);
 
-  // --- Effect: Handle Entrance Animations ---
   useEffect(() => {
     if (visible) {
-      // 1. Reset values (Start invisible)
       scale.value = 0;
       opacity.value = 0;
       rotate.value = 0;
       glowScale.value = 1;
 
-      // 2. ENTRY: Snappy Spring
-      scale.value = withSpring(1, {
-        damping: 15,
-        stiffness: 200,
-        mass: 0.8,
-      });
-
+      scale.value = withSpring(1, { damping: 15, stiffness: 200, mass: 0.8 });
       opacity.value = withTiming(1, { duration: 150 });
 
-      // 3. DECORATION: Pulse the background glow
-      glowScale.value = withSequence(
-        withTiming(1.2, { duration: 0 }),
-        withDelay(
-          100,
-          withSequence(
-            withTiming(1.5, { duration: 500 }),
-            withTiming(1.2, { duration: 500 }),
-          ),
-        ),
-      );
-
-      // 4. DECORATION: Wiggle the Trophy
+      // Trophy Wiggle
       rotate.value = withSequence(
         withTiming(-10, { duration: 50 }),
         withTiming(10, { duration: 50 }),
@@ -83,21 +69,13 @@ export const WinModal: React.FC<WinModalProps> = ({
     }
   }, [visible]);
 
-  // --- Function: Handle Exit Animation ---
   const handleClose = () => {
-    // 1. Fade Out
     opacity.value = withTiming(0, { duration: 150 });
-
-    // 2. Shrink Out
     scale.value = withTiming(0, { duration: 150 }, (finished) => {
-      // 3. ONLY after animation finishes, tell parent to hide Modal
-      if (finished) {
-        runOnJS(onClose)();
-      }
+      if (finished) runOnJS(onClose)();
     });
   };
 
-  // --- Styles ---
   const modalAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
     opacity: opacity.value,
@@ -107,19 +85,14 @@ export const WinModal: React.FC<WinModalProps> = ({
     transform: [{ rotate: `${rotate.value}deg` }],
   }));
 
-  const glowStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: glowScale.value }],
-  }));
-
   return (
     <Modal
       transparent={true}
       visible={visible}
-      animationType="none" // We handle animation manually via Reanimated
-      onRequestClose={handleClose} // Handle Android Back Button
+      animationType="none"
+      onRequestClose={handleClose}
     >
       <View style={styles.overlay}>
-        {/* Backdrop: Tap to close */}
         <TouchableOpacity
           style={StyleSheet.absoluteFill}
           onPress={handleClose}
@@ -136,16 +109,7 @@ export const WinModal: React.FC<WinModalProps> = ({
             modalAnimatedStyle,
           ]}
         >
-          {/* --- DECORATIVE GLOW BEHIND ICON --- */}
-          <Animated.View
-            style={[
-              styles.glowBackground,
-              { backgroundColor: theme.primary },
-              glowStyle,
-            ]}
-          />
-
-          {/* --- ICON --- */}
+          {/* Trophy Icon */}
           <Animated.View style={[styles.iconWrapper, iconStyle]}>
             <LinearGradient
               colors={[theme.secondary, theme.primary]}
@@ -155,12 +119,11 @@ export const WinModal: React.FC<WinModalProps> = ({
             </LinearGradient>
           </Animated.View>
 
-          {/* --- TEXT CONTENT --- */}
+          {/* Texts */}
           <View style={styles.content}>
             <Text style={[styles.title, { color: theme.textPrimary }]}>
               {t("luckySpin.congratulations", "HUGE WIN!")}
             </Text>
-
             <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
               {t("luckySpin.youWonLabel", "You've acquired:")}
             </Text>
@@ -175,40 +138,75 @@ export const WinModal: React.FC<WinModalProps> = ({
               ]}
             >
               <Text style={[styles.prizeText, { color: theme.secondary }]}>
-                {prize}
+                {prizeLabel}
               </Text>
             </View>
           </View>
 
-          {/* --- ACTION BUTTON --- */}
-          <TouchableOpacity
-            onPress={handleClose}
-            activeOpacity={0.8}
-            style={styles.buttonWrapper}
-          >
-            <LinearGradient
-              colors={theme.buttonGradient || [theme.primary, theme.secondary]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.gradientButton}
+          {/* --- ACTION BUTTONS --- */}
+          <View style={{ width: "100%", gap: 12 }}>
+            {/* 1. DOUBLE REWARD (Ad) */}
+            <TouchableOpacity
+              onPress={onDoubleClaim}
+              disabled={!isAdLoaded}
+              activeOpacity={0.8}
+              style={styles.buttonWrapper}
             >
-              <Text style={styles.buttonText}>
-                {t("luckySpin.claim", "CLAIM REWARD")}
+              <LinearGradient
+                // Gold/Orange for Ads, Grey if loading
+                colors={
+                  isAdLoaded ? ["#F59E0B", "#D97706"] : ["#94a3b8", "#64748b"]
+                }
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.gradientButton}
+              >
+                <MaterialCommunityIcons
+                  name="play-box-outline"
+                  size={24}
+                  color="#FFF"
+                  style={{ marginRight: 8 }}
+                />
+                <View>
+                  <Text style={styles.buttonText}>
+                    {isAdLoaded ? "DOUBLE REWARD" : "LOADING AD..."}
+                  </Text>
+                  <Text
+                    style={{
+                      color: "rgba(255,255,255,0.8)",
+                      fontSize: 10,
+                      fontWeight: "600",
+                    }}
+                  >
+                    Get {prizeValue * 2} Coins
+                  </Text>
+                </View>
+              </LinearGradient>
+            </TouchableOpacity>
+
+            {/* 2. SIMPLE CLAIM */}
+            <TouchableOpacity
+              onPress={handleClose}
+              style={{ alignItems: "center", padding: 10 }}
+            >
+              <Text
+                style={{
+                  color: theme.textSecondary,
+                  textDecorationLine: "underline",
+                  fontSize: 12,
+                }}
+              >
+                No thanks, just claim {prizeValue}
               </Text>
-              <MaterialCommunityIcons
-                name="arrow-right-circle"
-                size={20}
-                color="#FFF"
-                style={{ marginLeft: 8 }}
-              />
-            </LinearGradient>
-          </TouchableOpacity>
+            </TouchableOpacity>
+          </View>
         </Animated.View>
       </View>
     </Modal>
   );
 };
 
+// Keep your existing styles for modalContainer, etc.
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
@@ -224,31 +222,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     alignItems: "center",
     borderWidth: 1.5,
-    // Shadows
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.5,
-    shadowRadius: 20,
     elevation: 20,
-    zIndex: 100,
   },
-  // Icon Styles
-  glowBackground: {
-    position: "absolute",
-    top: 30,
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    opacity: 0.25,
-  },
-  iconWrapper: {
-    marginBottom: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 8,
-  },
+  iconWrapper: { marginBottom: 20, elevation: 8 },
   iconGradientCircle: {
     width: 80,
     height: 80,
@@ -258,17 +234,12 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "#FFF",
   },
-  // Text Styles
-  content: {
-    alignItems: "center",
-    width: "100%",
-  },
+  content: { alignItems: "center", width: "100%" },
   title: {
     fontSize: 26,
     fontWeight: "900",
     textAlign: "center",
     textTransform: "uppercase",
-    letterSpacing: 1.5,
     marginBottom: 8,
   },
   subtitle: {
@@ -277,7 +248,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     fontWeight: "500",
   },
-  // Prize Box
   prizeBox: {
     width: "100%",
     paddingVertical: 18,
@@ -294,18 +264,10 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     textTransform: "uppercase",
   },
-  // Button
-  buttonWrapper: {
-    width: "100%",
-    borderRadius: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 5,
-  },
+  buttonWrapper: { width: "100%", borderRadius: 16, elevation: 5 },
   gradientButton: {
-    paddingVertical: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
     borderRadius: 16,
     flexDirection: "row",
     justifyContent: "center",

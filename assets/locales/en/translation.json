@@ -1,5 +1,5 @@
 {
-  "appName": "Earnado",
+  "appName": "MysteryPlay",
   "home": {
     "welcomeBack": "Welcome back,",
     "dailyCheckIn": "Daily Check-in",
@@ -113,7 +113,7 @@
     "errorEmpty": "Transmission empty. Please input data.",
     "successMessage": "Transmission received by HQ."
   },
- "categories": {
+  "categories": {
     "all": "All",
     "action": "Action",
     "puzzle": "Puzzle",
@@ -146,7 +146,7 @@
     "errorEmpty": "Transmission empty. Please input data.",
     "errorLink": "Could not open link",
     "successMessage": "Transmission received by HQ."
-  }, 
+  },
   "airdrop": {
     "title": "Airdrop",
     "subtitle": "Coming Soon!",
