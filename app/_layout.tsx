@@ -18,6 +18,7 @@ import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { UserStatsProvider } from "@/context/UserStatsContext";
 import { SplashScreen as AnimatedSplash } from "@/components/common/SplashScreen";
 import { enableFreeze } from "react-native-screens";
+import { AdManager } from "@/utils/adsManager";
 
 enableFreeze(false);
 
@@ -30,6 +31,10 @@ const appOpenAd = AppOpenAd.createForAdRequest(getAdUnitId("appOpen"), {
 });
 
 const RootNavigator = () => {
+  useEffect(() => {
+    // Start the ad engine
+    AdManager.initialize();
+  }, []);
   const theme = useTheme();
   const { session, loading: authLoading } = useAuth();
   const segments = useSegments();

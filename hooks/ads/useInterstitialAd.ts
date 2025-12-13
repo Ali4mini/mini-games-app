@@ -1,47 +1,60 @@
-import { useEffect, useState } from "react";
-import { InterstitialAd, AdEventType } from "react-native-google-mobile-ads";
-import { getAdUnitId } from "@/utils/adsConfig";
-
-const adUnitId = getAdUnitId("interstitial");
-
-// Define outside component to persist across re-renders
-let interstitial = InterstitialAd.createForAdRequest(adUnitId, {
-  requestNonPersonalizedAdsOnly: true,
-});
+import { useEffect, useState, useCallback } from "react";
+import { AdEventType } from "react-native-google-mobile-ads";
+import { interstitialAd, AdStatus } from "@/utils/adsManager"; // Import from Manager
 
 export const useInterstitialAd = () => {
-  const [loaded, setLoaded] = useState(false);
+  // 1. Initialize with global status (in case it loaded before this screen mounted)
+  const [loaded, setLoaded] = useState(AdStatus.isInterstitialLoaded);
 
   useEffect(() => {
-    const loadListener = interstitial.addAdEventListener(
+    // --- EVENT LISTENERS (UI SYNC ONLY) ---
+    // The AdManager handles the actual auto-reloading logic.
+    // We just listen here to update the 'loaded' boolean for the UI.
+
+    const unsubscribeLoaded = interstitialAd.addAdEventListener(
       AdEventType.LOADED,
-      () => {
-        setLoaded(true);
-      },
+      () => setLoaded(true),
     );
 
-    const closeListener = interstitial.addAdEventListener(
+    const unsubscribeClosed = interstitialAd.addAdEventListener(
       AdEventType.CLOSED,
       () => {
         setLoaded(false);
-        interstitial.load(); // Auto-load the next one
+        // Note: We do NOT call interstitialAd.load() here.
+        // AdManager.ts handles the auto-reload globally.
       },
     );
 
-    // Load immediately if not loaded
-    if (!loaded) interstitial.load();
+    const unsubscribeError = interstitialAd.addAdEventListener(
+      AdEventType.ERROR,
+      () => setLoaded(false),
+    );
+
+    // Safety check: Ensure it's loading if manager missed it
+    if (!AdStatus.isInterstitialLoaded) {
+      interstitialAd.load();
+    }
 
     return () => {
-      loadListener();
-      closeListener();
+      unsubscribeLoaded();
+      unsubscribeClosed();
+      unsubscribeError();
     };
   }, []);
 
-  const showInterstitial = () => {
+  const showInterstitial = useCallback(() => {
     if (loaded) {
-      interstitial.show();
+      try {
+        interstitialAd.show();
+      } catch (error) {
+        console.error("Interstitial failed to show:", error);
+        setLoaded(false);
+        interstitialAd.load(); // Force reload if show failed
+      }
+    } else {
+      console.log("Interstitial not ready yet");
     }
-  };
+  }, [loaded]);
 
-  return { showInterstitial, loaded };
+  return { showInterstitial, isLoaded: loaded };
 };

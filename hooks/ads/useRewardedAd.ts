@@ -1,108 +1,64 @@
 import { useEffect, useState, useCallback, useRef } from "react";
-import {
-  RewardedAd,
-  RewardedAdEventType,
-  AdEventType,
-} from "react-native-google-mobile-ads";
+import { RewardedAdEventType } from "react-native-google-mobile-ads";
 import { Alert } from "react-native";
 import { useUserStats } from "@/context/UserStatsContext";
-import { getAdUnitId } from "@/utils/adsConfig"; // Adjust path if needed
-
-// 1. Select ID using your helper
-const adUnitId = getAdUnitId("rewarded");
-
-// 2. Singleton Instance
-const rewarded = RewardedAd.createForAdRequest(adUnitId, {
-  keywords: ["game", "coins", "spinner"],
-});
+// Import the Subscription function
+import { rewardedAd, AdStatus, subscribeToAdStatus } from "@/utils/adsManager";
 
 export const useRewardAd = () => {
-  const [loaded, setLoaded] = useState(false);
-  const { refreshStats } = useUserStats();
+  // 1. Initialize state from the singleton
+  const [loaded, setLoaded] = useState(AdStatus.isRewardedLoaded);
 
-  // Ref to store the SPECIFIC action to run when reward is received
+  const { refreshStats } = useUserStats();
   const onRewardEarnedRef = useRef<(() => Promise<void>) | null>(null);
 
   useEffect(() => {
-    // --- EVENT LISTENERS ---
+    // --- A. SUBSCRIBE TO MANAGER STATE ---
+    // This guarantees the hook stays in sync with the Manager,
+    // even if the ad reloaded while this component was unmounted/inactive.
+    const unsubscribeFromManager = subscribeToAdStatus(() => {
+      setLoaded(AdStatus.isRewardedLoaded);
+    });
 
-    const unsubscribeLoaded = rewarded.addAdEventListener(
-      RewardedAdEventType.LOADED,
-      () => {
-        setLoaded(true);
-      },
-    );
-
-    const unsubscribeEarned = rewarded.addAdEventListener(
+    // --- B. HANDLE REWARD EVENT ---
+    // We still listen to this directly because we need to trigger the callback
+    const unsubscribeEarned = rewardedAd.addAdEventListener(
       RewardedAdEventType.EARNED_REWARD,
-      async (reward) => {
-        console.log("User earned reward:", reward);
-
-        // EXECUTE THE DYNAMIC CALLBACK
+      async () => {
         if (onRewardEarnedRef.current) {
           try {
-            await onRewardEarnedRef.current(); // Run the specific logic passed from UI
-            await refreshStats(); // Force refresh context
+            await onRewardEarnedRef.current();
+            await refreshStats();
           } catch (e) {
-            console.error("Error executing reward callback", e);
-            Alert.alert("Error", "There was an issue saving your reward.");
+            console.error("Reward execution failed", e);
           }
         }
-
-        // Reset the callback
         onRewardEarnedRef.current = null;
       },
     );
 
-    const unsubscribeClosed = rewarded.addAdEventListener(
-      AdEventType.CLOSED,
-      () => {
-        setLoaded(false);
-        onRewardEarnedRef.current = null; // Cleanup
-        rewarded.load(); // Load next one immediately
-      },
-    );
-
-    const unsubscribeError = rewarded.addAdEventListener(
-      AdEventType.ERROR,
-      (error) => {
-        console.error("Ad Failed to Load:", error);
-        setLoaded(false);
-      },
-    );
-
-    // Initial Load
-    rewarded.load();
+    // Initial Sync (Just in case state changed before effect ran)
+    setLoaded(AdStatus.isRewardedLoaded);
 
     return () => {
-      unsubscribeLoaded();
+      unsubscribeFromManager();
       unsubscribeEarned();
-      unsubscribeClosed();
-      unsubscribeError();
     };
   }, []);
 
-  // showAd accepts an optional callback function (e.g. for spins vs coins)
   const showAd = useCallback(
     (onReward?: () => Promise<void>) => {
       if (loaded) {
-        if (onReward) {
-          onRewardEarnedRef.current = onReward;
-        }
+        if (onReward) onRewardEarnedRef.current = onReward;
         try {
-          rewarded.show();
-        } catch (error) {
-          console.error("Ad failed to show:", error);
+          rewardedAd.show();
+        } catch (e) {
+          console.error("Show failed", e);
+          // If show fails, Manager will likely catch Error event and update state
           setLoaded(false);
-          rewarded.load();
         }
       } else {
-        Alert.alert(
-          "Ad not ready",
-          "We are loading a video for you. Please try again in a few seconds.",
-        );
-        // Try loading again if it failed previously
-        rewarded.load();
+        Alert.alert("Ad Loading", "Please wait for the video to load.");
       }
     },
     [loaded],
