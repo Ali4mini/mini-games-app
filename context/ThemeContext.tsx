@@ -1,28 +1,28 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { useColorScheme } from "react-native";
+import React, { createContext, useContext, useState, ReactNode } from "react";
+// We no longer need useColorScheme or useEffect
+// import { useColorScheme } from "react-native";
 import Colors from "../constants/Colors";
 import { Theme } from "@/types"; // Ensure this matches your type definition
 
-// 1. Define the Context Shape
+// 1. Define the Context Shape (No changes needed here)
 type ThemeContextType = {
-  theme: Theme;          // The actual color object (Colors.light or Colors.dark)
-  isDark: boolean;       // Boolean helper
-  toggleTheme: () => void; // Function to switch modes
+  theme: Theme;
+  isDark: boolean;
+  toggleTheme: () => void;
 };
 
-// 2. Create Context
+// 2. Create Context (No changes needed here)
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const systemScheme = useColorScheme();
-  const [isDark, setIsDark] = useState(systemScheme === "dark");
+export const ThemeProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
+  // 1. Set the initial state directly to true for dark mode.
+  //    This will be the default when the app starts.
+  const [isDark, setIsDark] = useState(true);
 
-  // Update local state if system changes (optional, can be removed if you want strict manual control)
-  useEffect(() => {
-    if (systemScheme) {
-      setIsDark(systemScheme === "dark");
-    }
-  }, [systemScheme]);
+  // 2. We have removed the useColorScheme() hook and the useEffect.
+  //    The theme is now completely independent of the device settings.
 
   const toggleTheme = () => {
     setIsDark((prev) => !prev);
@@ -37,18 +37,19 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   );
 };
 
-// 3. Hooks
+// 3. Hooks (No changes needed here)
 
-// Use this for STYLING (keeps your existing code working)
+// Use this for STYLING
 export const useTheme = () => {
   const context = useContext(ThemeContext);
   if (!context) throw new Error("useTheme must be used within a ThemeProvider");
   return context.theme;
 };
 
-// Use this for LOGIC (toggling buttons)
+// Use this for LOGIC (e.g., in a settings switch)
 export const useThemeControl = () => {
   const context = useContext(ThemeContext);
-  if (!context) throw new Error("useThemeControl must be used within a ThemeProvider");
+  if (!context)
+    throw new Error("useThemeControl must be used within a ThemeProvider");
   return { isDark: context.isDark, toggleTheme: context.toggleTheme };
 };

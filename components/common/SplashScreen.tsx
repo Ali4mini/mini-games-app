@@ -81,7 +81,9 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
         <Animated.View style={[styles.glowBlob, glowStyle]} />
 
         {/* 3. MAIN TEXT (Heartbeat) */}
-        <Animated.Text style={[styles.title, textStyle]}>EARNADO</Animated.Text>
+        <Animated.Text style={[styles.title, textStyle]}>
+          MysteryPlay
+        </Animated.Text>
 
         {/* 4. SUBTITLE */}
         <Text style={styles.subtitle}>PLAY. WIN. EARN.</Text>
