@@ -23,18 +23,18 @@ import { Ionicons } from "@expo/vector-icons";
 import MaskedView from "@react-native-masked-view/masked-view";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 import { BlurView } from "expo-blur";
+import { useTranslation } from "react-i18next"; // <--- Import
 
-// --- Validation Schema ---
-const signupSchema = z.object({
-  username: z.string().min(3, "Username must be 3+ chars"),
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be 6+ chars"),
-});
-
-type SignupForm = z.infer<typeof signupSchema>;
+// Define Type manually since Schema is now dynamic inside the component
+type SignupForm = {
+  username: string;
+  email: string;
+  password: string;
+};
 
 export default function SignupScreen() {
   const router = useRouter();
+  const { t } = useTranslation(); // <--- Hook
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [focusedField, setFocusedField] = useState<
     "username" | "email" | "password" | null
@@ -49,6 +49,13 @@ export default function SignupScreen() {
     accentBlue: "#651FFF",
     accentCyan: "#06B6D4",
   };
+
+  // --- Dynamic Validation Schema (Moved inside to use t()) ---
+  const signupSchema = z.object({
+    username: z.string().min(3, { message: t("auth.errors.usernameMin") }),
+    email: z.string().email({ message: t("auth.errors.invalidEmail") }),
+    password: z.string().min(6, { message: t("auth.errors.passwordMin") }),
+  });
 
   const {
     control,
@@ -73,12 +80,17 @@ export default function SignupScreen() {
     });
 
     if (error) {
-      Alert.alert("Signup Failed", error.message);
+      Alert.alert(t("auth.signupFailed"), error.message);
     } else {
       Alert.alert(
-        "Account Created!",
-        "Please check your email to verify your account.",
-        [{ text: "OK", onPress: () => router.replace("/(auth)/login") }],
+        t("auth.accountCreatedTitle"),
+        t("auth.accountCreatedMessage"),
+        [
+          {
+            text: t("auth.ok"),
+            onPress: () => router.replace("/(auth)/login"),
+          },
+        ],
       );
     }
     setIsSubmitting(false);
@@ -118,12 +130,13 @@ export default function SignupScreen() {
             style={styles.headerContainer}
           >
             <View style={styles.iconContainer}>
-              {/* Changed icon to Person Add for signup context */}
               <Ionicons name="person-add" size={40} color="#fff" />
             </View>
-            <GradientText style={styles.brandTitle}>Mysteryplay</GradientText>
-            <Text style={styles.headerTitle}>JOIN THE GAME</Text>
-            <Text style={styles.subtitle}>Create your legend.</Text>
+            <GradientText style={styles.brandTitle}>
+              {t("appName")}
+            </GradientText>
+            <Text style={styles.headerTitle}>{t("auth.joinTheGame")}</Text>
+            <Text style={styles.subtitle}>{t("auth.createLegend")}</Text>
           </Animated.View>
 
           {/* --- Form Section --- */}
@@ -133,7 +146,7 @@ export default function SignupScreen() {
           >
             {/* Username Input */}
             <View style={styles.inputWrapper}>
-              <Text style={styles.label}>Username</Text>
+              <Text style={styles.label}>{t("auth.usernameLabel")}</Text>
               <Controller
                 control={control}
                 name="username"
@@ -155,7 +168,7 @@ export default function SignupScreen() {
                     />
                     <TextInput
                       style={styles.input}
-                      placeholder="GamerTag123"
+                      placeholder={t("auth.usernamePlaceholder")}
                       placeholderTextColor={colors.textPlaceholder}
                       autoCapitalize="none"
                       value={value}
@@ -175,7 +188,7 @@ export default function SignupScreen() {
 
             {/* Email Input */}
             <View style={styles.inputWrapper}>
-              <Text style={styles.label}>Email</Text>
+              <Text style={styles.label}>{t("auth.emailLabel")}</Text>
               <Controller
                 control={control}
                 name="email"
@@ -197,7 +210,7 @@ export default function SignupScreen() {
                     />
                     <TextInput
                       style={styles.input}
-                      placeholder="player@example.com"
+                      placeholder={t("auth.emailPlaceholder")}
                       placeholderTextColor={colors.textPlaceholder}
                       autoCapitalize="none"
                       keyboardType="email-address"
@@ -218,7 +231,7 @@ export default function SignupScreen() {
 
             {/* Password Input */}
             <View style={styles.inputWrapper}>
-              <Text style={styles.label}>Password</Text>
+              <Text style={styles.label}>{t("auth.passwordLabel")}</Text>
               <Controller
                 control={control}
                 name="password"
@@ -240,7 +253,7 @@ export default function SignupScreen() {
                     />
                     <TextInput
                       style={styles.input}
-                      placeholder="••••••••"
+                      placeholder={t("auth.passwordPlaceholder")}
                       placeholderTextColor={colors.textPlaceholder}
                       secureTextEntry
                       value={value}
@@ -258,7 +271,7 @@ export default function SignupScreen() {
               )}
             </View>
 
-            {/* Gradient Action Button (Matching Login Style) */}
+            {/* Gradient Action Button */}
             <TouchableOpacity
               onPress={handleSubmit(onSubmit)}
               disabled={isSubmitting}
@@ -274,17 +287,19 @@ export default function SignupScreen() {
                 {isSubmitting ? (
                   <ActivityIndicator color="#FFF" />
                 ) : (
-                  <Text style={styles.buttonText}>START PLAYING</Text>
+                  <Text style={styles.buttonText}>
+                    {t("auth.startPlaying")}
+                  </Text>
                 )}
               </LinearGradient>
             </TouchableOpacity>
 
             {/* Footer Link */}
             <Animated.View entering={FadeInUp.delay(300)} style={styles.footer}>
-              <Text style={styles.footerText}>Already a player?</Text>
+              <Text style={styles.footerText}>{t("auth.alreadyPlayer")}</Text>
               <Link href="/(auth)/login" asChild>
                 <TouchableOpacity>
-                  <Text style={styles.linkText}>Log In</Text>
+                  <Text style={styles.linkText}>{t("auth.loginLink")}</Text>
                 </TouchableOpacity>
               </Link>
             </Animated.View>
@@ -298,7 +313,7 @@ export default function SignupScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "transparent", // Transparent for background blobs
+    backgroundColor: "transparent",
   },
   scrollContent: {
     flexGrow: 1,
@@ -330,7 +345,7 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontFamily: "LilitaOne",
     textAlign: "center",
-    textShadowColor: "rgba(6, 182, 212, 0.5)", // Cyan glow
+    textShadowColor: "rgba(6, 182, 212, 0.5)",
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 20,
     marginBottom: 8,
@@ -354,8 +369,6 @@ const styles = StyleSheet.create({
     marginLeft: 4,
     fontFamily: "Poppins-Medium",
   },
-
-  // --- BLUR INPUT STYLES ---
   blurContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -389,8 +402,6 @@ const styles = StyleSheet.create({
     marginTop: 6,
     marginLeft: 4,
   },
-
-  // --- BUTTON STYLES ---
   buttonShadowWrapper: {
     marginTop: 20,
     shadowColor: "#D500F9",
@@ -433,7 +444,7 @@ const styles = StyleSheet.create({
     fontFamily: "Poppins-Regular",
   },
   linkText: {
-    color: "#06B6D4", // Cyan to match theme (changed from old Purple)
+    color: "#06B6D4",
     fontSize: 14,
     fontWeight: "bold",
     fontFamily: "Poppins-Bold",

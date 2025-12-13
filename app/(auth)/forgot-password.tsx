@@ -23,16 +23,16 @@ import { Ionicons } from "@expo/vector-icons";
 import MaskedView from "@react-native-masked-view/masked-view";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 import { BlurView } from "expo-blur";
+import { useTranslation } from "react-i18next"; // <--- Import
 
-// --- Validation Schema ---
-const forgotPasswordSchema = z.object({
-  email: z.string().email({ message: "Invalid email address" }),
-});
-
-type ForgotPasswordForm = z.infer<typeof forgotPasswordSchema>;
+// Define types here since schema is now dynamic
+type ForgotPasswordForm = {
+  email: string;
+};
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
+  const { t } = useTranslation(); // <--- Hook
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [focusedField, setFocusedField] = useState<"email" | null>(null);
 
@@ -43,6 +43,11 @@ export default function ForgotPasswordScreen() {
     accentPurple: "#D500F9",
     accentCyan: "#06B6D4",
   };
+
+  // --- Dynamic Validation Schema ---
+  const forgotPasswordSchema = z.object({
+    email: z.string().email({ message: t("auth.errors.invalidEmail") }),
+  });
 
   const {
     control,
@@ -56,25 +61,21 @@ export default function ForgotPasswordScreen() {
     setIsSubmitting(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
-        redirectTo: "yourappscheme://reset-password", // Update this with your actual deep link if needed
+        redirectTo: "yourappscheme://reset-password",
       });
 
       if (error) {
-        Alert.alert("Error", error.message);
+        Alert.alert(t("common.error"), error.message);
       } else {
-        Alert.alert(
-          "Check your Email",
-          "If an account exists, we've sent a password reset link.",
-          [
-            {
-              text: "Back to Login",
-              onPress: () => router.replace("/(auth)/login"),
-            },
-          ],
-        );
+        Alert.alert(t("auth.checkEmailTitle"), t("auth.checkEmailMessage"), [
+          {
+            text: t("auth.backToLogin"),
+            onPress: () => router.replace("/(auth)/login"),
+          },
+        ]);
       }
     } catch (err) {
-      Alert.alert("Error", "An unexpected error occurred.");
+      Alert.alert(t("common.error"), t("auth.unexpectedError"));
     } finally {
       setIsSubmitting(false);
     }
@@ -126,11 +127,9 @@ export default function ForgotPasswordScreen() {
               <Ionicons name="key-outline" size={48} color="#fff" />
             </View>
             <GradientText style={styles.headerTitle}>
-              Unlock Access
+              {t("auth.unlockAccess")}
             </GradientText>
-            <Text style={styles.subHeader}>
-              Enter your email to recover your password.
-            </Text>
+            <Text style={styles.subHeader}>{t("auth.recoverSubtitle")}</Text>
           </Animated.View>
 
           {/* --- Form --- */}
@@ -140,7 +139,7 @@ export default function ForgotPasswordScreen() {
           >
             {/* Email Input */}
             <View style={styles.inputWrapper}>
-              <Text style={styles.label}>Email</Text>
+              <Text style={styles.label}>{t("auth.emailLabel")}</Text>
               <Controller
                 control={control}
                 name="email"
@@ -162,7 +161,7 @@ export default function ForgotPasswordScreen() {
                     />
                     <TextInput
                       style={styles.input}
-                      placeholder="player@earnado.com"
+                      placeholder={t("auth.emailPlaceholder")}
                       placeholderTextColor={colors.textPlaceholder}
                       autoCapitalize="none"
                       keyboardType="email-address"
@@ -197,7 +196,9 @@ export default function ForgotPasswordScreen() {
                 {isSubmitting ? (
                   <ActivityIndicator color="#FFF" />
                 ) : (
-                  <Text style={styles.buttonText}>SEND RESET LINK</Text>
+                  <Text style={styles.buttonText}>
+                    {t("auth.sendResetLink")}
+                  </Text>
                 )}
               </LinearGradient>
             </TouchableOpacity>
@@ -205,9 +206,11 @@ export default function ForgotPasswordScreen() {
 
           {/* --- Footer --- */}
           <Animated.View entering={FadeInUp.delay(300)} style={styles.footer}>
-            <Text style={styles.footerText}>Remembered it?</Text>
+            <Text style={styles.footerText}>
+              {t("auth.rememberedPassword")}
+            </Text>
             <TouchableOpacity onPress={() => router.replace("/(auth)/login")}>
-              <Text style={styles.linkText}>Log In</Text>
+              <Text style={styles.linkText}>{t("auth.loginLink")}</Text>
             </TouchableOpacity>
           </Animated.View>
         </ScrollView>

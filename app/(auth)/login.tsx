@@ -17,34 +17,47 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { LinearGradient } from "expo-linear-gradient";
-import { supabase } from "@/utils/supabase"; // Ensure this is your configured client
+import { supabase } from "@/utils/supabase";
 import { Ionicons } from "@expo/vector-icons";
 import MaskedView from "@react-native-masked-view/masked-view";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 import { BlurView } from "expo-blur";
 import { Link, useRouter } from "expo-router";
+import { useTranslation } from "react-i18next"; // <--- IMPORT THIS
 
-// 1. IMPORT GOOGLE SIGN IN
 import {
   GoogleSignin,
   GoogleSigninButton,
   statusCodes,
 } from "@react-native-google-signin/google-signin";
 
-// --- Validation Schema ---
-const loginSchema = z.object({
-  email: z.string().email({ message: "Invalid email address" }),
-  password: z.string().min(1, { message: "Password is required" }),
-});
-
-type LoginForm = z.infer<typeof loginSchema>;
+// Note: Schema definition moved inside the component to support i18n
+type LoginForm = {
+  email: string;
+  password: string;
+};
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { t } = useTranslation(); // <--- HOOK
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [focusedField, setFocusedField] = useState<"email" | "password" | null>(
     null,
   );
+
+  // --- Dynamic Validation Schema ---
+  const loginSchema = z.object({
+    email: z.string().email({ message: t("auth.errors.invalidEmail") }),
+    password: z.string().min(1, { message: t("auth.errors.passwordRequired") }),
+  });
+
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginForm>({
+    resolver: zodResolver(loginSchema),
+  });
 
   // --- Theme Colors ---
   const colors = {
@@ -56,41 +69,23 @@ export default function LoginScreen() {
     accentCyan: "#06B6D4",
   };
 
-  const {
-    control,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LoginForm>({
-    resolver: zodResolver(loginSchema),
-  });
-
-  // 2. CONFIGURE GOOGLE SIGN IN
   useEffect(() => {
     GoogleSignin.configure({
-      // ⚠️ REPLACE THIS with the Web Client ID from your Google Cloud Console
-      // This MUST match the 'GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID' in your docker-compose.yml
       webClientId:
         "157056951354-r483kv15tbq5639ls1reo4o6rn346rmu.apps.googleusercontent.com",
       offlineAccess: true,
     });
   }, []);
 
-  // 3. HANDLE GOOGLE LOGIN
   const handleGoogleLogin = async () => {
     setIsSubmitting(true);
     try {
-      // Check for Play Services
       await GoogleSignin.hasPlayServices();
-
-      // Native Google Sign In
       const userInfo = await GoogleSignin.signIn();
-
-      // Get the ID Token
       const idToken = userInfo.data?.idToken || userInfo.idToken;
 
       if (!idToken) throw new Error("No ID Token found");
 
-      // Exchange for Supabase Session
       const { error } = await supabase.auth.signInWithIdToken({
         provider: "google",
         token: idToken,
@@ -99,7 +94,6 @@ export default function LoginScreen() {
       if (error) {
         Alert.alert("Supabase Error", error.message);
       } else {
-        // Success!
         router.replace("/(tabs)");
       }
     } catch (error: any) {
@@ -108,10 +102,10 @@ export default function LoginScreen() {
       } else if (error.code === statusCodes.IN_PROGRESS) {
         console.log("In progress");
       } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-        Alert.alert("Error", "Google Play Services are not available");
+        Alert.alert(t("common.error"), t("auth.googlePlayError"));
       } else {
         console.error(error);
-        Alert.alert("Login Error", error.message || "An error occurred");
+        Alert.alert(t("auth.loginFailed"), error.message || t("common.error"));
       }
     } finally {
       setIsSubmitting(false);
@@ -127,12 +121,12 @@ export default function LoginScreen() {
       });
 
       if (error) {
-        Alert.alert("Login Failed", error.message);
+        Alert.alert(t("auth.loginFailed"), error.message);
       } else {
         router.replace("/(tabs)");
       }
     } catch (err) {
-      Alert.alert("Error", "An unexpected error occurred.");
+      Alert.alert(t("common.error"), t("auth.unexpectedError"));
     } finally {
       setIsSubmitting(false);
     }
@@ -174,8 +168,10 @@ export default function LoginScreen() {
             <View style={styles.iconContainer}>
               <Ionicons name="game-controller" size={40} color="#fff" />
             </View>
-            <GradientText style={styles.brandTitle}>Earnado</GradientText>
-            <Text style={styles.subHeader}>Welcome back, Player!</Text>
+            <GradientText style={styles.brandTitle}>
+              {t("appName")}
+            </GradientText>
+            <Text style={styles.subHeader}>{t("auth.welcomeBack")}</Text>
           </Animated.View>
 
           {/* --- Form --- */}
@@ -185,7 +181,7 @@ export default function LoginScreen() {
           >
             {/* Email Input */}
             <View style={styles.inputWrapper}>
-              <Text style={styles.label}>Email</Text>
+              <Text style={styles.label}>{t("auth.emailLabel")}</Text>
               <Controller
                 control={control}
                 name="email"
@@ -207,7 +203,7 @@ export default function LoginScreen() {
                     />
                     <TextInput
                       style={styles.input}
-                      placeholder="player@earnado.com"
+                      placeholder={t("auth.emailPlaceholder")}
                       placeholderTextColor={colors.textPlaceholder}
                       autoCapitalize="none"
                       keyboardType="email-address"
@@ -228,7 +224,7 @@ export default function LoginScreen() {
 
             {/* Password Input */}
             <View style={styles.inputWrapper}>
-              <Text style={styles.label}>Password</Text>
+              <Text style={styles.label}>{t("auth.passwordLabel")}</Text>
               <Controller
                 control={control}
                 name="password"
@@ -250,7 +246,7 @@ export default function LoginScreen() {
                     />
                     <TextInput
                       style={styles.input}
-                      placeholder="••••••••"
+                      placeholder={t("auth.passwordPlaceholder")}
                       placeholderTextColor={colors.textPlaceholder}
                       secureTextEntry
                       value={value}
@@ -272,7 +268,7 @@ export default function LoginScreen() {
                   href={"/(auth)/forgot-password"}
                   style={styles.forgotPassText}
                 >
-                  Forgot Password?
+                  {t("auth.forgotPassword")}
                 </Link>
               </TouchableOpacity>
             </View>
@@ -293,7 +289,7 @@ export default function LoginScreen() {
                 {isSubmitting ? (
                   <ActivityIndicator color="#FFF" />
                 ) : (
-                  <Text style={styles.buttonText}>LOG IN</Text>
+                  <Text style={styles.buttonText}>{t("auth.loginButton")}</Text>
                 )}
               </LinearGradient>
             </TouchableOpacity>
@@ -306,15 +302,16 @@ export default function LoginScreen() {
           >
             <View style={styles.divider}>
               <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>OR</Text>
+              <Text style={styles.dividerText}>{t("auth.or")}</Text>
               <View style={styles.dividerLine} />
             </View>
 
-            {/* 4. GOOGLE BUTTON ADDED HERE */}
+            {/* Google Button - Native component usually handles own translation, 
+                or you can swap for a custom button if needed. */}
             <View style={{ alignItems: "center", marginTop: 10 }}>
               <GoogleSigninButton
                 size={GoogleSigninButton.Size.Wide}
-                color={GoogleSigninButton.Color.Dark} // Dark theme to match app
+                color={GoogleSigninButton.Color.Dark}
                 onPress={handleGoogleLogin}
                 disabled={isSubmitting}
               />
@@ -322,9 +319,9 @@ export default function LoginScreen() {
           </Animated.View>
 
           <Animated.View entering={FadeInUp.delay(400)} style={styles.footer}>
-            <Text style={styles.footerText}>New here?</Text>
+            <Text style={styles.footerText}>{t("auth.newHere")}</Text>
             <TouchableOpacity onPress={() => router.replace("/signup")}>
-              <Text style={styles.linkText}>Create Account</Text>
+              <Text style={styles.linkText}>{t("auth.createAccount")}</Text>
             </TouchableOpacity>
           </Animated.View>
         </ScrollView>
@@ -336,7 +333,7 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "transparent", // Assuming you have a background in a parent component
+    backgroundColor: "transparent",
   },
   scrollContent: {
     flexGrow: 1,

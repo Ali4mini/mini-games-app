@@ -1,5 +1,54 @@
 {
   "appName": "MysteryPlay",
+  "auth": {
+    "welcomeBack": "Welcome back, Player!",
+    "emailLabel": "Email",
+    "emailPlaceholder": "player@earnado.com",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "••••••••",
+    "forgotPassword": "Forgot Password?",
+    "loginButton": "LOG IN",
+    "or": "OR",
+    "newHere": "New here?",
+    "createAccount": "Create Account",
+    "googlePlayError": "Google Play Services are not available",
+    "loginFailed": "Login Failed",
+    "unexpectedError": "An unexpected error occurred",
+    "usernameLabel": "Username",
+    "usernamePlaceholder": "GamerTag123",
+    "joinTheGame": "JOIN THE GAME",
+    "createLegend": "Create your legend.",
+    "startPlaying": "START PLAYING",
+    "alreadyPlayer": "Already a player?",
+    "loginLink": "Log In",
+    "signupFailed": "Signup Failed",
+    "accountCreatedTitle": "Account Created!",
+    "accountCreatedMessage": "Please check your email to verify your account.",
+    "ok": "OK",
+    "unlockAccess": "Unlock Access",
+    "recoverSubtitle": "Enter your email to recover your password.",
+    "sendResetLink": "SEND RESET LINK",
+    "checkEmailTitle": "Check your Email",
+    "checkEmailMessage": "If an account exists, we've sent a password reset link.",
+    "backToLogin": "Back to Login",
+    "rememberedPassword": "Remembered it?",
+    "resetLinkSent": "Reset Link Sent",
+    "errors": {
+      "invalidEmail": "Invalid email address",
+      "passwordRequired": "Password is required",
+      "usernameMin": "Username must be 3+ chars",
+      "passwordMin": "Password must be 6+ chars"
+    }
+  },
+  "common": {
+    "success": "Success",
+    "error": "Error",
+    "home": "Home",
+    "games": "Games",
+    "dailyCheck": "Daily Check",
+    "referral": "Referral",
+    "luckySpin": "Lucky Spin"
+  },
   "home": {
     "welcomeBack": "Welcome back,",
     "dailyCheckIn": "Daily Check-in",
@@ -22,13 +71,6 @@
     "youWon": "You won: {{prize}}",
     "great": "Great!"
   },
-  "common": {
-    "home": "Home",
-    "games": "Games",
-    "dailyCheck": "Daily Check",
-    "referral": "Referral",
-    "luckySpin": "Lucky Spin"
-  },
   "gamesList": {
     "searchPlaceholder": "Search for a game..."
   },
@@ -49,23 +91,6 @@
     "yourRank": "Your rank: #{rank}"
   },
   "profile": {
-    "joinDate": "Joined {{date}}",
-    "yourReferralCode": "Your Referral Code",
-    "copyCode": "Copy",
-    "copied": "Copied!",
-    "leaderboard": "Leaderboard",
-    "yourRank": "Your Rank"
-  },
-  "airdrop": {
-    "title": "Airdrop",
-    "subtitle": "Coming Soon!",
-    "description": "Get ready for exciting rewards and exclusive tokens. Follow us for updates on our upcoming airdrop event."
-  },
-  "common": {
-    "success": "Success",
-    "error": "Error"
-  },
-  "profile": {
     "joinDate": "Member since {{date}}",
     "playerTitle": "Cyber Runner",
     "credits": "CREDITS",
@@ -80,7 +105,9 @@
     "share": "Share",
     "copy": "COPY",
     "copied": "COPIED!",
-    "shareMessage": "Join me on the app! Code: {{code}}"
+    "shareMessage": "Join me on the app! Code: {{code}}",
+    "yourReferralCode": "Your Referral Code",
+    "copyCode": "Copy"
   },
   "achievements": {
     "title": "ACHIEVEMENTS",
@@ -111,6 +138,7 @@
     "initiate": "INITIATE UPLINK",
     "transmitting": "TRANSMITTING...",
     "errorEmpty": "Transmission empty. Please input data.",
+    "errorLink": "Could not open link",
     "successMessage": "Transmission received by HQ."
   },
   "categories": {
@@ -123,33 +151,10 @@
     "sports": "Sports",
     "adventure": "Adventure"
   },
-  "common": {
-    "success": "Success",
-    "error": "Error"
-  },
-  "contact": {
-    "title": "SUPPORT HQ",
-    "statusOnline": "SYSTEM ONLINE",
-    "channels": "CHANNELS //",
-    "email": "EMAIL",
-    "discord": "DISCORD",
-    "twitter": "TWITTER",
-    "newTransmission": "NEW TRANSMISSION //",
-    "from": "FROM:",
-    "id": "ID:",
-    "subjectLabel": "SUBJECT",
-    "subjectPlaceholder": "Report bug / Feature request...",
-    "messageLabel": "MESSAGE DATA",
-    "messagePlaceholder": "Describe your issue...",
-    "transmitting": "TRANSMITTING...",
-    "initiate": "INITIATE UPLINK",
-    "errorEmpty": "Transmission empty. Please input data.",
-    "errorLink": "Could not open link",
-    "successMessage": "Transmission received by HQ."
-  },
   "airdrop": {
     "title": "Airdrop",
     "subtitle": "Coming Soon!",
+    "description": "Get ready for exciting rewards and exclusive tokens. Follow us for updates on our upcoming airdrop event.",
     "descriptionPre": "Get ready for exciting rewards! The airdrop starts in ",
     "date": "Q1 of 2026",
     "descriptionMid": ". This event is exclusively for users who have invited at least ",
