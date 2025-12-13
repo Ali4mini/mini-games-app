@@ -24,6 +24,12 @@ DROP TABLE IF EXISTS public.profiles CASCADE;
 DROP TYPE IF EXISTS game_category CASCADE;
 DROP TYPE IF EXISTS game_orientation CASCADE;
 
+-- Cleanup Storage Policies (To allow re-running script without errors)
+DROP POLICY IF EXISTS "Public Access" ON storage.objects;
+DROP POLICY IF EXISTS "Authenticated Insert" ON storage.objects;
+DROP POLICY IF EXISTS "Owner Update" ON storage.objects;
+DROP POLICY IF EXISTS "Owner Delete" ON storage.objects;
+
 -- ==========================================
 -- 2. CREATE TYPES
 -- ==========================================
@@ -33,6 +39,23 @@ CREATE TYPE game_category AS ENUM (
 );
 
 CREATE TYPE game_orientation AS ENUM ('landscape', 'portrait');
+
+-- ==========================================
+-- 2.5. STORAGE CONFIGURATION (Create Bucket)
+-- ==========================================
+-- Creates the 'assets' bucket for avatars
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+  'assets', 
+  'assets', 
+  true, 
+  5242880, -- 5MB Limit
+  '{image/*}' -- Images only
+)
+ON CONFLICT (id) DO UPDATE SET 
+  public = true,
+  file_size_limit = 5242880,
+  allowed_mime_types = '{image/*}';
 
 -- ==========================================
 -- 3. CREATE TABLES
@@ -179,7 +202,10 @@ ALTER TABLE public.spin_wheel_prizes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.achievements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_achievements ENABLE ROW LEVEL SECURITY;
 
--- Policies
+-- Storage RLS (Standard Supabase)
+ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
+
+-- Database Policies
 CREATE POLICY "Public Read Profiles" ON public.profiles FOR SELECT USING (true);
 CREATE POLICY "Users update own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id);
 
@@ -192,6 +218,22 @@ CREATE POLICY "Public Read Achievements" ON public.achievements FOR SELECT USING
 
 CREATE POLICY "Users Read Own Achievement Progress" ON public.user_achievements 
 FOR SELECT USING (auth.uid() = user_id);
+
+-- Storage Policies for 'assets' bucket
+CREATE POLICY "Public Access" ON storage.objects FOR SELECT
+USING ( bucket_id = 'assets' );
+
+CREATE POLICY "Authenticated Insert" ON storage.objects FOR INSERT
+TO authenticated
+WITH CHECK ( bucket_id = 'assets' AND auth.uid() = owner );
+
+CREATE POLICY "Owner Update" ON storage.objects FOR UPDATE
+TO authenticated
+USING ( bucket_id = 'assets' AND auth.uid() = owner );
+
+CREATE POLICY "Owner Delete" ON storage.objects FOR DELETE
+TO authenticated
+USING ( bucket_id = 'assets' AND auth.uid() = owner );
 
 -- ==========================================
 -- 6. INDEXES

@@ -121,7 +121,7 @@ export default function SignupScreen() {
               {/* Changed icon to Person Add for signup context */}
               <Ionicons name="person-add" size={40} color="#fff" />
             </View>
-            <GradientText style={styles.brandTitle}>Earnado</GradientText>
+            <GradientText style={styles.brandTitle}>Mysteryplay</GradientText>
             <Text style={styles.headerTitle}>JOIN THE GAME</Text>
             <Text style={styles.subtitle}>Create your legend.</Text>
           </Animated.View>

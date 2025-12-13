@@ -12,8 +12,6 @@ import {
   TouchableOpacity,
   Modal,
   TouchableWithoutFeedback,
-  TextInput, // Added
-  KeyboardAvoidingView, // Added
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
@@ -23,8 +21,6 @@ import {
   Ionicons,
 } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import * as ImagePicker from "expo-image-picker"; // Added
-import { decode } from "base64-arraybuffer"; // You might need this for Supabase storage, typically: npm install base64-arraybuffer
 
 import { supabase } from "@/utils/supabase";
 
@@ -34,6 +30,8 @@ import LanguageSelector from "@/components/profile/LanguageSelector";
 import ThemeToggle from "@/components/profile/ThemeToggle";
 import ReferralSection from "@/components/profile/ReferralSection";
 import { AchievementsSection } from "@/components/profile/AchievementsSection";
+// IMPORT THE NEW COMPONENT
+import { EditProfileModal } from "@/components/profile/EditProfileModal";
 
 // --- Utilities & Types ---
 import { getStorageUrl } from "@/utils/imageHelpers";
@@ -49,22 +47,17 @@ export const ProfileUI: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [rank, setRank] = useState<number>(0);
-  const [isSettingsVisible, setSettingsVisible] = useState(false);
 
-  // --- NEW: Edit Profile State ---
+  // Modal States
+  const [isSettingsVisible, setSettingsVisible] = useState(false);
   const [isEditVisible, setEditVisible] = useState(false);
-  const [updating, setUpdating] = useState(false);
-  const [editForm, setEditForm] = useState({
-    name: "",
-    username: "",
-    avatarUri: "", // Local URI for preview
-    hasNewAvatar: false,
-  });
 
   // --- Data Fetching ---
   const fetchProfileData = useCallback(async () => {
     try {
-      setLoading(true);
+      // Don't set loading to true if it's a silent refresh (optional UI choice)
+      // setLoading(true);
+
       const {
         data: { session },
       } = await supabase.auth.getSession();
@@ -90,7 +83,8 @@ export const ProfileUI: React.FC = () => {
         id: profileData.id,
         username: profileData.username,
         name: profileData.name || profileData.username || "Player",
-        avatar: getStorageUrl("assets", profileData.avatar_url), // Assuming 'assets' is your bucket
+        // Helper to generate full public URL
+        avatar: getStorageUrl("assets", profileData.avatar_url),
         coins: profileData.coins,
         joinDate: profileData.created_at,
         level: profileData.level,
@@ -108,93 +102,6 @@ export const ProfileUI: React.FC = () => {
   useEffect(() => {
     fetchProfileData();
   }, [fetchProfileData]);
-
-  // --- NEW: Edit Actions ---
-
-  // 1. Open Modal and hydrate state
-  const handleOpenEdit = () => {
-    if (!profile) return;
-    setEditForm({
-      name: profile.name,
-      username: profile.username,
-      avatarUri: profile.avatar,
-      hasNewAvatar: false,
-    });
-    setEditVisible(true);
-  };
-
-  // 2. Pick Image
-  const pickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.5,
-      base64: true, // Request base64 for easier upload
-    });
-
-    if (!result.canceled) {
-      setEditForm((prev) => ({
-        ...prev,
-        avatarUri: result.assets[0].uri,
-        hasNewAvatar: true,
-        base64: result.assets[0].base64, // Store base64 temporarily
-      }));
-    }
-  };
-
-  // 3. Save Changes
-  const handleSaveProfile = async () => {
-    if (!profile) return;
-    try {
-      setUpdating(true);
-
-      let avatarPath = null;
-
-      // A. Upload Image if changed
-      if (editForm.hasNewAvatar && editForm.base64) {
-        const fileName = `${profile.id}/${Date.now()}.jpg`;
-
-        // Upload to Supabase Storage ('assets' bucket)
-        const { error: uploadError } = await supabase.storage
-          .from("assets")
-          .upload(fileName, decode(editForm.base64), {
-            contentType: "image/jpeg",
-            upsert: true,
-          });
-
-        if (uploadError) throw uploadError;
-        avatarPath = fileName;
-      }
-
-      // B. Update Database
-      const updates: any = {
-        name: editForm.name,
-        username: editForm.username,
-        updated_at: new Date(),
-      };
-
-      // Only update avatar_url if a new one was uploaded
-      if (avatarPath) {
-        updates.avatar_url = avatarPath;
-      }
-
-      const { error: updateError } = await supabase
-        .from("profiles")
-        .update(updates)
-        .eq("id", profile.id);
-
-      if (updateError) throw updateError;
-
-      Alert.alert("Success", "Profile updated successfully!");
-      setEditVisible(false);
-      fetchProfileData(); // Refresh UI
-    } catch (error: any) {
-      Alert.alert("Error", error.message);
-    } finally {
-      setUpdating(false);
-    }
-  };
 
   // --- Actions ---
   const handleContactPress = () => {
@@ -247,7 +154,10 @@ export const ProfileUI: React.FC = () => {
           refreshControl={
             <RefreshControl
               refreshing={loading}
-              onRefresh={fetchProfileData}
+              onRefresh={() => {
+                setLoading(true);
+                fetchProfileData();
+              }}
               tintColor={theme.primary}
             />
           }
@@ -272,8 +182,11 @@ export const ProfileUI: React.FC = () => {
               >
                 <Text style={styles.username}>{profile?.name || "Guest"}</Text>
 
-                {/* --- UPDATED: Edit Icon is now functional --- */}
-                <TouchableOpacity onPress={handleOpenEdit} hitSlop={10}>
+                {/* Button triggers the new modal component */}
+                <TouchableOpacity
+                  onPress={() => setEditVisible(true)}
+                  hitSlop={10}
+                >
                   <Ionicons name="pencil" size={16} color={theme.primary} />
                 </TouchableOpacity>
               </View>
@@ -325,18 +238,24 @@ export const ProfileUI: React.FC = () => {
             </View>
           </View>
 
-          {/* --- REFERRAL SECTION --- */}
+          {/* --- SECTIONS --- */}
           <View style={styles.sectionContainer}>
             <ReferralSection code={profile?.referralCode || "LOADING"} />
           </View>
-
-          {/* --- ACHIEVEMENTS --- */}
           <AchievementsSection />
           <View style={{ height: 40 }} />
         </ScrollView>
       </SafeAreaView>
 
-      {/* --- SETTINGS MODAL --- */}
+      {/* --- STANDALONE EDIT PROFILE COMPONENT --- */}
+      <EditProfileModal
+        visible={isEditVisible}
+        onClose={() => setEditVisible(false)}
+        currentUser={profile}
+        onProfileUpdate={fetchProfileData}
+      />
+
+      {/* --- SETTINGS MODAL (Kept inline as it was simpler, or move this too) --- */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -357,7 +276,7 @@ export const ProfileUI: React.FC = () => {
                     />
                   </TouchableOpacity>
                 </View>
-
+                {/* ... Settings Content (Theme, Language, Logout) ... */}
                 <Text style={styles.sectionHeader}>PREFERENCES</Text>
                 <View style={styles.settingRow}>
                   <View style={styles.settingLabelContainer}>
@@ -372,6 +291,7 @@ export const ProfileUI: React.FC = () => {
                 </View>
 
                 <View style={styles.settingRow}>
+                  {/* ... Language Selector ... */}
                   <View style={styles.settingLabelContainer}>
                     <Ionicons
                       name="language-outline"
@@ -383,26 +303,6 @@ export const ProfileUI: React.FC = () => {
                   <LanguageSelector />
                 </View>
 
-                <Text style={styles.sectionHeader}>SUPPORT</Text>
-                <TouchableOpacity
-                  style={styles.settingRow}
-                  onPress={handleContactPress}
-                >
-                  <View style={styles.settingLabelContainer}>
-                    <Ionicons
-                      name="mail-outline"
-                      size={20}
-                      color={theme.textPrimary}
-                    />
-                    <Text style={styles.settingText}>Contact Us</Text>
-                  </View>
-                  <Ionicons
-                    name="chevron-forward"
-                    size={20}
-                    color={theme.textTertiary}
-                  />
-                </TouchableOpacity>
-
                 <Text style={styles.sectionHeader}>ACCOUNT</Text>
                 <TouchableOpacity
                   style={styles.logoutButton}
@@ -411,98 +311,21 @@ export const ProfileUI: React.FC = () => {
                   <Ionicons name="log-out-outline" size={20} color="#FF4444" />
                   <Text style={styles.logoutText}>Log Out</Text>
                 </TouchableOpacity>
-
-                <Text style={styles.versionText}>Earnado v1.0.0</Text>
               </View>
             </TouchableWithoutFeedback>
           </View>
         </TouchableWithoutFeedback>
       </Modal>
-
-      {/* --- NEW: EDIT PROFILE MODAL --- */}
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={isEditVisible}
-        onRequestClose={() => setEditVisible(false)}
-      >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={styles.modalOverlay}
-        >
-          <View style={[styles.modalContent, styles.editModalContent]}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Edit Profile</Text>
-              <TouchableOpacity onPress={() => setEditVisible(false)}>
-                <Ionicons name="close" size={24} color={theme.textPrimary} />
-              </TouchableOpacity>
-            </View>
-
-            <ScrollView contentContainerStyle={{ alignItems: "center" }}>
-              {/* Avatar Picker */}
-              <TouchableOpacity
-                onPress={pickImage}
-                style={styles.editAvatarContainer}
-              >
-                <Image
-                  source={{ uri: editForm.avatarUri || profile?.avatar }}
-                  style={styles.editAvatar}
-                />
-                <View style={styles.editAvatarOverlay}>
-                  <Ionicons name="camera" size={24} color="#fff" />
-                </View>
-              </TouchableOpacity>
-
-              {/* Form Fields */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Display Name</Text>
-                <TextInput
-                  style={styles.inputField}
-                  value={editForm.name}
-                  onChangeText={(text) =>
-                    setEditForm((prev) => ({ ...prev, name: text }))
-                  }
-                  placeholder="Enter name"
-                  placeholderTextColor={theme.textTertiary}
-                />
-              </View>
-
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Username</Text>
-                <TextInput
-                  style={styles.inputField}
-                  value={editForm.username}
-                  onChangeText={(text) =>
-                    setEditForm((prev) => ({ ...prev, username: text }))
-                  }
-                  placeholder="Enter username"
-                  placeholderTextColor={theme.textTertiary}
-                  autoCapitalize="none"
-                />
-              </View>
-
-              <TouchableOpacity
-                style={styles.saveButton}
-                onPress={handleSaveProfile}
-                disabled={updating}
-              >
-                {updating ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <Text style={styles.saveButtonText}>Save Changes</Text>
-                )}
-              </TouchableOpacity>
-            </ScrollView>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
     </View>
   );
 };
 
-// --- STYLES ---
+// ... copy your existing CreateStyles from the original file ...
 const createStyles = (theme: any) =>
   StyleSheet.create({
+    // ... paste all your existing styles here ...
+    // Note: You can remove editAvatarContainer, editAvatar, etc from here
+    // as they are now in the EditProfileModal file.
     mainContainer: {
       flex: 1,
       backgroundColor: theme.backgroundPrimary || "#12141D",
@@ -693,77 +516,6 @@ const createStyles = (theme: any) =>
     },
     logoutText: {
       color: "#FF4444",
-      fontWeight: "bold",
-      fontSize: 16,
-    },
-    versionText: {
-      textAlign: "center",
-      color: theme.textTertiary,
-      fontSize: 12,
-      marginTop: 20,
-    },
-
-    // --- NEW: EDIT MODAL STYLES ---
-    editModalContent: {
-      minHeight: "60%",
-    },
-    editAvatarContainer: {
-      width: 100,
-      height: 100,
-      borderRadius: 50,
-      marginBottom: 30,
-      position: "relative",
-    },
-    editAvatar: {
-      width: 100,
-      height: 100,
-      borderRadius: 50,
-    },
-    editAvatarOverlay: {
-      position: "absolute",
-      width: 100,
-      height: 100,
-      borderRadius: 50,
-      backgroundColor: "rgba(0,0,0,0.4)",
-      justifyContent: "center",
-      alignItems: "center",
-      borderWidth: 2,
-      borderColor: theme.primary,
-    },
-    inputGroup: {
-      width: "100%",
-      marginBottom: 20,
-    },
-    inputLabel: {
-      color: theme.textSecondary,
-      fontSize: 12,
-      marginBottom: 8,
-      marginLeft: 4,
-      fontWeight: "600",
-    },
-    inputField: {
-      backgroundColor: theme.backgroundPrimary,
-      borderRadius: 12,
-      padding: 16,
-      color: theme.textPrimary,
-      borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.1)",
-      fontSize: 16,
-    },
-    saveButton: {
-      backgroundColor: theme.primary,
-      width: "100%",
-      padding: 16,
-      borderRadius: 16,
-      alignItems: "center",
-      marginTop: 20,
-      shadowColor: theme.primary,
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.3,
-      shadowRadius: 8,
-    },
-    saveButtonText: {
-      color: "#fff",
       fontWeight: "bold",
       fontSize: 16,
     },
