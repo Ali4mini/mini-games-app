@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "mysteryplay",
-    "slug": "mysteryplay",
+    "slug": "mini-games-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/app_icon.png",
