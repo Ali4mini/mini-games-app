@@ -1,9 +1,9 @@
 import React, { useMemo } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, Platform } from "react-native";
 import { useTheme } from "../../context/ThemeContext";
 import { Theme } from "@/types";
 
-// --- NEW IMPORTS ---
+// Import libraries conditionally or handle usage carefully
 import MaskedView from "@react-native-masked-view/masked-view";
 import { LinearGradient } from "expo-linear-gradient";
 
@@ -11,32 +11,38 @@ type AppTitleHeaderProps = {
   appName: string;
 };
 
-// You can customize these colors to match your brand's new vibe!
-const GRADIENT_COLORS = ["#7C3AED", "#06B6D4"] as const; // Pink to a soft Purple
+const GRADIENT_COLORS = ["#7C3AED", "#06B6D4"] as const;
 
 export const AppTitleHeader: React.FC<AppTitleHeaderProps> = ({ appName }) => {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
+  // 1. CHECK FOR WEB
+  if (Platform.OS === "web") {
+    return (
+      <View style={styles.container}>
+        <Text style={[styles.title, { color: theme.primary }]}>{appName}</Text>
+      </View>
+    );
+  }
+
+  // 2. RENDER FOR NATIVE (iOS/Android)
   return (
     <View style={styles.container}>
-      {/* 
-        MaskedView acts like a stencil. 
-        The 'maskElement' is the shape (our text).
-        The children of MaskedView are what gets shown through the stencil.
-      */}
       <MaskedView
-        style={{ height: 40 }} // Set a height to contain the gradient
-        maskElement={<Text style={styles.title}>{appName}</Text>}
+        style={{ height: 40, width: "100%" }} // Ensure width is set
+        maskElement={
+          <View style={{ alignItems: "center", justifyContent: "center" }}>
+            <Text style={styles.title}>{appName}</Text>
+          </View>
+        }
       >
         <LinearGradient
           colors={GRADIENT_COLORS}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0.5 }}
-        >
-          {/* This text is invisible but is used to give the gradient a size */}
-          <Text style={[styles.title, { opacity: 0 }]}>{appName}</Text>
-        </LinearGradient>
+          style={{ flex: 1 }} // Ensure gradient fills the MaskedView
+        />
       </MaskedView>
     </View>
   );
@@ -47,10 +53,11 @@ export const createStyles = (theme: Theme) => {
     container: {
       paddingVertical: 12,
       paddingHorizontal: 20,
-      backgroundColor: theme.backgroundPrimary, // Changed to match the main background
+      backgroundColor: theme.backgroundPrimary,
       alignItems: "center",
       justifyContent: "center",
-      // Optional: Add a subtle shadow for depth instead of a border
+      // On web, box-shadow is usually handled differently,
+      // but elevation works decently for React Native Web too.
       shadowColor: "#000",
       shadowOffset: {
         width: 0,
@@ -64,7 +71,7 @@ export const createStyles = (theme: Theme) => {
       fontFamily: "LilitaOne",
       fontSize: 32,
       letterSpacing: 1.5,
-      // The color is now handled by the gradient, so we don't need it here.
+      textAlign: "center", // Ensure text centers properly
     },
   });
 };

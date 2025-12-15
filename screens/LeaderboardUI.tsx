@@ -8,19 +8,25 @@ import {
   FlatList,
   ActivityIndicator,
   RefreshControl,
+  Platform,
+  useWindowDimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { LinearGradient } from "expo-linear-gradient";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-
-import { useTheme } from "@/context/ThemeContext";
-// 1. Import Hook
-import { useLeaderboard, LeaderboardItem } from "@/hooks/useLeaderboard";
 import { Stack } from "expo-router";
 
-// --- Sub-Components (Unchanged) ---
+import { useTheme } from "@/context/ThemeContext";
+import { Theme } from "@/types";
+import { useLeaderboard } from "@/hooks/useLeaderboard";
+
+// --- CONSTANTS ---
+const MAX_WIDTH = 1024;
+const TAB_BAR_OFFSET = 120; // Bottom spacing for navigation
+
+// --- SUB-COMPONENTS ---
 const FilterTabs = ({ activeTab, onTabChange, theme }: any) => (
   <View
     style={[styles.filterContainer, { backgroundColor: "rgba(0,0,0,0.2)" }]}
@@ -55,20 +61,11 @@ const FilterTabs = ({ activeTab, onTabChange, theme }: any) => (
 );
 
 const PodiumItem = ({ user, size, delay, theme }: any) => {
-  // Guard clause if data is loading/missing
   if (!user) return <View style={{ width: size }} />;
 
   const isFirst = user.rank === 1;
-  const crownColor = isFirst
-    ? "#FFD700"
-    : user.rank === 2
-      ? "#C0C0C0"
-      : "#CD7F32";
-  const borderColor = isFirst
-    ? "#FFD700"
-    : user.rank === 2
-      ? "#C0C0C0"
-      : "#CD7F32";
+  const rankColors: any = { 1: "#FFD700", 2: "#C0C0C0", 3: "#CD7F32" };
+  const color = rankColors[user.rank] || "#FFF";
   const pedestalHeight = isFirst ? 140 : user.rank === 2 ? 110 : 90;
 
   return (
@@ -87,13 +84,13 @@ const PodiumItem = ({ user, size, delay, theme }: any) => {
           {
             width: size,
             height: size,
-            borderColor: borderColor,
+            borderColor: color,
             borderWidth: isFirst ? 4 : 2,
           },
         ]}
       >
         <Image source={{ uri: user.avatar }} style={styles.avatarImage} />
-        <View style={[styles.rankBadge, { backgroundColor: borderColor }]}>
+        <View style={[styles.rankBadge, { backgroundColor: color }]}>
           <Text style={styles.rankText}>{user.rank}</Text>
         </View>
       </View>
@@ -114,7 +111,7 @@ const LeaderboardRow = ({ item, isCurrentUser, theme }: any) => {
         styles.row,
         {
           backgroundColor: isCurrentUser ? theme.primary + "30" : "transparent",
-        }, // Stronger highlight
+        },
         isCurrentUser && { borderColor: theme.primary, borderWidth: 1 },
       ]}
     >
@@ -139,34 +136,33 @@ const LeaderboardRow = ({ item, isCurrentUser, theme }: any) => {
   );
 };
 
+// --- MAIN COMPONENT ---
 export const LeaderboardUI: React.FC = () => {
   const { t } = useTranslation();
   const theme = useTheme();
   const [activeTab, setActiveTab] = useState("All Time");
 
-  // 2. USE REAL DATA
+  // 1. RESPONSIVE SETUP
+  const { width: windowWidth } = useWindowDimensions();
+  const isDesktop = windowWidth > 768;
+
+  // 2. DATA HOOK
   const { leaderboard, currentUser, loading, refetch } = useLeaderboard();
 
   const flatListRef = useRef<FlatList>(null);
 
-  // 3. Separate Data into Top 3 and List
+  // 3. LOGIC
   const topThree = useMemo(() => {
-    // Safety: Ensure we have at least empty objects if list is short
     const [first, second, third] = leaderboard;
     return [first, second, third];
   }, [leaderboard]);
 
   const unifiedListData = useMemo(() => {
-    // List starts from rank 4
     const restOfList = leaderboard.filter((u) => u.rank > 3);
     const data: any[] = [...restOfList];
 
-    // Logic: If current user exists but is NOT in the visible list (and not in top 3)
     if (currentUser && currentUser.rank > 3) {
       const isUserInList = restOfList.find((u) => u.id === currentUser.id);
-
-      // If they are not in the fetched list (e.g. rank 55 and we only fetched 50)
-      // Add them to the bottom with a spacer
       if (!isUserInList) {
         data.push({ id: "spacer", type: "spacer" });
         data.push({ ...currentUser, type: "user" });
@@ -175,7 +171,6 @@ export const LeaderboardUI: React.FC = () => {
     return data;
   }, [leaderboard, currentUser]);
 
-  // Scroll to user on mount
   useEffect(() => {
     if (unifiedListData.length > 0 && currentUser) {
       const userIndex = unifiedListData.findIndex(
@@ -220,7 +215,7 @@ export const LeaderboardUI: React.FC = () => {
     return (
       <View
         style={[
-          styles.container,
+          styles.rootBackground,
           {
             justifyContent: "center",
             alignItems: "center",
@@ -234,8 +229,11 @@ export const LeaderboardUI: React.FC = () => {
   }
 
   return (
-    <View style={styles.container}>
+    // ROOT BACKGROUND: Handles full screen gradient
+    <View style={styles.rootBackground}>
       <Stack.Screen options={{ headerShown: false }} />
+
+      {/* BACKGROUND GRADIENT */}
       <LinearGradient
         colors={[theme.primary, "#1e1b4b", "#0f172a"]}
         start={{ x: 0.5, y: 0 }}
@@ -243,79 +241,114 @@ export const LeaderboardUI: React.FC = () => {
         style={StyleSheet.absoluteFill}
       />
 
-      <SafeAreaView style={styles.safeArea} edges={["top"]}>
-        <View style={styles.header}>
-          <Animated.Text
-            entering={FadeInUp.delay(100)}
-            style={styles.headerTitle}
+      {/* CENTERED CONTAINER */}
+      <View style={styles.container}>
+        <SafeAreaView style={styles.safeArea} edges={["top"]}>
+          {/* HEADER */}
+          <View style={styles.header}>
+            <Animated.Text
+              entering={FadeInUp.delay(100)}
+              style={styles.headerTitle}
+            >
+              {t("leaderboard.title", "Leaderboard")}
+            </Animated.Text>
+            <FilterTabs
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+              theme={theme}
+            />
+          </View>
+
+          {/* PODIUM */}
+          <View style={styles.podiumContainer}>
+            <PodiumItem
+              user={topThree[1]}
+              size={80}
+              delay={400}
+              theme={theme}
+            />
+            <PodiumItem
+              user={topThree[0]}
+              size={100}
+              delay={200}
+              theme={theme}
+            />
+            <PodiumItem
+              user={topThree[2]}
+              size={80}
+              delay={600}
+              theme={theme}
+            />
+          </View>
+
+          {/* LIST SHEET */}
+          <Animated.View
+            entering={FadeInDown.delay(800).springify()}
+            style={[
+              styles.listSheet,
+              {
+                backgroundColor: theme.backgroundSecondary,
+                // Desktop: Rounded bottom corners too
+                borderBottomLeftRadius: isDesktop ? 30 : 0,
+                borderBottomRightRadius: isDesktop ? 30 : 0,
+                marginBottom: isDesktop ? 20 : 0, // Floating effect
+              },
+            ]}
           >
-            {t("leaderboard.title", "Leaderboard")}
-          </Animated.Text>
-          <FilterTabs
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            theme={theme}
-          />
-        </View>
+            <View style={styles.sheetHandle} />
 
-        {/* PODIUM SECTION */}
-        <View style={styles.podiumContainer}>
-          {/* Order: 2nd, 1st, 3rd visually */}
-          <PodiumItem user={topThree[1]} size={80} delay={400} theme={theme} />
-          <PodiumItem user={topThree[0]} size={100} delay={200} theme={theme} />
-          <PodiumItem user={topThree[2]} size={80} delay={600} theme={theme} />
-        </View>
-
-        <Animated.View
-          entering={FadeInDown.delay(800).springify()}
-          style={[
-            styles.listSheet,
-            { backgroundColor: theme.backgroundSecondary },
-          ]}
-        >
-          <View style={styles.sheetHandle} />
-
-          <FlatList
-            ref={flatListRef}
-            data={unifiedListData}
-            renderItem={renderItem}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.listContent}
-            showsVerticalScrollIndicator={false}
-            refreshControl={
-              <RefreshControl
-                refreshing={loading}
-                onRefresh={refetch}
-                tintColor={theme.primary}
-              />
-            }
-            onScrollToIndexFailed={(info) => {
-              flatListRef.current?.scrollToOffset({
-                offset: info.averageItemLength * info.index,
-                animated: true,
-              });
-            }}
-            ListEmptyComponent={
-              <Text
-                style={{
-                  textAlign: "center",
-                  marginTop: 20,
-                  color: theme.textSecondary,
-                }}
-              >
-                No players found yet. Be the first!
-              </Text>
-            }
-          />
-        </Animated.View>
-      </SafeAreaView>
+            <FlatList
+              ref={flatListRef}
+              data={unifiedListData}
+              renderItem={renderItem}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={styles.listContent}
+              showsVerticalScrollIndicator={false}
+              refreshControl={
+                <RefreshControl
+                  refreshing={loading}
+                  onRefresh={refetch}
+                  tintColor={theme.primary}
+                />
+              }
+              onScrollToIndexFailed={(info) => {
+                flatListRef.current?.scrollToOffset({
+                  offset: info.averageItemLength * info.index,
+                  animated: true,
+                });
+              }}
+              ListEmptyComponent={
+                <Text
+                  style={{
+                    textAlign: "center",
+                    marginTop: 20,
+                    color: theme.textSecondary,
+                  }}
+                >
+                  No players found yet. Be the first!
+                </Text>
+              }
+            />
+          </Animated.View>
+        </SafeAreaView>
+      </View>
     </View>
   );
 };
 
+// --- STYLES ---
 const styles = StyleSheet.create({
+  // New Root for Gradient Background
+  rootBackground: {
+    flex: 1,
+    backgroundColor: "#0f172a", // Fallback color
+    alignItems: "center",
+  },
+  // Centered Container for Desktop
   container: {
     flex: 1,
+    width: "100%",
+    maxWidth: MAX_WIDTH,
   },
   safeArea: {
     flex: 1,
@@ -328,7 +361,8 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 28,
-    fontFamily: "LilitaOne",
+    // fontFamily: "LilitaOne", // Make sure this font is loaded or use system font
+    fontWeight: "900",
     color: "#FFFFFF",
     marginBottom: 20,
     textShadowColor: "rgba(0,0,0,0.3)",
@@ -341,12 +375,14 @@ const styles = StyleSheet.create({
     padding: 4,
     width: "70%",
     justifyContent: "space-between",
+    maxWidth: 400, // Limit width on desktop
   },
   filterTab: {
     flex: 1,
     paddingVertical: 8,
     alignItems: "center",
     borderRadius: 20,
+    cursor: "pointer", // Web pointer
   },
   filterText: {
     fontSize: 14,
@@ -377,7 +413,7 @@ const styles = StyleSheet.create({
     borderRadius: 60,
     marginBottom: 10,
     position: "relative",
-    backgroundColor: "#333", // Fallback bg if image loads slow
+    backgroundColor: "#333",
   },
   avatarImage: {
     width: "100%",
@@ -407,6 +443,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginBottom: 2,
     maxWidth: 80,
+    textAlign: "center",
   },
   podiumScore: {
     fontSize: 12,
@@ -422,6 +459,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 10,
     elevation: 20,
+    // Add margin for Web/Desktop to look like a floating card
+    ...Platform.select({
+      web: {
+        boxShadow: "0px -5px 20px rgba(0,0,0,0.2)",
+      },
+    }),
   },
   sheetHandle: {
     width: 40,
@@ -434,7 +477,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: 20,
-    paddingBottom: 40,
+    paddingBottom: TAB_BAR_OFFSET, // Ensure spacing for bottom tab bar
   },
   row: {
     flexDirection: "row",
@@ -443,6 +486,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 16,
     marginBottom: 8,
+    // Web hover effect
+    ...Platform.select({
+      web: {
+        cursor: "default",
+      },
+    }),
   },
   rowRank: {
     fontSize: 16,

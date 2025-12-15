@@ -1,30 +1,12 @@
-// adsConfig.ts
-import { TestIds } from "react-native-google-mobile-ads";
+// utils/adsConfig.ts (WEB VERSION)
 
-const productionIDs = {
-  banner: "ca-app-pub-7396391927360129/6787475011",
-  interstitial: "ca-app-pub-7396391927360129/9372549405",
-  rewarded: "ca-app-pub-7396391927360129/2396077512",
-  appOpen: "ca-app-pub-7396391927360129/7581681937",
-  native: "ca-app-pub-7396391927360129/5800251811",
-};
+// 🛑 DO NOT IMPORT "react-native-google-mobile-ads" HERE!
+// It will crash the web build immediately.
 
 export const getAdUnitId = (
   type: "banner" | "interstitial" | "rewarded" | "native",
 ) => {
-  if (__DEV__) {
-    switch (type) {
-      case "banner":
-        return TestIds.BANNER;
-      case "interstitial":
-        return TestIds.INTERSTITIAL;
-      case "rewarded":
-        return TestIds.REWARDED;
-      case "native":
-        return TestIds.NATIVE; // <--- Google's Native Test ID
-      default:
-        return TestIds.BANNER;
-    }
-  }
-  return productionIDs[type];
+  // Return an empty string or a dummy value for web.
+  // We don't need real IDs because we aren't loading ads.
+  return "";
 };

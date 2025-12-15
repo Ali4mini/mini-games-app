@@ -1,110 +1,38 @@
-import {
-  RewardedAd,
-  InterstitialAd,
-  AdEventType,
-  RewardedAdEventType,
-} from "react-native-google-mobile-ads";
-import { getAdUnitId } from "./adsConfig";
+// AdManager.ts (WEB VERSION)
 
-// --- 1. INSTANCES ---
-export const rewardedAd = RewardedAd.createForAdRequest(
-  getAdUnitId("rewarded"),
-  {
-    keywords: ["game", "coins"],
-  },
-);
+// 1. MOCK INSTANCES
+// We create dummy objects so calling rewardedAd.show() won't crash the app
+export const rewardedAd = {
+  load: () => {},
+  show: () => console.log("AdManager: Rewarded Ads not supported on Web"),
+  addAdEventListener: () => {},
+};
 
-export const interstitialAd = InterstitialAd.createForAdRequest(
-  getAdUnitId("interstitial"),
-  {
-    keywords: ["game", "break"],
-  },
-);
+export const interstitialAd = {
+  load: () => {},
+  show: () => console.log("AdManager: Interstitial Ads not supported on Web"),
+  addAdEventListener: () => {},
+};
 
-// --- 2. SINGLE SOURCE OF STATE ---
-// We keep the state here. Hooks just read this.
+// 2. STATE
+// We explicitly set loaded to false so your UI never tries to show the button
 export const AdStatus = {
   isRewardedLoaded: false,
   isInterstitialLoaded: false,
 };
 
-// --- 3. SUBSCRIPTION SYSTEM ---
-// Hooks will subscribe to this to get updates
+// 3. SUBSCRIPTION SYSTEM
+// A dummy implementation that accepts a listener and returns a cleanup function
 type AdListener = () => void;
-const listeners: Set<AdListener> = new Set();
-
-const notifyListeners = () => {
-  listeners.forEach((listener) => listener());
-};
 
 export const subscribeToAdStatus = (listener: AdListener) => {
-  listeners.add(listener);
-  return () => listeners.delete(listener); // Return cleanup function
+  // On web, state never changes, so we don't need to actually store listeners
+  return () => {}; // Return empty cleanup function
 };
 
-// --- 4. MANAGER LOGIC ---
-let isInitialized = false;
-let rewardedRetryTimeout: NodeJS.Timeout | null = null;
-
+// 4. MANAGER LOGIC
 export const AdManager = {
   initialize: () => {
-    if (isInitialized) return;
-    isInitialized = true;
-    console.log("💎 AdManager: Initializing...");
-
-    // ===========================
-    // REWARDED AD EVENTS
-    // ===========================
-
-    // 1. LOADED
-    rewardedAd.addAdEventListener(RewardedAdEventType.LOADED, () => {
-      console.log("✅ AdManager: Rewarded Loaded");
-      AdStatus.isRewardedLoaded = true;
-      if (rewardedRetryTimeout) clearTimeout(rewardedRetryTimeout);
-      notifyListeners(); // <--- Tell the UI to update
-    });
-
-    // 2. CLOSED
-    rewardedAd.addAdEventListener(AdEventType.CLOSED, () => {
-      console.log("♻️ AdManager: Rewarded Closed -> Reloading...");
-      AdStatus.isRewardedLoaded = false;
-      notifyListeners(); // <--- Tell UI it's not ready
-      rewardedAd.load();
-    });
-
-    // 3. ERROR (Retry Logic)
-    rewardedAd.addAdEventListener(AdEventType.ERROR, (error) => {
-      console.warn("❌ AdManager: Rewarded Load Failed", error.message);
-      AdStatus.isRewardedLoaded = false;
-      notifyListeners();
-
-      if (rewardedRetryTimeout) clearTimeout(rewardedRetryTimeout);
-      rewardedRetryTimeout = setTimeout(() => {
-        console.log("🔄 AdManager: Retrying...");
-        rewardedAd.load();
-      }, 3000); // Retry after 3 seconds
-    });
-
-    // ===========================
-    // INTERSTITIAL (Simplified)
-    // ===========================
-    interstitialAd.addAdEventListener(AdEventType.LOADED, () => {
-      AdStatus.isInterstitialLoaded = true;
-      notifyListeners();
-    });
-    interstitialAd.addAdEventListener(AdEventType.CLOSED, () => {
-      AdStatus.isInterstitialLoaded = false;
-      notifyListeners();
-      interstitialAd.load();
-    });
-    interstitialAd.addAdEventListener(AdEventType.ERROR, () => {
-      AdStatus.isInterstitialLoaded = false;
-      notifyListeners();
-      // Add interstitial retry logic here if needed
-    });
-
-    // START
-    rewardedAd.load();
-    interstitialAd.load();
+    console.log("💎 AdManager: Web initialized (Ads Disabled)");
   },
 };

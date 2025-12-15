@@ -3,9 +3,10 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Dimensions,
   StyleSheet,
   Alert,
+  useWindowDimensions, // Use this instead of Dimensions for responsive web
+  Platform,
 } from "react-native";
 import {
   SafeAreaView,
@@ -37,11 +38,14 @@ import { SPIN_WHEEL_PRIZES } from "@/data/dummyData";
 import { SvgSpinWheel } from "@/components/lucky-spin/SvgSpinWheel";
 import { SvgSpinPointer } from "@/components/lucky-spin/SvgSpinPointer";
 import { WinModal } from "@/components/lucky-spin/WinModal";
+import { Theme } from "@/types";
 
+// --- CONSTANTS ---
 const WHEEL_SEGMENTS = SPIN_WHEEL_PRIZES.length;
 const WHEEL_SIZE = 340;
 const CENTER_BUTTON_SIZE = 80;
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const MAX_WIDTH = 1024; // Desktop constraint
+const TAB_BAR_OFFSET = 120; // Standardized bottom offset
 
 const SEGMENT_COLORS = [
   "#F72585",
@@ -58,13 +62,22 @@ export const LuckySpinUI: React.FC = () => {
   const theme = useTheme();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const styles = useMemo(() => createStyles(theme, insets), [theme, insets]);
+
+  // 1. RESPONSIVE DIMENSIONS
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  const containerWidth = Math.min(windowWidth, MAX_WIDTH);
+
+  // Pass dynamic width to styles
+  const styles = useMemo(
+    () => createStyles(theme, insets, containerWidth),
+    [theme, insets, containerWidth],
+  );
 
   // --- HOOKS ---
-  const { playSpin } = useLuckySpin(); // API Logic
-  const { stats, refreshStats } = useUserStats(); // Global Stats
-  const timeLeft = useDailyTimer(); // Countdown Timer
-  const { showAd, isAdLoaded } = useRewardAd(); // Ad Logic
+  const { playSpin } = useLuckySpin();
+  const { stats, refreshStats } = useUserStats();
+  const timeLeft = useDailyTimer();
+  const { showAd, isAdLoaded } = useRewardAd();
 
   // --- LOCAL STATE ---
   const rotation = useSharedValue(0);
@@ -94,14 +107,13 @@ export const LuckySpinUI: React.FC = () => {
     if (rewardAmount >= 5000) prizeText = "JACKPOT! (+5000)";
 
     setWinningPrizeLabel(prizeText);
-    setWinningAmount(rewardAmount); // Store raw number for doubling logic
+    setWinningAmount(rewardAmount);
 
     setShowConfetti(true);
     setTimeout(() => confettiRef.current?.start(), 100);
     setTimeout(() => setShowWinModal(true), 600);
     setIsSpinning(false);
 
-    // Refresh stats to show new coin balance immediately in HUD
     refreshStats();
   };
 
@@ -112,7 +124,6 @@ export const LuckySpinUI: React.FC = () => {
       return;
     }
 
-    // Pass the specific logic: Add 1 spin
     showAd(async () => {
       const { error } = await supabase.rpc("add_one_spin");
       if (error) {
@@ -125,7 +136,6 @@ export const LuckySpinUI: React.FC = () => {
 
   // --- LOGIC: MAIN SPIN ACTION ---
   const handleSpin = async () => {
-    // 1. Check Spins. If 0, trigger Ad flow.
     if (stats.spinsLeft <= 0) {
       handleWatchAdForSpin();
       return;
@@ -135,7 +145,6 @@ export const LuckySpinUI: React.FC = () => {
 
     setIsSpinning(true);
 
-    // 2. Start "Loading" Animation (Fast spin)
     const startRotation = rotation.value;
     rotation.value = withTiming(startRotation + 360 * 50, {
       duration: 10000,
@@ -143,7 +152,6 @@ export const LuckySpinUI: React.FC = () => {
     });
 
     try {
-      // 3. Fetch Result + Min Delay
       const [result] = await Promise.all([
         playSpin(),
         new Promise((resolve) => setTimeout(resolve, 1000)),
@@ -158,29 +166,25 @@ export const LuckySpinUI: React.FC = () => {
 
       const { winnerIndex, rewardAmount } = result;
 
-      // 4. Calculate Landing Angle
       cancelAnimation(rotation);
       const currentRotation = rotation.value;
       const segmentAngle = 360 / WHEEL_SEGMENTS;
 
-      // Add randomness within the segment
       const randomOffset = (Math.random() - 0.5) * (segmentAngle * 0.5);
       const winningAngle = -(winnerIndex * segmentAngle) + randomOffset;
 
-      // Normalize & Calculate distance
       const normalizedCurrent = currentRotation % 360;
       let distanceToAngle = winningAngle - normalizedCurrent;
       while (distanceToAngle < 0) distanceToAngle += 360;
 
-      const extraRotations = 360 * 2; // Spin 2 more times for effect
+      const extraRotations = 360 * 2;
       const finalRotation = currentRotation + distanceToAngle + extraRotations;
 
-      // 5. Final Deceleration Animation
       rotation.value = withTiming(
         finalRotation,
         {
           duration: 2500,
-          easing: Easing.bezier(0.1, 0.4, 0.2, 1), // Ease Out
+          easing: Easing.bezier(0.1, 0.4, 0.2, 1),
         },
         (finished) => {
           if (finished) runOnJS(onSpinComplete)(rewardAmount);
@@ -201,7 +205,6 @@ export const LuckySpinUI: React.FC = () => {
       return;
     }
 
-    // Pass the specific logic: Add coins equal to winning amount
     showAd(async () => {
       const { error } = await supabase.rpc("add_coins", {
         amount: winningAmount,
@@ -229,204 +232,223 @@ export const LuckySpinUI: React.FC = () => {
   const hasSpins = stats.spinsLeft > 0;
 
   return (
-    <View style={styles.container}>
-      {/* BACKGROUND GLOW */}
-      <View style={styles.ambientGlowContainer}>
-        <View
-          style={[styles.ambientGlow, { backgroundColor: theme.primary }]}
-        />
-      </View>
-
-      <SafeAreaView style={styles.safeArea} edges={["top"]}>
-        {/* HEADER */}
-        <View style={styles.header}>
-          <Text style={styles.title}>
-            {t("luckySpin.title", "LUCKY WHEEL")}
-          </Text>
-          <Text style={styles.subtitle}>
-            {t("luckySpin.subtitle", "Spin to win exclusive prizes!")}
-          </Text>
+    // ROOT BACKGROUND: Centers the app on Desktop
+    <View style={styles.rootBackground}>
+      <View style={styles.container}>
+        {/* BACKGROUND GLOW */}
+        <View style={styles.ambientGlowContainer}>
+          <View
+            style={[styles.ambientGlow, { backgroundColor: theme.primary }]}
+          />
         </View>
 
-        {/* WHEEL SECTION */}
-        <View style={styles.wheelSection}>
-          <View
-            style={[
-              styles.outerRing,
-              { borderColor: theme.backgroundTertiary },
-            ]}
-          >
-            {/* POINTER */}
-            <View style={styles.pointerContainer}>
-              <SvgSpinPointer
-                size={55}
-                color={theme.secondary}
-                strokeColor={theme.backgroundPrimary}
-              />
-            </View>
+        <SafeAreaView style={styles.safeArea} edges={["top"]}>
+          {/* HEADER */}
+          <View style={styles.header}>
+            <Text style={styles.title}>
+              {t("luckySpin.title", "LUCKY WHEEL")}
+            </Text>
+            <Text style={styles.subtitle}>
+              {t("luckySpin.subtitle", "Spin to win exclusive prizes!")}
+            </Text>
+          </View>
 
+          {/* WHEEL SECTION */}
+          <View style={styles.wheelSection}>
             <View
               style={[
-                styles.innerRing,
+                styles.outerRing,
                 { borderColor: theme.backgroundTertiary },
               ]}
             >
-              {/* SPINNING WHEEL SVG */}
-              <Animated.View style={[styles.wheelContainer, animatedStyle]}>
-                <SvgSpinWheel
-                  size={WHEEL_SIZE}
-                  segments={SPIN_WHEEL_PRIZES}
-                  colors={SEGMENT_COLORS}
-                  theme={theme}
+              {/* POINTER */}
+              <View style={styles.pointerContainer}>
+                <SvgSpinPointer
+                  size={55}
+                  color={theme.secondary}
+                  strokeColor={theme.backgroundPrimary}
                 />
-              </Animated.View>
+              </View>
 
-              {/* CENTER BUTTON */}
-              <TouchableOpacity
-                onPress={handleSpin}
-                disabled={isSpinning} // Enable click even if 0 spins (to watch ad)
-                activeOpacity={0.9}
-                style={styles.centerButtonOuter}
+              <View
+                style={[
+                  styles.innerRing,
+                  { borderColor: theme.backgroundTertiary },
+                ]}
               >
-                <LinearGradient
-                  colors={
-                    isSpinning
-                      ? ["#475569", "#1e293b"] // Grey (Spinning)
-                      : !hasSpins
-                        ? ["#F59E0B", "#D97706"] // Gold (Ad/Free)
-                        : ["#38bdf8", "#2563eb"] // Blue (Spin)
-                  }
-                  style={styles.centerButtonInner}
-                >
-                  <View style={styles.centerButtonHighlight} />
+                {/* SPINNING WHEEL SVG */}
+                <Animated.View style={[styles.wheelContainer, animatedStyle]}>
+                  <SvgSpinWheel
+                    size={WHEEL_SIZE}
+                    segments={SPIN_WHEEL_PRIZES}
+                    colors={SEGMENT_COLORS}
+                    theme={theme}
+                  />
+                </Animated.View>
 
-                  {isSpinning ? (
-                    <Text style={styles.centerButtonText}>...</Text>
-                  ) : !hasSpins ? (
-                    // SHOW "FREE" + ICON
-                    <View style={{ alignItems: "center" }}>
-                      <MaterialCommunityIcons
-                        name="play-box-outline"
-                        size={24}
-                        color="#FFF"
-                      />
-                      <Text style={[styles.centerButtonText, { fontSize: 10 }]}>
-                        FREE
-                      </Text>
-                    </View>
-                  ) : (
-                    // SHOW "SPIN"
-                    <Text style={styles.centerButtonText}>SPIN</Text>
-                  )}
-                </LinearGradient>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
+                {/* CENTER BUTTON */}
+                <TouchableOpacity
+                  onPress={handleSpin}
+                  disabled={isSpinning}
+                  activeOpacity={0.9}
+                  style={styles.centerButtonOuter}
+                >
+                  <LinearGradient
+                    colors={
+                      isSpinning
+                        ? ["#475569", "#1e293b"]
+                        : !hasSpins
+                          ? ["#F59E0B", "#D97706"]
+                          : ["#38bdf8", "#2563eb"]
+                    }
+                    style={styles.centerButtonInner}
+                  >
+                    <View style={styles.centerButtonHighlight} />
 
-        {/* HUD STATS */}
-        <View style={styles.hudContainer}>
-          <View style={styles.statsRow}>
-            {/* SPINS LEFT */}
-            <View
-              style={[
-                styles.statBox,
-                {
-                  backgroundColor: theme.backgroundSecondary,
-                  borderColor: theme.backgroundTertiary,
-                },
-              ]}
-            >
-              <Ionicons
-                name="ticket"
-                size={24}
-                color={hasSpins ? theme.primary : theme.textTertiary}
-              />
-              <View style={styles.statTextContainer}>
-                <Text
-                  style={[styles.statLabel, { color: theme.textSecondary }]}
-                >
-                  {t("luckySpin.spins", "SPINS")}
-                </Text>
-                <Text
-                  style={[
-                    styles.statValue,
-                    {
-                      color: hasSpins ? theme.textPrimary : theme.textTertiary,
-                    },
-                  ]}
-                >
-                  {stats.spinsLeft}
-                </Text>
-              </View>
-            </View>
-
-            {/* NEXT FREE TIMER */}
-            <View
-              style={[
-                styles.statBox,
-                {
-                  backgroundColor: theme.backgroundSecondary,
-                  borderColor: theme.backgroundTertiary,
-                },
-              ]}
-            >
-              <MaterialCommunityIcons
-                name="timer-outline"
-                size={24}
-                color={!hasSpins ? theme.secondary : theme.textTertiary}
-              />
-              <View style={styles.statTextContainer}>
-                <Text
-                  style={[styles.statLabel, { color: theme.textSecondary }]}
-                >
-                  {t("luckySpin.nextFree", "NEXT FREE")}
-                </Text>
-                <Text
-                  style={[
-                    styles.statValue,
-                    { color: !hasSpins ? theme.secondary : theme.success },
-                  ]}
-                >
-                  {hasSpins ? "READY" : timeLeft}
-                </Text>
+                    {isSpinning ? (
+                      <Text style={styles.centerButtonText}>...</Text>
+                    ) : !hasSpins ? (
+                      <View style={{ alignItems: "center" }}>
+                        <MaterialCommunityIcons
+                          name="play-box-outline"
+                          size={24}
+                          color="#FFF"
+                        />
+                        <Text
+                          style={[styles.centerButtonText, { fontSize: 10 }]}
+                        >
+                          FREE
+                        </Text>
+                      </View>
+                    ) : (
+                      <Text style={styles.centerButtonText}>SPIN</Text>
+                    )}
+                  </LinearGradient>
+                </TouchableOpacity>
               </View>
             </View>
           </View>
-        </View>
-      </SafeAreaView>
 
-      {/* CONFETTI */}
-      {showConfetti && (
-        <ConfettiCannon
-          ref={confettiRef}
-          count={60}
-          origin={{ x: -10, y: 0 }}
-          fallSpeed={3500}
-          fadeOut={true}
-          colors={[theme.primary, theme.secondary, "#FFD700", "#FFF"]}
+          {/* HUD STATS */}
+          <View style={styles.hudContainer}>
+            <View style={styles.statsRow}>
+              {/* SPINS LEFT */}
+              <View
+                style={[
+                  styles.statBox,
+                  {
+                    backgroundColor: theme.backgroundSecondary,
+                    borderColor: theme.backgroundTertiary,
+                  },
+                ]}
+              >
+                <Ionicons
+                  name="ticket"
+                  size={24}
+                  color={hasSpins ? theme.primary : theme.textTertiary}
+                />
+                <View style={styles.statTextContainer}>
+                  <Text
+                    style={[styles.statLabel, { color: theme.textSecondary }]}
+                  >
+                    {t("luckySpin.spins", "SPINS")}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.statValue,
+                      {
+                        color: hasSpins
+                          ? theme.textPrimary
+                          : theme.textTertiary,
+                      },
+                    ]}
+                  >
+                    {stats.spinsLeft}
+                  </Text>
+                </View>
+              </View>
+
+              {/* NEXT FREE TIMER */}
+              <View
+                style={[
+                  styles.statBox,
+                  {
+                    backgroundColor: theme.backgroundSecondary,
+                    borderColor: theme.backgroundTertiary,
+                  },
+                ]}
+              >
+                <MaterialCommunityIcons
+                  name="timer-outline"
+                  size={24}
+                  color={!hasSpins ? theme.secondary : theme.textTertiary}
+                />
+                <View style={styles.statTextContainer}>
+                  <Text
+                    style={[styles.statLabel, { color: theme.textSecondary }]}
+                  >
+                    {t("luckySpin.nextFree", "NEXT FREE")}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.statValue,
+                      { color: !hasSpins ? theme.secondary : theme.success },
+                    ]}
+                  >
+                    {hasSpins ? "READY" : timeLeft}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        </SafeAreaView>
+
+        {/* CONFETTI - Must remain outside SafeAreaView but inside Container */}
+        {showConfetti && (
+          <ConfettiCannon
+            ref={confettiRef}
+            count={60}
+            origin={{ x: -10, y: 0 }}
+            fallSpeed={3500}
+            fadeOut={true}
+            colors={[theme.primary, theme.secondary, "#FFD700", "#FFF"]}
+          />
+        )}
+
+        {/* WIN MODAL */}
+        <WinModal
+          visible={showWinModal}
+          prizeLabel={winningPrizeLabel}
+          prizeValue={winningAmount}
+          onClose={handleModalClose}
+          onDoubleClaim={handleDoubleReward}
+          isAdLoaded={isAdLoaded}
+          theme={theme}
         />
-      )}
-
-      {/* WIN MODAL */}
-      <WinModal
-        visible={showWinModal}
-        prizeLabel={winningPrizeLabel}
-        prizeValue={winningAmount}
-        onClose={handleModalClose}
-        onDoubleClaim={handleDoubleReward}
-        isAdLoaded={isAdLoaded}
-        theme={theme}
-      />
+      </View>
     </View>
   );
 };
 
-const createStyles = (theme: any, insets: any) => {
+// --- STYLES ---
+const createStyles = (theme: Theme, insets: any, containerWidth: number) => {
   return StyleSheet.create({
+    rootBackground: {
+      flex: 1,
+      backgroundColor: theme.backgroundPrimary,
+      alignItems: "center", // Center the container
+    },
     container: {
       flex: 1,
-      overflow: "hidden",
+      width: "100%",
+      maxWidth: MAX_WIDTH, // Desktop constraint
+      backgroundColor: theme.backgroundPrimary,
+      overflow: "hidden", // Important for confetti not to trigger scrollbars on web
+      ...Platform.select({
+        web: {
+          boxShadow: "0px 0px 24px rgba(0,0,0,0.15)",
+        },
+      }),
     },
     ambientGlowContainer: {
       ...StyleSheet.absoluteFillObject,
@@ -434,9 +456,10 @@ const createStyles = (theme: any, insets: any) => {
       zIndex: 0,
     },
     ambientGlow: {
-      width: SCREEN_WIDTH * 1.3,
-      height: SCREEN_WIDTH * 1.3,
-      borderRadius: SCREEN_WIDTH,
+      // Logic: Scaled based on container width, but capped for cleaner desktop look
+      width: containerWidth * 1.3,
+      height: containerWidth * 1.3,
+      borderRadius: containerWidth,
       opacity: 0.05,
       position: "absolute",
       top: -50,
@@ -555,12 +578,17 @@ const createStyles = (theme: any, insets: any) => {
     },
     hudContainer: {
       paddingHorizontal: 20,
-      paddingBottom: insets.bottom + 120,
+      // Fix: Add TAB_BAR_OFFSET so stats aren't hidden behind the floating nav
+      paddingBottom: insets.bottom + TAB_BAR_OFFSET,
+      width: "100%",
+      alignItems: "center", // Center the stats row on Desktop
     },
     statsRow: {
       flexDirection: "row",
       justifyContent: "space-between",
       gap: 15,
+      width: "100%",
+      maxWidth: 500, // Constraint Stats width on Desktop so they don't look spread out
     },
     statBox: {
       flex: 1,

@@ -1,5 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
-import { AppState, AppStateStatus } from "react-native"; // 1. Import AppState
+import React, { useEffect } from "react";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
@@ -8,86 +7,39 @@ import { I18nextProvider } from "react-i18next";
 import { StatusBar } from "expo-status-bar";
 import BlobBackground from "@/components/common/BlobBackground";
 import i18n from "@/i18n";
-
-// --- 2. ADMOB IMPORTS ---
-import { AppOpenAd, AdEventType } from "react-native-google-mobile-ads";
-import { getAdUnitId } from "@/utils/adsConfig"; // Your helper file
-
 import { ThemeProvider, useTheme } from "@/context/ThemeContext";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { UserStatsProvider } from "@/context/UserStatsContext";
-import { SplashScreen as AnimatedSplash } from "@/components/common/SplashScreen";
 import { enableFreeze } from "react-native-screens";
+
+// --- CHANGED: Use the Hook and Manager ---
+// The bundler will auto-select .native.ts (Mobile) or .ts (Web)
 import { AdManager } from "@/utils/adsManager";
+import { useAppOpenAd } from "@/hooks/ads/useAppOpenAd";
 
 enableFreeze(false);
-
 SplashScreen.preventAutoHideAsync();
 
-// --- 3. INITIALIZE AD OUTSIDE COMPONENT ---
-// This ensures the ad object isn't recreated on every render
-const appOpenAd = AppOpenAd.createForAdRequest(getAdUnitId("appOpen"), {
-  requestNonPersonalizedAdsOnly: true,
-});
-
 const RootNavigator = () => {
-  useEffect(() => {
-    // Start the ad engine
-    AdManager.initialize();
-  }, []);
   const theme = useTheme();
   const { session, loading: authLoading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
 
-  // Track if ad is ready to show
-  const [isAdLoaded, setIsAdLoaded] = useState(false);
-
-  // --- 4. APP OPEN AD LOGIC ---
+  // --- 1. INITIALIZE ADS ---
   useEffect(() => {
-    // A. Event Listener: When Ad Loads
-    const loadListener = appOpenAd.addAdEventListener(
-      AdEventType.LOADED,
-      () => {
-        setIsAdLoaded(true);
-      },
-    );
+    // AdManager.native.ts handles real init
+    // AdManager.ts handles web mock
+    AdManager.initialize();
+  }, []);
 
-    // B. Event Listener: When Ad Closes (Load the NEXT one immediately)
-    const closeListener = appOpenAd.addAdEventListener(
-      AdEventType.CLOSED,
-      () => {
-        setIsAdLoaded(false);
-        appOpenAd.load();
-      },
-    );
-
-    // C. Event Listener: App State Changes (Background -> Foreground)
-    const appStateListener = AppState.addEventListener(
-      "change",
-      (nextAppState) => {
-        if (nextAppState === "active" && isAdLoaded) {
-          // Show ad when user comes back to app
-          appOpenAd.show();
-        }
-      },
-    );
-
-    // D. Initial Load (Cold Start)
-    appOpenAd.load();
-
-    // Cleanup listeners on unmount
-    return () => {
-      loadListener();
-      closeListener();
-      appStateListener.remove();
-    };
-  }, [isAdLoaded]);
+  // --- 2. RUN APP OPEN ADS ---
+  // This hook handles everything. On Web, it does nothing.
+  useAppOpenAd();
 
   // --- AUTH REDIRECT LOGIC ---
   useEffect(() => {
     if (authLoading) return;
-
     const inAuthGroup = segments[0] === "(auth)";
 
     if (!session && !inAuthGroup) {
@@ -100,7 +52,6 @@ const RootNavigator = () => {
   return (
     <BlobBackground>
       <StatusBar style={theme.type === "dark" ? "light" : "dark"} />
-
       <Stack
         screenOptions={{
           headerStyle: { backgroundColor: "transparent" },
@@ -128,8 +79,6 @@ const RootNavigator = () => {
 };
 
 export default function RootLayout() {
-  const [showAnimatedSplash, setShowAnimatedSplash] = useState(true);
-
   const [fontsLoaded, fontError] = useFonts({
     LilitaOne: require("../assets/fonts/LilitaOne-Regular.ttf"),
   });

@@ -3,12 +3,12 @@ import {
   View,
   Text,
   Image,
-  Dimensions,
   TouchableOpacity,
   StyleSheet,
+  useWindowDimensions, // <--- 1. Import hook
 } from "react-native";
 import Carousel from "react-native-reanimated-carousel";
-import { Link } from "expo-router"; // Import Href type for safety
+import { Link, Href } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -19,39 +19,43 @@ type HeroCarouselProps = {
   data: HeroBannerItem[];
 };
 
-const { width: screenWidth } = Dimensions.get("window");
-const ITEM_HEIGHT = 200;
+// Define heights for different screen sizes
+const MOBILE_ITEM_HEIGHT = 200;
+const DESKTOP_ITEM_HEIGHT = 320; // <--- Taller for desktop
 
 export const HeroCarousel: React.FC<HeroCarouselProps> = ({ data }) => {
   const theme = useTheme();
+  const { width: windowWidth } = useWindowDimensions();
 
-  // 1. SAFETY CHECK: Backend might return empty array initially
+  // 2. Determine if the screen is "desktop" size
+  // 768px is a common tablet breakpoint
+  const isDesktop = windowWidth > 768;
+
+  // 3. Calculate width and height based on screen size
+  const carouselWidth = Math.min(windowWidth, 1024); // Cap at container width
+  const itemHeight = isDesktop ? DESKTOP_ITEM_HEIGHT : MOBILE_ITEM_HEIGHT;
+
   if (!data || data.length === 0) {
-    return null; // Or return a Skeleton Loader here if you prefer
+    return null;
   }
 
   const renderCarouselItem = ({ item }: { item: HeroBannerItem }) => (
-    // 2. ROUTING: We cast item.href to Href<string> to satisfy Expo Router types
     <Link href={item.href} asChild>
       <TouchableOpacity activeOpacity={0.9} style={styles.cardContainer}>
-        {/* 3. IMAGE: The hook already formatted this to a full https:// URL */}
         <Image
           source={{ uri: item.image }}
           style={styles.image}
           resizeMode="cover"
         />
-
         <LinearGradient
           colors={["transparent", "rgba(0,0,0,0.6)", "rgba(0,0,0,0.9)"]}
           style={styles.gradient}
         />
-
         <View style={styles.contentContainer}>
           <View style={styles.textWrapper}>
             <View style={styles.badge}>
               <Text style={styles.badgeText}>FEATURED</Text>
             </View>
-
             <Text style={styles.title} numberOfLines={1}>
               {item.title}
             </Text>
@@ -59,7 +63,6 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ data }) => {
               {item.subtitle}
             </Text>
           </View>
-
           <View
             style={[
               styles.playButton,
@@ -69,7 +72,7 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ data }) => {
             <Ionicons
               name="play"
               size={24}
-              color="#000" // Black icon usually looks best on bright primary colors
+              color="#000"
               style={{ marginLeft: 2 }}
             />
           </View>
@@ -82,8 +85,8 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ data }) => {
     <View style={styles.carouselContainer}>
       <Carousel
         loop
-        width={screenWidth}
-        height={ITEM_HEIGHT}
+        width={carouselWidth}
+        height={itemHeight} // <--- 4. Use dynamic height
         autoPlay={true}
         autoPlayInterval={5000}
         data={data}
@@ -99,7 +102,9 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ data }) => {
   );
 };
 
+// Styles remain unchanged as they are relative
 const styles = StyleSheet.create({
+  // ... (no changes needed to the styles object)
   carouselContainer: {
     alignItems: "center",
     justifyContent: "center",

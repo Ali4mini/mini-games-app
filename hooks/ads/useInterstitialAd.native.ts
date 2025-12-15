@@ -1,8 +1,6 @@
-// hooks/ads/useRewardedAd.ts (WEB VERSION)
-
 import { useCallback } from "react";
 
-export const useRewardAd = () => {
+export const useInterstitialAd = () => {
   // Return dummy state and functions that match what your UI expects
   return {
     isLoaded: false,
