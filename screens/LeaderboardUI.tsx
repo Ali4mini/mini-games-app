@@ -18,6 +18,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useTheme } from "@/context/ThemeContext";
 // 1. Import Hook
 import { useLeaderboard, LeaderboardItem } from "@/hooks/useLeaderboard";
+import { Stack } from "expo-router";
 
 // --- Sub-Components (Unchanged) ---
 const FilterTabs = ({ activeTab, onTabChange, theme }: any) => (
@@ -234,6 +235,7 @@ export const LeaderboardUI: React.FC = () => {
 
   return (
     <View style={styles.container}>
+      <Stack.Screen options={{ headerShown: false }} />
       <LinearGradient
         colors={[theme.primary, "#1e1b4b", "#0f172a"]}
         start={{ x: 0.5, y: 0 }}
