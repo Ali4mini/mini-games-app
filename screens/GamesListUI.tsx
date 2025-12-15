@@ -125,8 +125,18 @@ export const GamesListUI: React.FC = () => {
     selectedCategory,
     setSelectedCategory,
     refresh,
+    loadingMore,
+    loadMore,
   } = useGameCatalog();
 
+  const renderFooter = () => {
+    if (!loadingMore) return null;
+    return (
+      <View style={{ paddingVertical: 20 }}>
+        <ActivityIndicator size="small" color={theme.primary} />
+      </View>
+    );
+  };
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
       {/* HEADER SECTION */}
@@ -166,10 +176,18 @@ export const GamesListUI: React.FC = () => {
           renderItem={({ item }) => (
             <LibraryGameCard item={item} styles={styles} />
           )}
-          // Add Pull-to-Refresh
+          // --- NEW PROPS START HERE ---
+
+          // Trigger loadMore when user scrolls to within 50% of the bottom
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.5}
+          // Show spinner at the bottom when loading next page
+          ListFooterComponent={renderFooter}
+          // --- NEW PROPS END HERE ---
+
           refreshControl={
             <RefreshControl
-              refreshing={loading}
+              refreshing={loading} // Only use 'loading', not 'loadingMore'
               onRefresh={refresh}
               tintColor={theme.primary}
             />
