@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/utils/supabase";
 import { Game, GameCategories } from "@/types";
 import { getStorageUrl } from "@/utils/imageHelpers";
@@ -7,8 +7,8 @@ const PAGE_SIZE = 10;
 
 export const useGameCatalog = () => {
   const [games, setGames] = useState<Game[]>([]);
-  const [loading, setLoading] = useState(false); // Initial load
-  const [loadingMore, setLoadingMore] = useState(false); // Pagination load
+  const [loading, setLoading] = useState(false); // For initial load & refresh
+  const [loadingMore, setLoadingMore] = useState(false); // For infinite scroll
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<
     GameCategories | "All"
@@ -18,16 +18,16 @@ export const useGameCatalog = () => {
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
 
-  // We use a ref to prevent race conditions during rapid filter changes
-  const currentRequest = useRef(0);
-
   const fetchGames = useCallback(
     async (pageNumber = 0) => {
       const isReseting = pageNumber === 0;
 
-      // Prevent fetching if we are already loading specific types of requests
-      if (isReseting) setLoading(true);
-      else setLoadingMore(true);
+      // Set loading states
+      if (isReseting) {
+        setLoading(true);
+      } else {
+        setLoadingMore(true);
+      }
 
       try {
         const from = pageNumber * PAGE_SIZE;
@@ -39,7 +39,7 @@ export const useGameCatalog = () => {
           .select("*")
           .eq("is_active", true)
           .order("created_at", { ascending: false })
-          .range(from, to); // <--- Add Range Here
+          .range(from, to);
 
         // Apply Category Filter
         if (selectedCategory !== "All") {
@@ -61,14 +61,32 @@ export const useGameCatalog = () => {
           image: getStorageUrl("assets", game.image),
         }));
 
+        // Update State (FIXED DUPLICATE LOGIC)
         if (isReseting) {
           setGames(formattedGames as Game[]);
         } else {
-          setGames((prev) => [...prev, ...(formattedGames as Game[])]);
+          setGames((prev) => {
+            // 1. Create a Set of existing IDs for fast lookup
+            const existingIds = new Set(prev.map((g) => g.id));
+
+            // 2. Only keep new games that don't exist in the current state
+            const uniqueNewGames = (formattedGames as Game[]).filter(
+              (game) => !existingIds.has(game.id),
+            );
+
+            // 3. Combine them
+            return [...prev, ...uniqueNewGames];
+          });
         }
 
-        // Check if we reached the end
-        setHasMore(data.length === PAGE_SIZE);
+        // Determine if there is more data to load
+        // If we received fewer items than requested, we are at the end.
+        if (data.length < PAGE_SIZE) {
+          setHasMore(false);
+        } else {
+          setHasMore(true);
+        }
+
         setPage(pageNumber);
       } catch (error) {
         console.error("Error fetching games:", error);
@@ -80,22 +98,21 @@ export const useGameCatalog = () => {
     [searchQuery, selectedCategory],
   );
 
-  // Effect: Trigger fetch when Filters change (Search or Category)
-  // This resets the list to Page 0
+  // Effect: Reset and Fetch when filters change
   useEffect(() => {
     setPage(0);
     setHasMore(true);
     fetchGames(0);
   }, [searchQuery, selectedCategory, fetchGames]);
 
-  // Function to call for Infinite Scroll
+  // Helper: Trigger infinite scroll
   const loadMore = () => {
     if (!loading && !loadingMore && hasMore) {
       fetchGames(page + 1);
     }
   };
 
-  // Function to pull-to-refresh
+  // Helper: Trigger Pull-to-Refresh
   const refresh = () => {
     setPage(0);
     setHasMore(true);
@@ -104,14 +121,14 @@ export const useGameCatalog = () => {
 
   return {
     games,
-    loading, // Used for initial skeleton/spinner
-    loadingMore, // Used for footer spinner
+    loading,
+    loadingMore,
     searchQuery,
     setSearchQuery,
     selectedCategory,
     setSelectedCategory,
-    refresh, // Used for PullControl
-    loadMore, // Used for onEndReached
-    hasMore, // Used to hide footer if done
+    refresh,
+    loadMore,
+    hasMore,
   };
 };
