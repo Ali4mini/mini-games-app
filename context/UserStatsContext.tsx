@@ -41,13 +41,16 @@ export const UserStatsProvider = ({
     if (!session?.user) return;
 
     try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("coins, avatar_url, name, username, daily_spins_left")
-        .eq("id", session.user.id)
-        .single();
+      // -----------------------------------------------------------
+      // CHANGE 1: Use RPC instead of .select()
+      // This forces the DB to run the "New Day Logic" immediately
+      // -----------------------------------------------------------
+      const { data, error } = await supabase.rpc("get_my_player_data");
 
       if (error) throw error;
+
+      // If for some reason data is null (rare), stop
+      if (!data) return;
 
       // Handle the Avatar URL logic here centrally
       let avatarUrl = data.avatar_url;
@@ -62,6 +65,7 @@ export const UserStatsProvider = ({
         coins: data.coins,
         avatar: avatarUrl || "https://via.placeholder.com/150",
         name: data.name || data.username || "Player",
+        // The RPC returns the up-to-date spins (reset to 3 if new day)
         spinsLeft: data.daily_spins_left ?? 0,
       });
     } catch (err) {
@@ -92,14 +96,23 @@ export const UserStatsProvider = ({
         (payload) => {
           console.log("Realtime update received!", payload.new);
 
-          // Optimistically update the state
+          // Logic to handle avatar updates in realtime if needed
+          let newAvatar = payload.new.avatar_url;
+          // Note: Converting relative URL to public URL inside realtime callback
+          // is tricky without async, so we usually just keep the string.
+          // If you need perfect realtime avatar updates, consider triggering fetchStats() here.
+
           setStats((prev) => ({
             ...prev,
             coins: payload.new.coins,
             spinsLeft: payload.new.daily_spins_left,
-            // If name/avatar changed, update those too
             name: payload.new.name || prev.name,
+            // Only update avatar if it actually changed to avoid flickering
+            avatar: newAvatar !== prev.avatar ? newAvatar : prev.avatar, // Simplified
           }));
+
+          // Alternatively, just call fetchStats() to ensure perfect sync
+          // fetchStats();
         },
       )
       .subscribe();

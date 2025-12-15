@@ -54,7 +54,6 @@ export const useHomeData = () => {
 
       if (gamesError) throw gamesError;
 
-      console.log(profileData);
       // Set State
       setProfile({
         id: profileData.id,

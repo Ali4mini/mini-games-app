@@ -26,6 +26,7 @@ import { createStyles } from "./DailyCheckInUI.styles";
 
 // 1. Import Hook
 import { useDailyCheckIn, DailyRewardItem } from "@/hooks/useDailyCheckIn";
+import { Stack } from "expo-router";
 
 export const DailyCheckInUI: React.FC = () => {
   const { t } = useTranslation();
@@ -82,6 +83,7 @@ export const DailyCheckInUI: React.FC = () => {
 
     return (
       <View key={item.day} style={cellStyle}>
+        <Stack.Screen options={{ headerShown: false }} />
         <Text style={[styles.dayText, item.isClaimed && styles.dayTextClaimed]}>
           {t("dailyCheckIn.day", { day: item.day })}
         </Text>

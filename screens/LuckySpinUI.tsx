@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -83,6 +83,10 @@ export const LuckySpinUI: React.FC = () => {
       transform: [{ rotate: `${rotation.value}deg` }],
     };
   });
+
+  useEffect(() => {
+    refreshStats();
+  }, [refreshStats]);
 
   // --- EVENT: SPIN FINISHED ---
   const onSpinComplete = (rewardAmount: number) => {
