@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  useWindowDimensions, // <--- 1. Import this
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
@@ -23,20 +24,23 @@ import { Ionicons } from "@expo/vector-icons";
 import MaskedView from "@react-native-masked-view/masked-view";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 import { BlurView } from "expo-blur";
-import { useTranslation } from "react-i18next"; // <--- Import
+import { useTranslation } from "react-i18next";
 
-// Define types here since schema is now dynamic
 type ForgotPasswordForm = {
   email: string;
 };
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
-  const { t } = useTranslation(); // <--- Hook
+  const { t } = useTranslation();
+
+  // 2. Responsive Logic
+  const { width, height } = useWindowDimensions();
+  const isWebOrTablet = width > 768;
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [focusedField, setFocusedField] = useState<"email" | null>(null);
 
-  // --- Theme Colors ---
   const colors = {
     textPrimary: "#FFFFFF",
     textPlaceholder: "#B0B0C0",
@@ -44,7 +48,6 @@ export default function ForgotPasswordScreen() {
     accentCyan: "#06B6D4",
   };
 
-  // --- Dynamic Validation Schema ---
   const forgotPasswordSchema = z.object({
     email: z.string().email({ message: t("auth.errors.invalidEmail") }),
   });
@@ -81,8 +84,15 @@ export default function ForgotPasswordScreen() {
     }
   };
 
-  // Gradient Text Helper
   const GradientText = (props: any) => {
+    // 3. Web Fallback for MaskedView
+    if (Platform.OS === "web") {
+      return (
+        <Text {...props} style={[props.style, { color: colors.accentCyan }]}>
+          {props.children}
+        </Text>
+      );
+    }
     return (
       <MaskedView maskElement={<Text {...props} />}>
         <LinearGradient
@@ -105,114 +115,128 @@ export default function ForgotPasswordScreen() {
         style={{ flex: 1 }}
       >
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { minHeight: height }, // Vertical centering
+          ]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           removeClippedSubviews={false}
         >
-          {/* --- Back Button --- */}
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
+          {/* 4. Responsive Wrapper */}
+          <View
+            style={[
+              styles.responsiveContainer,
+              isWebOrTablet && styles.webCardContainer,
+            ]}
           >
-            <Ionicons name="arrow-back" size={24} color="#FFF" />
-          </TouchableOpacity>
-
-          {/* --- Header --- */}
-          <Animated.View
-            entering={FadeInDown.delay(100).springify()}
-            style={styles.headerContainer}
-          >
-            <View style={styles.iconContainer}>
-              <Ionicons name="key-outline" size={48} color="#fff" />
-            </View>
-            <GradientText style={styles.headerTitle}>
-              {t("auth.unlockAccess")}
-            </GradientText>
-            <Text style={styles.subHeader}>{t("auth.recoverSubtitle")}</Text>
-          </Animated.View>
-
-          {/* --- Form --- */}
-          <Animated.View
-            entering={FadeInDown.delay(200).springify()}
-            style={styles.formSection}
-          >
-            {/* Email Input */}
-            <View style={styles.inputWrapper}>
-              <Text style={styles.label}>{t("auth.emailLabel")}</Text>
-              <Controller
-                control={control}
-                name="email"
-                render={({ field: { onChange, value } }) => (
-                  <BlurView
-                    intensity={30}
-                    tint="dark"
-                    style={[
-                      styles.blurContainer,
-                      focusedField === "email" && styles.blurFocused,
-                      errors.email && styles.blurError,
-                    ]}
-                  >
-                    <Ionicons
-                      name="mail-outline"
-                      size={20}
-                      color={colors.textPlaceholder}
-                      style={styles.inputIcon}
-                    />
-                    <TextInput
-                      style={styles.input}
-                      placeholder={t("auth.emailPlaceholder")}
-                      placeholderTextColor={colors.textPlaceholder}
-                      autoCapitalize="none"
-                      keyboardType="email-address"
-                      value={value}
-                      onChangeText={onChange}
-                      onFocus={() => setFocusedField("email")}
-                      onBlur={() => setFocusedField(null)}
-                      cursorColor={colors.accentCyan}
-                      selectionColor={colors.accentCyan}
-                    />
-                  </BlurView>
-                )}
-              />
-              {errors.email && (
-                <Text style={styles.errorText}>{errors.email.message}</Text>
-              )}
-            </View>
-
-            {/* Gradient Button */}
+            {/* --- Back Button --- */}
+            {/* Moved inside wrapper so it aligns relative to card on web */}
             <TouchableOpacity
-              onPress={handleSubmit(onSubmit)}
-              disabled={isSubmitting}
-              activeOpacity={0.8}
-              style={styles.buttonShadowWrapper}
+              style={styles.backButton}
+              onPress={() => router.back()}
             >
-              <LinearGradient
-                colors={["#D500F9", "#651FFF"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.gradientButton}
-              >
-                {isSubmitting ? (
-                  <ActivityIndicator color="#FFF" />
-                ) : (
-                  <Text style={styles.buttonText}>
-                    {t("auth.sendResetLink")}
-                  </Text>
-                )}
-              </LinearGradient>
+              <Ionicons name="arrow-back" size={24} color="#FFF" />
             </TouchableOpacity>
-          </Animated.View>
 
-          {/* --- Footer --- */}
-          <Animated.View entering={FadeInUp.delay(300)} style={styles.footer}>
-            <Text style={styles.footerText}>
-              {t("auth.rememberedPassword")}
-            </Text>
-            <TouchableOpacity onPress={() => router.replace("/(auth)/login")}>
-              <Text style={styles.linkText}>{t("auth.loginLink")}</Text>
-            </TouchableOpacity>
-          </Animated.View>
+            {/* --- Header --- */}
+            <Animated.View
+              entering={FadeInDown.delay(100).springify()}
+              style={styles.headerContainer}
+            >
+              <View style={styles.iconContainer}>
+                <Ionicons name="key-outline" size={48} color="#fff" />
+              </View>
+              <GradientText style={styles.headerTitle}>
+                {t("auth.unlockAccess")}
+              </GradientText>
+              <Text style={styles.subHeader}>{t("auth.recoverSubtitle")}</Text>
+            </Animated.View>
+
+            {/* --- Form --- */}
+            <Animated.View
+              entering={FadeInDown.delay(200).springify()}
+              style={styles.formSection}
+            >
+              {/* Email Input */}
+              <View style={styles.inputWrapper}>
+                <Text style={styles.label}>{t("auth.emailLabel")}</Text>
+                <Controller
+                  control={control}
+                  name="email"
+                  render={({ field: { onChange, value } }) => (
+                    <BlurView
+                      intensity={Platform.OS === "web" ? 0 : 30}
+                      tint="dark"
+                      style={[
+                        styles.blurContainer,
+                        focusedField === "email" && styles.blurFocused,
+                        errors.email && styles.blurError,
+                        Platform.OS === "web" && styles.webInputBackground,
+                      ]}
+                    >
+                      <Ionicons
+                        name="mail-outline"
+                        size={20}
+                        color={colors.textPlaceholder}
+                        style={styles.inputIcon}
+                      />
+                      <TextInput
+                        style={styles.input}
+                        placeholder={t("auth.emailPlaceholder")}
+                        placeholderTextColor={colors.textPlaceholder}
+                        autoCapitalize="none"
+                        keyboardType="email-address"
+                        value={value}
+                        onChangeText={onChange}
+                        onFocus={() => setFocusedField("email")}
+                        onBlur={() => setFocusedField(null)}
+                        cursorColor={colors.accentCyan}
+                        selectionColor={colors.accentCyan}
+                      />
+                    </BlurView>
+                  )}
+                />
+                {errors.email && (
+                  <Text style={styles.errorText}>{errors.email.message}</Text>
+                )}
+              </View>
+
+              {/* Gradient Button */}
+              <TouchableOpacity
+                onPress={handleSubmit(onSubmit)}
+                disabled={isSubmitting}
+                activeOpacity={0.8}
+                style={styles.buttonShadowWrapper}
+              >
+                <LinearGradient
+                  colors={["#D500F9", "#651FFF"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.gradientButton}
+                >
+                  {isSubmitting ? (
+                    <ActivityIndicator color="#FFF" />
+                  ) : (
+                    <Text style={styles.buttonText}>
+                      {t("auth.sendResetLink")}
+                    </Text>
+                  )}
+                </LinearGradient>
+              </TouchableOpacity>
+            </Animated.View>
+
+            {/* --- Footer --- */}
+            <Animated.View entering={FadeInUp.delay(300)} style={styles.footer}>
+              <Text style={styles.footerText}>
+                {t("auth.rememberedPassword")}
+              </Text>
+              <TouchableOpacity onPress={() => router.replace("/(auth)/login")}>
+                <Text style={styles.linkText}>{t("auth.loginLink")}</Text>
+              </TouchableOpacity>
+            </Animated.View>
+          </View>{" "}
+          {/* End Responsive Container */}
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -222,20 +246,42 @@ export default function ForgotPasswordScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "transparent",
+    // Solid background for web stability
+    backgroundColor: "#121212",
   },
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingBottom: 40,
     justifyContent: "center",
   },
+  // --- Responsive Styles ---
+  responsiveContainer: {
+    width: "100%",
+    paddingHorizontal: 24,
+    paddingBottom: 40,
+    // Ensure relative positioning so absolute children align to this container
+    position: "relative",
+  },
+  webCardContainer: {
+    maxWidth: 500,
+    alignSelf: "center",
+    backgroundColor: "rgba(30,30,30, 0.5)",
+    borderRadius: 24,
+    padding: 40,
+    marginVertical: 20,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.05)",
+  },
+  webInputBackground: {
+    backgroundColor: "rgba(30, 30, 40, 1)",
+  },
+  // -------------------------
   backButton: {
     position: "absolute",
-    top: 20,
-    left: 0,
+    top: 10, // Adjusted for card layout
+    left: 10, // Adjusted for card layout
     zIndex: 10,
     padding: 10,
+    cursor: "pointer", // Web fix
   },
   headerContainer: {
     alignItems: "center",
@@ -306,6 +352,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: "Poppins-Regular",
     height: "100%",
+    // @ts-ignore
+    outlineStyle: "none", // Web fix
   },
   errorText: {
     color: "#FF5252",
@@ -331,6 +379,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.2)",
     overflow: "hidden",
+    cursor: "pointer", // Web fix
   },
   buttonText: {
     color: "#FFFFFF",
@@ -358,5 +407,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "bold",
     fontFamily: "Poppins-Bold",
+    cursor: "pointer", // Web fix
   },
 });

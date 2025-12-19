@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  useWindowDimensions, // <--- 1. Import this
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
@@ -23,9 +24,8 @@ import { Ionicons } from "@expo/vector-icons";
 import MaskedView from "@react-native-masked-view/masked-view";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 import { BlurView } from "expo-blur";
-import { useTranslation } from "react-i18next"; // <--- Import
+import { useTranslation } from "react-i18next";
 
-// Define Type manually since Schema is now dynamic inside the component
 type SignupForm = {
   username: string;
   email: string;
@@ -34,13 +34,17 @@ type SignupForm = {
 
 export default function SignupScreen() {
   const router = useRouter();
-  const { t } = useTranslation(); // <--- Hook
+  const { t } = useTranslation();
+
+  // 2. Get screen dimensions for responsive logic
+  const { width, height } = useWindowDimensions();
+  const isWebOrTablet = width > 768;
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [focusedField, setFocusedField] = useState<
     "username" | "email" | "password" | null
   >(null);
 
-  // --- Theme Colors ---
   const colors = {
     textPrimary: "#FFFFFF",
     textSecondary: "#A0A0B0",
@@ -50,7 +54,6 @@ export default function SignupScreen() {
     accentCyan: "#06B6D4",
   };
 
-  // --- Dynamic Validation Schema (Moved inside to use t()) ---
   const signupSchema = z.object({
     username: z.string().min(3, { message: t("auth.errors.usernameMin") }),
     email: z.string().email({ message: t("auth.errors.invalidEmail") }),
@@ -97,6 +100,14 @@ export default function SignupScreen() {
   };
 
   const GradientText = (props: any) => {
+    // 3. Web Fallback for MaskedView
+    if (Platform.OS === "web") {
+      return (
+        <Text {...props} style={[props.style, { color: colors.accentCyan }]}>
+          {props.children}
+        </Text>
+      );
+    }
     return (
       <MaskedView maskElement={<Text {...props} />}>
         <LinearGradient
@@ -119,191 +130,213 @@ export default function SignupScreen() {
         style={{ flex: 1 }}
       >
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { minHeight: height }, // Ensures vertical centering on large screens
+          ]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           removeClippedSubviews={false}
         >
-          {/* --- Header --- */}
-          <Animated.View
-            entering={FadeInDown.delay(100).springify()}
-            style={styles.headerContainer}
+          {/* 4. Responsive Wrapper */}
+          <View
+            style={[
+              styles.responsiveContainer,
+              isWebOrTablet && styles.webCardContainer,
+            ]}
           >
-            <View style={styles.iconContainer}>
-              <Ionicons name="person-add" size={40} color="#fff" />
-            </View>
-            <GradientText style={styles.brandTitle}>
-              {t("appName")}
-            </GradientText>
-            <Text style={styles.headerTitle}>{t("auth.joinTheGame")}</Text>
-            <Text style={styles.subtitle}>{t("auth.createLegend")}</Text>
-          </Animated.View>
-
-          {/* --- Form Section --- */}
-          <Animated.View
-            entering={FadeInDown.delay(200).springify()}
-            style={styles.formContainer}
-          >
-            {/* Username Input */}
-            <View style={styles.inputWrapper}>
-              <Text style={styles.label}>{t("auth.usernameLabel")}</Text>
-              <Controller
-                control={control}
-                name="username"
-                render={({ field: { onChange, value } }) => (
-                  <BlurView
-                    intensity={30}
-                    tint="dark"
-                    style={[
-                      styles.blurContainer,
-                      focusedField === "username" && styles.blurFocused,
-                      errors.username && styles.blurError,
-                    ]}
-                  >
-                    <Ionicons
-                      name="person-outline"
-                      size={20}
-                      color={colors.textPlaceholder}
-                      style={styles.inputIcon}
-                    />
-                    <TextInput
-                      style={styles.input}
-                      placeholder={t("auth.usernamePlaceholder")}
-                      placeholderTextColor={colors.textPlaceholder}
-                      autoCapitalize="none"
-                      value={value}
-                      onChangeText={onChange}
-                      onFocus={() => setFocusedField("username")}
-                      onBlur={() => setFocusedField(null)}
-                      cursorColor={colors.accentCyan}
-                      selectionColor={colors.accentCyan}
-                    />
-                  </BlurView>
-                )}
-              />
-              {errors.username && (
-                <Text style={styles.errorText}>{errors.username.message}</Text>
-              )}
-            </View>
-
-            {/* Email Input */}
-            <View style={styles.inputWrapper}>
-              <Text style={styles.label}>{t("auth.emailLabel")}</Text>
-              <Controller
-                control={control}
-                name="email"
-                render={({ field: { onChange, value } }) => (
-                  <BlurView
-                    intensity={30}
-                    tint="dark"
-                    style={[
-                      styles.blurContainer,
-                      focusedField === "email" && styles.blurFocused,
-                      errors.email && styles.blurError,
-                    ]}
-                  >
-                    <Ionicons
-                      name="mail-outline"
-                      size={20}
-                      color={colors.textPlaceholder}
-                      style={styles.inputIcon}
-                    />
-                    <TextInput
-                      style={styles.input}
-                      placeholder={t("auth.emailPlaceholder")}
-                      placeholderTextColor={colors.textPlaceholder}
-                      autoCapitalize="none"
-                      keyboardType="email-address"
-                      value={value}
-                      onChangeText={onChange}
-                      onFocus={() => setFocusedField("email")}
-                      onBlur={() => setFocusedField(null)}
-                      cursorColor={colors.accentCyan}
-                      selectionColor={colors.accentCyan}
-                    />
-                  </BlurView>
-                )}
-              />
-              {errors.email && (
-                <Text style={styles.errorText}>{errors.email.message}</Text>
-              )}
-            </View>
-
-            {/* Password Input */}
-            <View style={styles.inputWrapper}>
-              <Text style={styles.label}>{t("auth.passwordLabel")}</Text>
-              <Controller
-                control={control}
-                name="password"
-                render={({ field: { onChange, value } }) => (
-                  <BlurView
-                    intensity={30}
-                    tint="dark"
-                    style={[
-                      styles.blurContainer,
-                      focusedField === "password" && styles.blurFocused,
-                      errors.password && styles.blurError,
-                    ]}
-                  >
-                    <Ionicons
-                      name="lock-closed-outline"
-                      size={20}
-                      color={colors.textPlaceholder}
-                      style={styles.inputIcon}
-                    />
-                    <TextInput
-                      style={styles.input}
-                      placeholder={t("auth.passwordPlaceholder")}
-                      placeholderTextColor={colors.textPlaceholder}
-                      secureTextEntry
-                      value={value}
-                      onChangeText={onChange}
-                      onFocus={() => setFocusedField("password")}
-                      onBlur={() => setFocusedField(null)}
-                      cursorColor={colors.accentCyan}
-                      selectionColor={colors.accentCyan}
-                    />
-                  </BlurView>
-                )}
-              />
-              {errors.password && (
-                <Text style={styles.errorText}>{errors.password.message}</Text>
-              )}
-            </View>
-
-            {/* Gradient Action Button */}
-            <TouchableOpacity
-              onPress={handleSubmit(onSubmit)}
-              disabled={isSubmitting}
-              activeOpacity={0.8}
-              style={styles.buttonShadowWrapper}
+            {/* --- Header --- */}
+            <Animated.View
+              entering={FadeInDown.delay(100).springify()}
+              style={styles.headerContainer}
             >
-              <LinearGradient
-                colors={["#D500F9", "#651FFF"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.gradientButton}
-              >
-                {isSubmitting ? (
-                  <ActivityIndicator color="#FFF" />
-                ) : (
-                  <Text style={styles.buttonText}>
-                    {t("auth.startPlaying")}
+              <View style={styles.iconContainer}>
+                <Ionicons name="person-add" size={40} color="#fff" />
+              </View>
+              <GradientText style={styles.brandTitle}>
+                {t("appName")}
+              </GradientText>
+              <Text style={styles.headerTitle}>{t("auth.joinTheGame")}</Text>
+              <Text style={styles.subtitle}>{t("auth.createLegend")}</Text>
+            </Animated.View>
+
+            {/* --- Form Section --- */}
+            <Animated.View
+              entering={FadeInDown.delay(200).springify()}
+              style={styles.formContainer}
+            >
+              {/* Username Input */}
+              <View style={styles.inputWrapper}>
+                <Text style={styles.label}>{t("auth.usernameLabel")}</Text>
+                <Controller
+                  control={control}
+                  name="username"
+                  render={({ field: { onChange, value } }) => (
+                    <BlurView
+                      intensity={Platform.OS === "web" ? 0 : 30}
+                      tint="dark"
+                      style={[
+                        styles.blurContainer,
+                        focusedField === "username" && styles.blurFocused,
+                        errors.username && styles.blurError,
+                        Platform.OS === "web" && styles.webInputBackground,
+                      ]}
+                    >
+                      <Ionicons
+                        name="person-outline"
+                        size={20}
+                        color={colors.textPlaceholder}
+                        style={styles.inputIcon}
+                      />
+                      <TextInput
+                        style={styles.input}
+                        placeholder={t("auth.usernamePlaceholder")}
+                        placeholderTextColor={colors.textPlaceholder}
+                        autoCapitalize="none"
+                        value={value}
+                        onChangeText={onChange}
+                        onFocus={() => setFocusedField("username")}
+                        onBlur={() => setFocusedField(null)}
+                        cursorColor={colors.accentCyan}
+                        selectionColor={colors.accentCyan}
+                      />
+                    </BlurView>
+                  )}
+                />
+                {errors.username && (
+                  <Text style={styles.errorText}>
+                    {errors.username.message}
                   </Text>
                 )}
-              </LinearGradient>
-            </TouchableOpacity>
+              </View>
 
-            {/* Footer Link */}
-            <Animated.View entering={FadeInUp.delay(300)} style={styles.footer}>
-              <Text style={styles.footerText}>{t("auth.alreadyPlayer")}</Text>
-              <Link href="/(auth)/login" asChild>
-                <TouchableOpacity>
-                  <Text style={styles.linkText}>{t("auth.loginLink")}</Text>
-                </TouchableOpacity>
-              </Link>
+              {/* Email Input */}
+              <View style={styles.inputWrapper}>
+                <Text style={styles.label}>{t("auth.emailLabel")}</Text>
+                <Controller
+                  control={control}
+                  name="email"
+                  render={({ field: { onChange, value } }) => (
+                    <BlurView
+                      intensity={Platform.OS === "web" ? 0 : 30}
+                      tint="dark"
+                      style={[
+                        styles.blurContainer,
+                        focusedField === "email" && styles.blurFocused,
+                        errors.email && styles.blurError,
+                        Platform.OS === "web" && styles.webInputBackground,
+                      ]}
+                    >
+                      <Ionicons
+                        name="mail-outline"
+                        size={20}
+                        color={colors.textPlaceholder}
+                        style={styles.inputIcon}
+                      />
+                      <TextInput
+                        style={styles.input}
+                        placeholder={t("auth.emailPlaceholder")}
+                        placeholderTextColor={colors.textPlaceholder}
+                        autoCapitalize="none"
+                        keyboardType="email-address"
+                        value={value}
+                        onChangeText={onChange}
+                        onFocus={() => setFocusedField("email")}
+                        onBlur={() => setFocusedField(null)}
+                        cursorColor={colors.accentCyan}
+                        selectionColor={colors.accentCyan}
+                      />
+                    </BlurView>
+                  )}
+                />
+                {errors.email && (
+                  <Text style={styles.errorText}>{errors.email.message}</Text>
+                )}
+              </View>
+
+              {/* Password Input */}
+              <View style={styles.inputWrapper}>
+                <Text style={styles.label}>{t("auth.passwordLabel")}</Text>
+                <Controller
+                  control={control}
+                  name="password"
+                  render={({ field: { onChange, value } }) => (
+                    <BlurView
+                      intensity={Platform.OS === "web" ? 0 : 30}
+                      tint="dark"
+                      style={[
+                        styles.blurContainer,
+                        focusedField === "password" && styles.blurFocused,
+                        errors.password && styles.blurError,
+                        Platform.OS === "web" && styles.webInputBackground,
+                      ]}
+                    >
+                      <Ionicons
+                        name="lock-closed-outline"
+                        size={20}
+                        color={colors.textPlaceholder}
+                        style={styles.inputIcon}
+                      />
+                      <TextInput
+                        style={styles.input}
+                        placeholder={t("auth.passwordPlaceholder")}
+                        placeholderTextColor={colors.textPlaceholder}
+                        secureTextEntry
+                        value={value}
+                        onChangeText={onChange}
+                        onFocus={() => setFocusedField("password")}
+                        onBlur={() => setFocusedField(null)}
+                        cursorColor={colors.accentCyan}
+                        selectionColor={colors.accentCyan}
+                      />
+                    </BlurView>
+                  )}
+                />
+                {errors.password && (
+                  <Text style={styles.errorText}>
+                    {errors.password.message}
+                  </Text>
+                )}
+              </View>
+
+              {/* Gradient Action Button */}
+              <TouchableOpacity
+                onPress={handleSubmit(onSubmit)}
+                disabled={isSubmitting}
+                activeOpacity={0.8}
+                style={styles.buttonShadowWrapper}
+              >
+                <LinearGradient
+                  colors={["#D500F9", "#651FFF"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.gradientButton}
+                >
+                  {isSubmitting ? (
+                    <ActivityIndicator color="#FFF" />
+                  ) : (
+                    <Text style={styles.buttonText}>
+                      {t("auth.startPlaying")}
+                    </Text>
+                  )}
+                </LinearGradient>
+              </TouchableOpacity>
+
+              {/* Footer Link */}
+              <Animated.View
+                entering={FadeInUp.delay(300)}
+                style={styles.footer}
+              >
+                <Text style={styles.footerText}>{t("auth.alreadyPlayer")}</Text>
+                <Link href="/(auth)/login" asChild>
+                  <TouchableOpacity>
+                    <Text style={styles.linkText}>{t("auth.loginLink")}</Text>
+                  </TouchableOpacity>
+                </Link>
+              </Animated.View>
             </Animated.View>
-          </Animated.View>
+          </View>{" "}
+          {/* End Responsive Container */}
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -313,14 +346,35 @@ export default function SignupScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "transparent",
+    // Fix: Dark background instead of transparent to avoid white flashing on web
+    backgroundColor: "#121212",
   },
   scrollContent: {
     flexGrow: 1,
+    justifyContent: "center",
+    // Removed padding here, moved to responsiveContainer
+  },
+  // --- New Responsive Styles ---
+  responsiveContainer: {
+    width: "100%",
     paddingHorizontal: 24,
     paddingTop: 40,
     paddingBottom: 40,
   },
+  webCardContainer: {
+    maxWidth: 500,
+    alignSelf: "center",
+    backgroundColor: "rgba(30,30,30, 0.5)",
+    borderRadius: 24,
+    padding: 40,
+    marginVertical: 20,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.05)",
+  },
+  webInputBackground: {
+    backgroundColor: "rgba(30, 30, 40, 1)",
+  },
+  // ---------------------------
   headerContainer: {
     alignItems: "center",
     marginBottom: 30,
@@ -395,6 +449,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: "Poppins-Regular",
     height: "100%",
+    // @ts-ignore
+    outlineStyle: "none", // Web fix
   },
   errorText: {
     color: "#FF5252",
@@ -419,6 +475,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.2)",
     overflow: "hidden",
+    cursor: "pointer", // Web fix
   },
   buttonText: {
     color: "#FFFFFF",
@@ -448,5 +505,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "bold",
     fontFamily: "Poppins-Bold",
+    cursor: "pointer", // Web fix
   },
 });
