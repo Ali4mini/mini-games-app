@@ -13,7 +13,6 @@ import {
   useWindowDimensions,
   Linking,
   LayoutChangeEvent,
-  ImageBackground,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
@@ -22,19 +21,15 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { LinearGradient } from "expo-linear-gradient";
 import { supabase } from "@/utils/supabase";
-import {
-  Ionicons,
-  MaterialCommunityIcons,
-  FontAwesome5,
-} from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import MaskedView from "@react-native-masked-view/masked-view";
-import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
+import Animated, { FadeInDown } from "react-native-reanimated";
 import { BlurView } from "expo-blur";
 import { Link, useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import {
   GoogleSignin,
-  GoogleSigninButton,
+  statusCodes,
 } from "@react-native-google-signin/google-signin";
 
 // --- Types ---
@@ -85,18 +80,67 @@ export default function LoginScreen() {
     resolver: zodResolver(loginSchema),
   });
 
+  // --- 1. Google Configuration (Native Only) ---
   useEffect(() => {
     if (Platform.OS !== "web") {
       GoogleSignin.configure({
-        webClientId: "YOUR_WEB_CLIENT_ID",
+        // This webClientId comes from Google Cloud Console (OAuth 2.0 Client IDs)
+        // It is required for the `idToken` to be generated on Android/iOS
+        webClientId: "YOUR_WEB_CLIENT_ID_FROM_GOOGLE_CLOUD",
         offlineAccess: true,
       });
     }
   }, []);
 
-  // --- Actions ---
+  // --- 2. Handle Google Login (Web & Native) ---
   const handleGoogleLogin = async () => {
-    // Implement Google Login
+    setIsSubmitting(true);
+    try {
+      if (Platform.OS === "web") {
+        // --- WEB FLOW ---
+        // Redirects to Google OAuth page
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: {
+            redirectTo: window.location.origin, // Returns to your current URL
+            queryParams: {
+              access_type: "offline",
+              prompt: "consent",
+            },
+          },
+        });
+        if (error) throw error;
+        // The browser will redirect, so no navigation needed here
+      } else {
+        // --- NATIVE FLOW ---
+        await GoogleSignin.hasPlayServices();
+        const userInfo = await GoogleSignin.signIn();
+
+        if (userInfo.data?.idToken) {
+          const { error } = await supabase.auth.signInWithIdToken({
+            provider: "google",
+            token: userInfo.data.idToken,
+          });
+          if (error) throw error;
+
+          // Native navigation usually happens via onAuthStateChange in _layout,
+          // but we can enforce it here too:
+          router.replace("/(tabs)");
+        } else {
+          throw new Error("No ID token present!");
+        }
+      }
+    } catch (error: any) {
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+        // user cancelled the login flow
+      } else if (error.code === statusCodes.IN_PROGRESS) {
+        // operation (e.g. sign in) is in progress already
+      } else {
+        Alert.alert(t("auth.loginFailed"), error.message);
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const onEmailSubmit = async (data: LoginForm) => {
@@ -117,7 +161,6 @@ export default function LoginScreen() {
 
   const scrollToLogin = () => {
     if (scrollViewRef.current) {
-      // Offset by a bit to center the form nicely
       scrollViewRef.current.scrollTo({
         y: loginSectionRef.current - 50,
         animated: true,
@@ -262,18 +305,18 @@ export default function LoginScreen() {
 
       <View style={styles.socialSection}>
         <Text style={styles.orText}>{t("auth.or")}</Text>
+
+        {/* Custom Google Button for both Web & Native */}
         <View style={{ alignItems: "center", marginTop: 15 }}>
-          <GoogleSigninButton
-            size={GoogleSigninButton.Size.Wide}
-            color={GoogleSigninButton.Color.Dark}
+          <TouchableOpacity
+            style={styles.googleBtn}
             onPress={handleGoogleLogin}
             disabled={isSubmitting}
-            style={
-              Platform.OS === "web"
-                ? { width: "100%", height: 48, cursor: "pointer" }
-                : {}
-            }
-          />
+            activeOpacity={0.8}
+          >
+            <Ionicons name="logo-google" size={20} color="#1F1F1F" />
+            <Text style={styles.googleBtnText}>Sign in with Google</Text>
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -602,7 +645,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     overflow: "hidden",
   },
-  webInputBackground: { backgroundColor: "#151520" }, // Solid for web
+  webInputBackground: { backgroundColor: "#151520" },
   blurFocused: {
     borderColor: "#00E5FF",
     backgroundColor: "rgba(0, 229, 255, 0.05)",
@@ -651,6 +694,30 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginBottom: 10,
   },
+  // Custom Google Button Styles
+  googleBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FFFFFF",
+    width: "100%",
+    maxWidth: 300,
+    height: 50,
+    borderRadius: 25,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 3,
+    cursor: "pointer",
+  },
+  googleBtnText: {
+    color: "#1F1F1F",
+    fontSize: 15,
+    fontWeight: "600",
+    marginLeft: 12,
+  },
+
   footer: {
     marginTop: 30,
     flexDirection: "row",
