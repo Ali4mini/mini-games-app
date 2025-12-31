@@ -75,7 +75,7 @@ const HomePageUI: React.FC = () => {
           <HomeHeader
             userName={profile?.name || "Guest"}
             coins={profile?.coins || 0}
-            avatarUrl={profile?.avatar || "https://via.placeholder.com/150"}
+            avatarUrl={profile?.avatar_url || "https://via.placeholder.com/150"}
           />
 
           <HeroCarousel data={banners} />

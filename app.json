@@ -4,7 +4,7 @@
     "slug": "mini-games-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/app_icon.png",
+    "icon": "./assets/images/icon_new.jpeg",
     "scheme": "minigamesapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -23,9 +23,9 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/app_icon.png",
-        "backgroundImage": "./assets/images/app_icon.png",
-        "monochromeImage": "./assets/images/app_icon.png"
+        "foregroundImage": "./assets/images/icon_new.jpeg",
+        "backgroundImage": "./assets/images/icon_new.jpeg",
+        "monochromeImage": "./assets/images/icon_new.jpeg"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
@@ -35,7 +35,7 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/app_icon.png"
+      "favicon": "./assets/images/icon_new.jpeg"
     },
     "plugins": [
       "expo-router",
