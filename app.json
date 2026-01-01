@@ -4,7 +4,7 @@
     "slug": "mini-games-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon_new.jpeg",
+    "icon": "./assets/images/AppIcons/android/mipmap-xhdpi/ic_launcher.png",
     "scheme": "minigamesapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -22,10 +22,10 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/icon_new.jpeg",
-        "backgroundImage": "./assets/images/icon_new.jpeg",
-        "monochromeImage": "./assets/images/icon_new.jpeg"
+        "backgroundColor": "#010101",
+        "foregroundImage": "./assets/images/AppIcons/android/mipmap-hdpi/ic_launcher.png",
+        "backgroundImage": "./assets/images/AppIcons/android/mipmap-hdpi/ic_launcher.png",
+        "monochromeImage": "./assets/images/AppIcons/android/mipmap-hdpi/ic_launcher.png"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
