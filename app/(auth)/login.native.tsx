@@ -68,7 +68,7 @@ export default function LoginScreenNative() {
   useEffect(() => {
     GoogleSignin.configure({
       webClientId:
-        "42210270521-tubtgicilqhvo3gn45vh813kff8nv55a.apps.googleusercontent.com",
+        "242972121222-21gnev3hlk29eqn2ckl6mcf7btialvg5.apps.googleusercontent.com",
       offlineAccess: true,
     });
   }, []);

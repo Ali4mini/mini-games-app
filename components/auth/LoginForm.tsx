@@ -52,11 +52,9 @@ export default function LoginForm() {
     email: z
       .string()
       .email({ message: t("auth.errors.invalidEmail") || "Invalid email" }),
-    password: z
-      .string()
-      .min(1, {
-        message: t("auth.errors.passwordRequired") || "Password required",
-      }),
+    password: z.string().min(1, {
+      message: t("auth.errors.passwordRequired") || "Password required",
+    }),
   });
 
   const {
@@ -71,7 +69,8 @@ export default function LoginForm() {
   useEffect(() => {
     if (Platform.OS !== "web") {
       GoogleSignin.configure({
-        webClientId: "YOUR_WEB_CLIENT_ID_FROM_GOOGLE_CLOUD",
+        webClientId:
+          "242972121222-21gnev3hlk29eqn2ckl6mcf7btialvg5.apps.googleusercontent.com",
         offlineAccess: true,
       });
     }
