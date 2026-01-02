@@ -98,12 +98,16 @@ const createStyles = (theme: Theme) =>
   StyleSheet.create({
     rootBackground: {
       flex: 1,
+      backgroundColor:
+        Platform.OS === "web" ? theme.backgroundPrimary : "transparent",
       alignItems: "center",
     },
     container: {
       flex: 1,
       width: "100%",
       maxWidth: 1024,
+      backgroundColor:
+        Platform.OS === "web" ? theme.backgroundPrimary : "transparent",
       ...Platform.select({
         web: {
           boxShadow: "0px 0px 24px rgba(0,0,0,0.15)",
