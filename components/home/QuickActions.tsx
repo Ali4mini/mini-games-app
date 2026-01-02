@@ -107,7 +107,7 @@ export const QuickActions: React.FC = () => {
   const containerStyle = {
     flexDirection: "row" as "row",
     justifyContent: "center" as "center", // Center the group of buttons
-    gap: isDesktop ? 24 : 10, // Add space between buttons
+    gap: 60, // Add space between buttons
     marginTop: isDesktop ? 15 : 5,
     marginBottom: isDesktop ? 20 : 10,
     paddingHorizontal: isDesktop ? 20 : 0,
