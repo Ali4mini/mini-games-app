@@ -435,14 +435,12 @@ const createStyles = (theme: Theme, insets: any, containerWidth: number) => {
   return StyleSheet.create({
     rootBackground: {
       flex: 1,
-      backgroundColor: theme.backgroundPrimary,
       alignItems: "center", // Center the container
     },
     container: {
       flex: 1,
       width: "100%",
       maxWidth: MAX_WIDTH, // Desktop constraint
-      backgroundColor: theme.backgroundPrimary,
       overflow: "hidden", // Important for confetti not to trigger scrollbars on web
       ...Platform.select({
         web: {

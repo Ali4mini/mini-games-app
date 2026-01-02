@@ -142,9 +142,10 @@ const OrganicBlob: React.FC<BlobProps> = ({
 
 // --- Main Background Component ---
 const Background: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  console.log("blob is ACTIVE");
   const theme = useTheme();
 
-  const isDark = theme.backgroundPrimary === "#0F172A" || theme.type === "dark";
+  const isDark = theme.backgroundPrimary === "#0F172A";
 
   // Slightly higher opacity since they are smaller now
   const baseOpacity = isDark ? 0.1 : 0.15;

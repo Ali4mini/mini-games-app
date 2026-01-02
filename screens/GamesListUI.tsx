@@ -252,14 +252,12 @@ const createStyles = (theme: Theme) =>
   StyleSheet.create({
     rootBackground: {
       flex: 1,
-      backgroundColor: theme.backgroundPrimary,
       alignItems: "center", // This centers the container on the screen
     },
     container: {
       flex: 1,
       width: "100%",
       maxWidth: MAX_WIDTH, // Constrains width on Desktop
-      backgroundColor: theme.backgroundPrimary,
       ...Platform.select({
         web: {
           boxShadow: "0px 0px 24px rgba(0,0,0,0.15)", // Nice drop shadow for web

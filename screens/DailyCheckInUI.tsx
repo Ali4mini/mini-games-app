@@ -251,14 +251,12 @@ const createStyles = (theme: Theme, insets: any, isDesktop: boolean) =>
   StyleSheet.create({
     rootBackground: {
       flex: 1,
-      backgroundColor: theme.backgroundPrimary,
       alignItems: "center",
     },
     container: {
       flex: 1,
       width: "100%",
       maxWidth: MAX_WIDTH,
-      backgroundColor: theme.backgroundPrimary,
       ...Platform.select({
         web: {
           boxShadow: "0px 0px 24px rgba(0,0,0,0.15)",
