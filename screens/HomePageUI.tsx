@@ -25,7 +25,6 @@ import { HomeHeader } from "@/components/home/HomeHeader";
 import { QuickActions } from "@/components/home/QuickActions";
 import { FeaturedGames } from "@/components/home/FeaturedGames";
 import { ReferralCTA } from "@/components/home/ReferallCTA";
-// FIX: Remove '.native' so Web picks up the correct file (or create SmartBanner.tsx for web)
 import { SmartBanner } from "@/components/ads/SmartBanner";
 
 // --- A. DEFINE A CONSTANT FOR THE TAB BAR'S HEIGHT ---
@@ -75,7 +74,7 @@ const HomePageUI: React.FC = () => {
           <HomeHeader
             userName={profile?.name || "Guest"}
             coins={profile?.coins || 0}
-            avatarUrl={profile?.avatar_url || "https://via.placeholder.com/150"}
+            avatarUrl={profile?.avatar_url}
           />
 
           <HeroCarousel data={banners} />

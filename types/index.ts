@@ -104,6 +104,7 @@ export interface ReferralStats {
 export interface UserProfile {
   id: string;
   username: string;
+  avatar_url: string;
   name: string;
   avatar: string;
   joinDate: string;

@@ -60,7 +60,7 @@ export const useHomeData = () => {
         username: profileData.username,
         // Fallback for name if it's null in DB
         name: profileData.name || profileData.username || "Player",
-        avatar: getStorageUrl("assets", profileData.avatar_url),
+        avatar_url: getStorageUrl("assets", profileData.avatar_url),
         coins: profileData.coins,
         joinDate: profileData.created_at,
         level: profileData.level,
@@ -92,7 +92,6 @@ export const useHomeData = () => {
         (payload) => {
           // If the update is for the current user, update their coins in state
           if (profile && payload.new.id === profile.id) {
-            console.log("profile", profile);
             setProfile((prev) =>
               prev ? { ...prev, coins: payload.new.coins } : null,
             );
