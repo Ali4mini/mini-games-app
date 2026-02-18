@@ -1,0 +1,105 @@
+{
+  "expo": {
+    "name": "mysteryplay",
+    "slug": "mini-games-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/android/mipmap-xhdpi/ic_launcher.png",
+    "scheme": "minigamesapp",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anonymous.minigamesapp",
+      "infoPlist": {
+        "NSUserTrackingUsageDescription": "This identifier will be used to deliver personalized ads to you.",
+        "SKAdNetworkItems": [
+          { "SKAdNetworkIdentifier": "cstr6suwn9.skadnetwork" },
+          { "SKAdNetworkIdentifier": "4dzt52r2t5.skadnetwork" },
+          { "SKAdNetworkIdentifier": "bvpn9ufu9n.skadnetwork" }
+        ]
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#010101",
+        "foregroundImage": "./assets/images/adaptive_icon.png"
+      },
+      "intentFilters": [],
+      "queries": [
+        {
+          "scheme": "myket"
+        },
+        {
+          "scheme": "bazaar"
+        }
+      ],
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false,
+      "package": "com.test.mysteryplay",
+      "usesCleartextTraffic": true,
+      "googleServicesFile": "./google-services.json"
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/icon_new.jpeg"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff",
+          "dark": {
+            "backgroundColor": "#000000"
+          }
+        }
+      ],
+      "expo-font",
+      "expo-localization",
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-7396391927360129~1235488792",
+          "iosAppId": "ca-app-pub-xxxxxxxx~xxxxxxxx",
+          "userTrackingUsageDescription": "This identifier will be used to deliver personalized ads to you."
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "extraMavenRepos": [
+              "https://img.ads.unity3d.com/obj/mobile-ads-android-unity-ads-maven/"
+            ],
+            "dependencies": [
+              "implementation 'com.google.ads.mediation:unity:4.16.4.0'"
+            ]
+          },
+          "ios": {
+            "useFrameworks": "static",
+            "pods": [{ "name": "GoogleMobileAdsMediationUnity" }]
+          }
+        }
+      ],
+      "expo-tracking-transparency"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "586c21d6-a8d7-4e3f-9324-00f0945e1f52"
+      }
+    },
+    "runtimeVersion": "1.0.0",
+    "updates": {
+      "url": "https://u.expo.dev/586c21d6-a8d7-4e3f-9324-00f0945e1f52"
+    }
+  }
+}

@@ -1,0 +1,6 @@
+# .easignore
+backend/
+backend/
+backend/**
+volumes/
+docker/
