@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { supabase } from "@/utils/supabase";
+import { pb } from "@/utils/pocketbase";
 
 export type Achievement = {
   id: string;
@@ -8,7 +8,7 @@ export type Achievement = {
   icon: string;
   target_value: number;
   reward_coins: number;
-  current_value: number; // From user_achievements
+  current_value: number;
   is_completed: boolean;
   is_claimed: boolean;
 };
@@ -20,35 +20,33 @@ export const useAchievements = () => {
   const fetchAchievements = useCallback(async () => {
     try {
       setLoading(true);
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!session) return;
 
-      // 1. Fetch All Achievements
-      const { data: allAchievements, error: achError } = await supabase
-        .from("achievements")
-        .select("*")
-        .order("target_value", { ascending: true });
+      const userId = pb.authStore.model?.id;
+      if (!userId) return;
 
-      if (achError) throw achError;
+      // 1. Fetch All Achievements & User Progress in parallel
+      const [allAchievements, userProgress] = await Promise.all([
+        pb.collection("achievements").getFullList({
+          sort: "target_value",
+        }),
+        pb.collection("user_achievements").getFullList({
+          filter: `user = "${userId}"`, // Assuming the field is named 'user'
+        }),
+      ]);
 
-      // 2. Fetch User Progress
-      const { data: userProgress, error: progError } = await supabase
-        .from("user_achievements")
-        .select("*")
-        .eq("user_id", session.user.id);
-
-      if (progError) throw progError;
-
-      // 3. Merge Data
+      // 2. Merge Data
       const merged = allAchievements.map((ach) => {
-        const progress = userProgress?.find((p) => p.achievement_id === ach.id);
+        const progress = userProgress?.find((p) => p.achievement === ach.id);
         const current = progress ? progress.current_value : 0;
         const claimed = progress ? progress.is_claimed : false;
 
         return {
-          ...ach,
+          id: ach.id,
+          title: ach.title,
+          description: ach.description,
+          icon: ach.icon,
+          target_value: ach.target_value,
+          reward_coins: ach.reward_coins,
           current_value: current,
           is_completed: current >= ach.target_value,
           is_claimed: claimed,

@@ -1,25 +1,16 @@
-import { supabase } from "@/utils/supabase";
-
-// Replace this with your computer's IP if .env fails, or keep it dynamic
-const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
+import { pb } from "@/utils/pocketbase";
 
 export const getStorageUrl = (
-  bucket: string,
-  path: string | null | undefined,
+  record: any, // Pass the whole user/record object
+  filename: string | null | undefined,
 ) => {
-  if (!path) return "https://via.placeholder.com/300"; // Fallback
-  if (path.startsWith("http")) return path; // Already a full URL
+  if (!filename || !record?.id) return "https://via.placeholder.com/300";
 
-  // Get the public URL from Supabase
-  const { data } = supabase.storage.from(bucket).getPublicUrl(path);
-  let finalUrl = data.publicUrl;
+  // If it's already a full URL, return it
+  if (filename.startsWith("http")) return filename;
 
-  // FIX: If running on device/simulator, localhost won't work.
-  // We allow the .env to override the localhost part if needed.
-  if (finalUrl.includes("localhost") && SUPABASE_URL) {
-    const ipUrl = new URL(SUPABASE_URL); // Parse your EXPO_PUBLIC_URL
-    finalUrl = finalUrl.replace("localhost", ipUrl.hostname);
-  }
-
-  return finalUrl;
+  // PocketBase SDK helper: (record, filename, options)
+  return pb.files.getUrl(record, filename, {
+    thumb: "100x100", // Optional: PocketBase can auto-generate thumbs
+  });
 };

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { supabase } from "@/utils/supabase";
+import { pb } from "@/utils/pocketbase";
 import { UserProfile, HeroBannerItem, Game } from "@/types";
 import { Alert } from "react-native";
 import { getStorageUrl } from "@/utils/imageHelpers";
@@ -14,96 +14,72 @@ export const useHomeData = () => {
     try {
       setLoading(true);
 
-      // 1. Get Current User Session
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (!session) {
-        // Handle unauthenticated state (redirect to login usually handled by a wrapper)
+      // 1. Get Current User from AuthStore
+      if (!pb.authStore.isValid || !pb.authStore.model) {
         setLoading(false);
         return;
       }
 
-      const userId = session.user.id;
+      const userId = pb.authStore.model.id;
 
-      // 2. Fetch User Profile
-      const { data: profileData, error: profileError } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .single();
+      // 2. Fetch User Profile, Banners, and Games in parallel
+      const [profileData, bannerData, gamesData] = await Promise.all([
+        pb.collection("users").getOne(userId),
+        pb.collection("banners").getFullList({
+          filter: "is_active = true",
+        }),
+        pb.collection("games").getList(1, 5),
+      ]);
 
-      if (profileError) throw profileError;
-
-      // 3. Fetch Active Banners
-      const { data: bannerData, error: bannerError } = await supabase
-        .from("banners")
-        .select("*")
-        .eq("is_active", true);
-
-      if (bannerError) throw bannerError;
-
-      // 4. Fetch Games (For "Continue Playing" or "Featured")
-      // Note: For true "Recently Played", you would need a game_history table.
-      // For now, we fetch a few active games.
-      const { data: gamesData, error: gamesError } = await supabase
-        .from("games")
-        .select("*")
-        .limit(5);
-
-      if (gamesError) throw gamesError;
-
-      // Set State
+      // 3. Map Profile State
       setProfile({
         id: profileData.id,
         username: profileData.username,
-        // Fallback for name if it's null in DB
         name: profileData.name || profileData.username || "Player",
-        avatar_url: getStorageUrl("assets", profileData.avatar_url),
+        // PocketBase uses the record + filename to generate the URL
+        avatar_url: getStorageUrl(profileData, profileData.avatar),
         coins: profileData.coins,
-        joinDate: profileData.created_at,
+        joinDate: profileData.created,
         level: profileData.level,
         referralCode: profileData.referral_code,
-      } as unknown as UserProfile); // Type assertion to match your specific UserProfile interface
+      } as unknown as UserProfile);
 
-      setBanners(bannerData as HeroBannerItem[]);
-      setGames(gamesData as Game[]);
+      // 4. Map Banners and Games
+      // Note: If banners/games have images, you'd apply getStorageUrl to them too
+      setBanners(bannerData as unknown as HeroBannerItem[]);
+      setGames(gamesData.items as unknown as Game[]);
     } catch (error: any) {
       console.error("Error fetching home data:", error);
-      Alert.alert("Error", "Could not load data.");
+      // Only alert if it's not a cancellation error
+      if (!error.isAbort) {
+        Alert.alert("Error", "Could not load data.");
+      }
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // Initial Fetch
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  // OPTIONAL: Real-time Coin Updates
+  // Real-time Updates
   useEffect(() => {
-    const subscription = supabase
-      .channel("public:profiles")
-      .on(
-        "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "profiles" },
-        (payload) => {
-          // If the update is for the current user, update their coins in state
-          if (profile && payload.new.id === profile.id) {
-            setProfile((prev) =>
-              prev ? { ...prev, coins: payload.new.coins } : null,
-            );
-          }
-        },
-      )
-      .subscribe();
+    if (!pb.authStore.model?.id) return;
+
+    // Subscribe to the specific user record
+    pb.collection("users").subscribe(pb.authStore.model.id, (e) => {
+      if (e.action === "update") {
+        setProfile((prev) =>
+          prev ? { ...prev, coins: e.record.coins } : null,
+        );
+      }
+    });
 
     return () => {
-      supabase.removeChannel(subscription);
+      pb.collection("users").unsubscribe(pb.authStore.model?.id);
     };
-  }, [profile?.id]);
+  }, [pb.authStore.model?.id]);
 
   return { loading, profile, banners, games, refetch: fetchData };
 };

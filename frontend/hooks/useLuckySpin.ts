@@ -1,23 +1,27 @@
 import { useState } from "react";
-import { supabase } from "@/utils/supabase";
+import { pb } from "@/utils/pocketbase";
 import { Alert } from "react-native";
 import { useUserStats } from "@/context/UserStatsContext";
 
 export const useLuckySpin = () => {
   const [loading, setLoading] = useState(false);
-
-  // 1. Consume the Global Context
-  // We don't need to fetch spins here. The Context does it.
   const { refreshStats } = useUserStats();
 
   const playSpin = async () => {
     try {
       setLoading(true);
 
-      // 2. Call the Server Logic
-      const { data, error } = await supabase.rpc("play_lucky_spin");
+      /**
+       * POCKETBASE ARCHITECTURE NOTE:
+       * In Supabase, you used an RPC. In PocketBase, you usually:
+       * 1. POST to a custom route: pb.send("/api/play-lucky-spin", { method: "POST" })
+       * 2. OR Create a record in a 'spins' collection that triggers a server-side hook.
+       */
 
-      if (error) throw error;
+      // Option A: Custom Route (Standard way to port RPC logic)
+      const data = await pb.send("/api/play-lucky-spin", {
+        method: "POST",
+      });
 
       if (!data.success) {
         Alert.alert(
@@ -27,19 +31,18 @@ export const useLuckySpin = () => {
         return null;
       }
 
-      // 3. Trigger Global Update
-      // Since your Context is listening to Realtime changes, this might happen automatically.
-      // However, calling refreshStats() explicitly ensures the UI updates immediately
-      // without waiting for the WebSocket event latency.
+      // Trigger Global Update
       await refreshStats();
 
-      // Return data for the wheel animation
       return {
         winnerIndex: data.index,
         rewardAmount: data.reward,
       };
     } catch (error: any) {
-      Alert.alert("Error", "Something went wrong. Please try again.");
+      // PocketBase errors usually have a 'data' object or 'message'
+      const errorMsg =
+        error.data?.message || error.message || "Something went wrong.";
+      Alert.alert("Error", errorMsg);
       console.error("Spin error:", error);
       return null;
     } finally {
@@ -47,7 +50,5 @@ export const useLuckySpin = () => {
     }
   };
 
-  // Note: We do NOT return 'spinsLeft' here.
-  // The UI should get 'spinsLeft' directly from 'useUserStats()'.
   return { playSpin, loading };
 };

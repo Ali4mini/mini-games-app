@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { View, ActivityIndicator } from "react-native";
 import { Redirect } from "expo-router";
-import { supabase } from "@/utils/supabase";
+import { pb } from "@/utils/pocketbase";
 import { LandingPage } from "@/screens/LandingPageUI"; // Import your new module
 
 export default function Index() {
@@ -9,10 +9,15 @@ export default function Index() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setLoading(false);
-    });
+    // 1. Check if the store contains a valid, non-expired token
+    if (pb.authStore.isValid) {
+      setSession(pb.authStore.model);
+    } else {
+      setSession(null);
+    }
+
+    // 2. Stop the loading spinner
+    setLoading(false);
   }, []);
 
   if (loading) {

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { supabase } from "@/utils/supabase";
+import { pb } from "@/utils/pocketbase";
 import { Game, GameCategories } from "@/types";
 import { getStorageUrl } from "@/utils/imageHelpers";
 
@@ -7,89 +7,71 @@ const PAGE_SIZE = 10;
 
 export const useGameCatalog = () => {
   const [games, setGames] = useState<Game[]>([]);
-  const [loading, setLoading] = useState(false); // For initial load & refresh
-  const [loadingMore, setLoadingMore] = useState(false); // For infinite scroll
+  const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<
     GameCategories | "All"
   >("All");
 
-  // Pagination State
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(1); // PocketBase is 1-indexed
   const [hasMore, setHasMore] = useState(true);
 
   const fetchGames = useCallback(
-    async (pageNumber = 0) => {
-      const isReseting = pageNumber === 0;
+    async (pageNumber = 1) => {
+      const isReseting = pageNumber === 1;
 
-      // Set loading states
-      if (isReseting) {
-        setLoading(true);
-      } else {
-        setLoadingMore(true);
-      }
+      if (isReseting) setLoading(true);
+      else setLoadingMore(true);
 
       try {
-        const from = pageNumber * PAGE_SIZE;
-        const to = (pageNumber + 1) * PAGE_SIZE - 1;
+        // 1. Build Filter String
+        let filters = ["is_active = true"];
 
-        // Start the query
-        let query = supabase
-          .from("games")
-          .select("*")
-          .eq("is_active", true)
-          .order("created_at", { ascending: false })
-          .range(from, to);
-
-        // Apply Category Filter
         if (selectedCategory !== "All") {
-          query = query.eq("category", selectedCategory);
+          filters.push(`category = "${selectedCategory}"`);
         }
 
-        // Apply Search Filter
         if (searchQuery.length > 0) {
-          query = query.ilike("title", `%${searchQuery}%`);
+          // '~' is the "like/contains" operator in PocketBase
+          filters.push(`title ~ "${searchQuery}"`);
         }
 
-        const { data, error } = await query;
+        // 2. Execute Query
+        const resultList = await pb
+          .collection("games")
+          .getList(pageNumber, PAGE_SIZE, {
+            filter: filters.join(" && "),
+            sort: "-created", // PocketBase uses 'created' instead of 'created_at' by default
+          });
 
-        if (error) throw error;
-
-        // Format the data
-        const formattedGames = (data || []).map((game) => ({
+        // 3. Format Data
+        const formattedGames = resultList.items.map((game) => ({
           ...game,
-          image: getStorageUrl("assets", game.image),
+          // Use the record-based image helper
+          image: getStorageUrl(game, game.image),
         }));
 
-        // Update State (FIXED DUPLICATE LOGIC)
+        // 4. Update State
         if (isReseting) {
-          setGames(formattedGames as Game[]);
+          setGames(formattedGames as unknown as Game[]);
         } else {
           setGames((prev) => {
-            // 1. Create a Set of existing IDs for fast lookup
             const existingIds = new Set(prev.map((g) => g.id));
-
-            // 2. Only keep new games that don't exist in the current state
-            const uniqueNewGames = (formattedGames as Game[]).filter(
+            const uniqueNewGames = (formattedGames as unknown as Game[]).filter(
               (game) => !existingIds.has(game.id),
             );
-
-            // 3. Combine them
             return [...prev, ...uniqueNewGames];
           });
         }
 
-        // Determine if there is more data to load
-        // If we received fewer items than requested, we are at the end.
-        if (data.length < PAGE_SIZE) {
-          setHasMore(false);
-        } else {
-          setHasMore(true);
-        }
-
+        // 5. Pagination Logic
+        setHasMore(pageNumber < resultList.totalPages);
         setPage(pageNumber);
-      } catch (error) {
-        console.error("Error fetching games:", error);
+      } catch (error: any) {
+        if (!error.isAbort) {
+          console.error("Error fetching games:", error);
+        }
       } finally {
         setLoading(false);
         setLoadingMore(false);
@@ -98,25 +80,22 @@ export const useGameCatalog = () => {
     [searchQuery, selectedCategory],
   );
 
-  // Effect: Reset and Fetch when filters change
   useEffect(() => {
-    setPage(0);
+    setPage(1);
     setHasMore(true);
-    fetchGames(0);
+    fetchGames(1);
   }, [searchQuery, selectedCategory, fetchGames]);
 
-  // Helper: Trigger infinite scroll
   const loadMore = () => {
     if (!loading && !loadingMore && hasMore) {
       fetchGames(page + 1);
     }
   };
 
-  // Helper: Trigger Pull-to-Refresh
   const refresh = () => {
-    setPage(0);
+    setPage(1);
     setHasMore(true);
-    fetchGames(0);
+    fetchGames(1);
   };
 
   return {

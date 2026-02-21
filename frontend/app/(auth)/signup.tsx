@@ -19,7 +19,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Link, useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
-import { supabase } from "@/utils/supabase";
+import { pb } from "@/utils/pocketbase";
 import { Ionicons } from "@expo/vector-icons";
 import MaskedView from "@react-native-masked-view/masked-view";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
@@ -70,21 +70,19 @@ export default function SignupScreen() {
 
   const onSubmit = async (data: SignupForm) => {
     setIsSubmitting(true);
+    try {
+      // PocketBase: Create record in 'users' collection
+      await pb.collection("users").create({
+        email: data.email,
+        password: data.password,
+        passwordConfirm: data.password, // Required by PocketBase
+        username: data.username,
+        // Pass other fields directly
+        avatar_url: `https://api.dicebear.com/9.x/avataaars/png?seed=${data.username}&backgroundColor=b6e3f4`,
+        coins: 0,
+        daily_spins_left: 3,
+      });
 
-    const { error } = await supabase.auth.signUp({
-      email: data.email,
-      password: data.password,
-      options: {
-        data: {
-          username: data.username,
-          avatarUrl: `https://api.dicebear.com/9.x/avataaars/png?seed=${data.username}&backgroundColor=b6e3f4`,
-        },
-      },
-    });
-
-    if (error) {
-      Alert.alert(t("auth.signupFailed"), error.message);
-    } else {
       Alert.alert(
         t("auth.accountCreatedTitle"),
         t("auth.accountCreatedMessage"),
@@ -95,8 +93,13 @@ export default function SignupScreen() {
           },
         ],
       );
+    } catch (error: any) {
+      const msg =
+        error.response?.message || error.message || t("auth.signupFailed");
+      Alert.alert(t("auth.signupFailed"), msg);
+    } finally {
+      setIsSubmitting(false);
     }
-    setIsSubmitting(false);
   };
 
   const GradientText = (props: any) => {

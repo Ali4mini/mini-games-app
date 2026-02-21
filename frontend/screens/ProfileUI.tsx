@@ -6,7 +6,6 @@ import {
   Image,
   StyleSheet,
   Platform,
-  Alert,
   ActivityIndicator,
   RefreshControl,
   TouchableOpacity,
@@ -21,9 +20,8 @@ import {
   MaterialCommunityIcons,
   Ionicons,
 } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
 
-import { supabase } from "@/utils/supabase";
+import { pb } from "@/utils/pocketbase";
 import { useTheme } from "@/context/ThemeContext";
 import LanguageSelector from "@/components/profile/LanguageSelector";
 import ThemeToggle from "@/components/profile/ThemeToggle";
@@ -48,7 +46,6 @@ export const ProfileUI: React.FC = () => {
     () => createStyles(theme, isDesktop),
     [theme, isDesktop],
   );
-  const router = useRouter();
 
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -58,33 +55,27 @@ export const ProfileUI: React.FC = () => {
 
   const fetchProfileData = useCallback(async () => {
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!session) return;
-      const userId = session.user.id;
+      // 1. Get User ID from PocketBase AuthStore
+      const userId = pb.authStore.model?.id;
+      if (!userId) return;
 
-      const { data: profileData, error: profileError } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .single();
+      // 2. Fetch User Profile (from the 'users' collection)
+      const profileData = await pb.collection("users").getOne(userId);
 
-      if (profileError) throw profileError;
-
-      const { data: rankData } = await supabase
-        .from("leaderboard")
-        .select("rank")
-        .eq("user_id", userId)
-        .maybeSingle();
+      // 3. Fetch Rank (Emulating maybeSingle with getList)
+      const rankResult = await pb.collection("leaderboard").getList(1, 1, {
+        filter: `user_id = "${userId}"`,
+      });
+      const rankData = rankResult.items[0];
 
       setProfile({
         id: profileData.id,
         username: profileData.username,
         name: profileData.name || profileData.username || "Player",
-        avatar: getStorageUrl("assets", profileData.avatar_url),
+        // Pass the whole profileData record to the helper
+        avatar: getStorageUrl(profileData, profileData.avatar),
         coins: profileData.coins,
-        joinDate: profileData.created_at,
+        joinDate: profileData.created, // PB uses 'created' instead of 'created_at'
         level: profileData.level,
         referralCode: profileData.referral_code,
       } as unknown as UserProfile);
@@ -103,8 +94,7 @@ export const ProfileUI: React.FC = () => {
 
   const handleLogout = async () => {
     setSettingsVisible(false);
-    const { error } = await supabase.auth.signOut();
-    if (error) Alert.alert("Error signing out", error.message);
+    pb.authStore.clear();
   };
 
   const playerLevel = profile ? Math.floor(profile.coins / 1000) + 1 : 1;

@@ -229,9 +229,7 @@ export default function WebLandingPage() {
 
       {/* Footer */}
       <View style={styles.webFooter}>
-        <Text style={styles.footerCopy}>
-          © 2025 MysteryPlay. Powered by Expo & Supabase.
-        </Text>
+        <Text style={styles.footerCopy}>© 2025 MysteryPlay.</Text>
         <View style={{ flexDirection: "row", gap: 20 }}>
           <Link href="/privacy" style={styles.footerLink}>
             Privacy

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { supabase } from "@/utils/supabase";
+import { pb } from "@/utils/pocketbase";
 import { useAuth } from "./AuthContext";
+import { getStorageUrl } from "@/utils/imageHelpers";
 
 type UserStats = {
   coins: number;
@@ -28,7 +29,7 @@ export const UserStatsProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const { session } = useAuth();
+  const { user } = useAuth(); // Changed from 'session' to 'user'
   const [stats, setStats] = useState<UserStats>({
     coins: 0,
     avatar: "https://via.placeholder.com/150",
@@ -38,35 +39,19 @@ export const UserStatsProvider = ({
   const [loading, setLoading] = useState(true);
 
   const fetchStats = async () => {
-    if (!session?.user) return;
+    if (!user?.id) return;
 
     try {
-      // -----------------------------------------------------------
-      // CHANGE 1: Use RPC instead of .select()
-      // This forces the DB to run the "New Day Logic" immediately
-      // -----------------------------------------------------------
-      const { data, error } = await supabase.rpc("get_my_player_data");
-
-      if (error) throw error;
-
-      // If for some reason data is null (rare), stop
-      if (!data) return;
-
-      // Handle the Avatar URL logic here centrally
-      let avatarUrl = data.avatar_url;
-      if (avatarUrl && !avatarUrl.startsWith("http")) {
-        const { data: storageData } = supabase.storage
-          .from("assets")
-          .getPublicUrl(avatarUrl);
-        avatarUrl = storageData.publicUrl;
-      }
+      // PocketBase: Fetch the user record directly from 'users' collection
+      const record = await pb.collection("users").getOne(user.id);
 
       setStats({
-        coins: data.coins,
-        avatar: avatarUrl || "https://via.placeholder.com/150",
-        name: data.name || data.username || "Player",
-        // The RPC returns the up-to-date spins (reset to 3 if new day)
-        spinsLeft: data.daily_spins_left ?? 0,
+        coins: record.coins || 0,
+        avatar:
+          getStorageUrl(record, record.avatar) ||
+          "https://via.placeholder.com/150",
+        name: record.name || record.username || "Player",
+        spinsLeft: record.daily_spins_left ?? 0,
       });
     } catch (err) {
       console.error("Error fetching user stats:", err);
@@ -76,51 +61,34 @@ export const UserStatsProvider = ({
   };
 
   useEffect(() => {
-    if (!session) return;
+    if (!user?.id) return;
 
     // 1. Initial Fetch
     fetchStats();
 
     // 2. Realtime Subscription
-    // This listens for ANY update to the user's row in the profiles table
-    const channel = supabase
-      .channel("realtime-stats")
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "profiles",
-          filter: `id=eq.${session.user.id}`, // Only listen to MY updates
-        },
-        (payload) => {
-          console.log("Realtime update received!", payload.new);
+    // PocketBase subscription is much cleaner.
+    // You can subscribe to a specific record ID directly.
+    pb.collection("users").subscribe(user.id, (e) => {
+      console.log("Realtime update received from PocketBase!", e.record);
 
-          // Logic to handle avatar updates in realtime if needed
-          let newAvatar = payload.new.avatar_url;
-          // Note: Converting relative URL to public URL inside realtime callback
-          // is tricky without async, so we usually just keep the string.
-          // If you need perfect realtime avatar updates, consider triggering fetchStats() here.
+      const newRecord = e.record;
 
-          setStats((prev) => ({
-            ...prev,
-            coins: payload.new.coins,
-            spinsLeft: payload.new.daily_spins_left,
-            name: payload.new.name || prev.name,
-            // Only update avatar if it actually changed to avoid flickering
-            avatar: newAvatar !== prev.avatar ? newAvatar : prev.avatar, // Simplified
-          }));
-
-          // Alternatively, just call fetchStats() to ensure perfect sync
-          // fetchStats();
-        },
-      )
-      .subscribe();
+      setStats((prev) => ({
+        ...prev,
+        coins: newRecord.coins,
+        spinsLeft: newRecord.daily_spins_left,
+        name: newRecord.name || prev.name,
+        // Update avatar using the helper and the new record data
+        avatar: getStorageUrl(newRecord, newRecord.avatar),
+      }));
+    });
 
     return () => {
-      supabase.removeChannel(channel);
+      // Unsubscribe from specific record
+      pb.collection("users").unsubscribe(user.id);
     };
-  }, [session]);
+  }, [user?.id]); // Only re-run if the user ID changes
 
   return (
     <UserStatsContext.Provider

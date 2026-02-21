@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { supabase } from "@/utils/supabase";
+import { pb } from "@/utils/pocketbase";
 import { getStorageUrl } from "@/utils/imageHelpers";
 
 export type LeaderboardItem = {
@@ -19,41 +19,34 @@ export const useLeaderboard = () => {
     try {
       setLoading(true);
 
-      // 1. Get Current User ID
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      const currentUserId = session?.user?.id;
+      const currentUserId = pb.authStore.model?.id;
 
-      // 2. Fetch Leaderboard (Limit to Top 50 for performance)
-      const { data, error } = await supabase
-        .from("leaderboard")
-        .select("*")
-        .order("rank", { ascending: true })
-        .limit(50);
+      // 1. Fetch Top 50 Users
+      // Assuming leaderboard data comes from 'users' collection
+      // or a specific 'leaderboard' collection
+      const resultList = await pb.collection("users").getList(1, 50, {
+        sort: "-coins", // Sort by coins descending
+      });
 
-      if (error) throw error;
-
-      // 3. Transform Data
-      const formattedData = data.map((item) => ({
-        id: item.user_id, // Map 'user_id' from view to 'id'
-        username: item.username || "Unknown",
-        // Use helper to resolve avatar URL
-        avatar: getStorageUrl("assets", item.avatar_url),
-        score: item.coins, // Using 'coins' as score
-        rank: item.rank,
+      // 2. Transform Data
+      const formattedData = resultList.items.map((record, index) => ({
+        id: record.id,
+        username: record.username || record.name || "Unknown",
+        // Pass the whole record to our updated helper
+        avatar: getStorageUrl(record, record.avatar),
+        score: record.coins || 0,
+        rank: index + 1, // Calculate rank based on index if not in DB
       }));
 
       setLeaderboard(formattedData);
 
-      // 4. Find Current User
+      // 3. Find Current User
       if (currentUserId) {
         const foundUser = formattedData.find((u) => u.id === currentUserId);
         if (foundUser) {
           setCurrentUser(foundUser);
         } else {
-          // If user is not in top 50, we might need a separate fetch for their specific rank
-          // For now, we'll leave it null or handle edge case
+          // Optional: If user not in top 50, you could fetch their specific rank here
         }
       }
     } catch (err) {

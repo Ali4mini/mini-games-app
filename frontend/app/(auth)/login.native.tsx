@@ -17,7 +17,7 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { LinearGradient } from "expo-linear-gradient";
-import { supabase } from "@/utils/supabase";
+import { pb } from "@/utils/pocketbase"; // Changed from supabase
 import { Ionicons } from "@expo/vector-icons";
 import MaskedView from "@react-native-masked-view/masked-view";
 import Animated, { FadeInDown } from "react-native-reanimated";
@@ -76,25 +76,18 @@ export default function LoginScreenNative() {
   const handleGoogleLogin = async () => {
     setIsSubmitting(true);
     try {
-      await GoogleSignin.hasPlayServices();
-      const userInfo = await GoogleSignin.signIn();
+      // PocketBase standard OAuth flow for Native
+      // This will open a browser for the user to select their account
+      const authData = await pb.collection("users").authWithOAuth2({
+        provider: "google",
+      });
 
-      if (userInfo.data?.idToken) {
-        const { error } = await supabase.auth.signInWithIdToken({
-          provider: "google",
-          token: userInfo.data.idToken,
-        });
-
-        if (error) throw error;
+      if (authData) {
         router.replace("/(tabs)");
-      } else {
-        throw new Error("No ID token present");
       }
     } catch (error: any) {
       if (error.code === statusCodes.SIGN_IN_CANCELLED) {
         console.log("User cancelled login flow");
-      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-        Alert.alert("Error", "Google Play Services not available");
       } else {
         Alert.alert(
           t("auth.loginFailed"),
@@ -109,14 +102,13 @@ export default function LoginScreenNative() {
   const onEmailSubmit = async (data: LoginForm) => {
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: data.email,
-        password: data.password,
-      });
-      if (error) Alert.alert(t("auth.loginFailed"), error.message);
-      else router.replace("/(tabs)");
-    } catch (err) {
-      Alert.alert(t("common.error"), t("auth.unexpectedError"));
+      // PocketBase: authWithPassword
+      await pb.collection("users").authWithPassword(data.email, data.password);
+      router.replace("/(tabs)");
+    } catch (err: any) {
+      const msg =
+        err.response?.message || err.message || t("auth.unexpectedError");
+      Alert.alert(t("auth.loginFailed"), msg);
     } finally {
       setIsSubmitting(false);
     }
@@ -161,6 +153,7 @@ export default function LoginScreenNative() {
 
             <Animated.View entering={FadeInDown.delay(200).springify()}>
               <View style={styles.formSection}>
+                {/* Email Field */}
                 <View style={styles.inputWrapper}>
                   <Text style={styles.label}>{t("auth.emailLabel")}</Text>
                   <Controller
@@ -201,6 +194,7 @@ export default function LoginScreenNative() {
                   )}
                 </View>
 
+                {/* Password Field */}
                 <View style={styles.inputWrapper}>
                   <Text style={styles.label}>{t("auth.passwordLabel")}</Text>
                   <Controller
@@ -250,6 +244,7 @@ export default function LoginScreenNative() {
                   </TouchableOpacity>
                 </View>
 
+                {/* Submit Button */}
                 <TouchableOpacity
                   onPress={handleSubmit(onEmailSubmit)}
                   disabled={isSubmitting}
@@ -272,6 +267,7 @@ export default function LoginScreenNative() {
                   </LinearGradient>
                 </TouchableOpacity>
 
+                {/* Social Login */}
                 <View style={styles.socialSection}>
                   <Text style={styles.orText}>{t("auth.or")}</Text>
                   <View style={{ alignItems: "center", marginTop: 15 }}>
@@ -284,6 +280,7 @@ export default function LoginScreenNative() {
                   </View>
                 </View>
 
+                {/* Footer */}
                 <View style={styles.footer}>
                   <Text style={styles.footerText}>{t("auth.newHere")}</Text>
                   <TouchableOpacity onPress={() => router.replace("/signup")}>
@@ -324,12 +321,9 @@ const styles = StyleSheet.create({
   brandTitle: {
     fontSize: 36,
     fontWeight: "900",
-    fontFamily: "LilitaOne",
     marginBottom: 5,
   },
   subHeader: { fontSize: 16, color: "#8F90A6" },
-
-  // Form Styles
   formSection: { width: "100%" },
   inputWrapper: { marginBottom: 20 },
   label: {
@@ -337,7 +331,6 @@ const styles = StyleSheet.create({
     color: "#8F90A6",
     marginBottom: 8,
     marginLeft: 4,
-    fontFamily: "Poppins-Medium",
     textTransform: "uppercase",
     letterSpacing: 1,
   },
@@ -361,13 +354,11 @@ const styles = StyleSheet.create({
     flex: 1,
     color: "#FFFFFF",
     fontSize: 16,
-    fontFamily: "Poppins-Regular",
     height: "100%",
   },
   errorText: { color: "#FF5252", fontSize: 12, marginTop: 6 },
   forgotPass: { alignSelf: "flex-end", marginTop: 8 },
   forgotPassText: { color: "#8F90A6", fontSize: 13 },
-
   buttonShadowWrapper: {
     marginTop: 10,
     shadowColor: "#D500F9",
@@ -391,7 +382,6 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     textTransform: "uppercase",
   },
-
   socialSection: { marginTop: 30 },
   orText: {
     color: "#555",

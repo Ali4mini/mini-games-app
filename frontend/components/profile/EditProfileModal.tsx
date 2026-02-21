@@ -16,9 +16,8 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { decode } from "base64-arraybuffer";
 
-import { supabase } from "@/utils/supabase";
+import { pb } from "@/utils/pocketbase";
 import { useTheme } from "@/context/ThemeContext";
 import { UserProfile, Theme } from "@/types";
 
@@ -36,12 +35,8 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
   currentUser,
 }) => {
   const theme = useTheme();
-
-  // 1. RESPONSIVE SETUP
   const { width: windowWidth } = useWindowDimensions();
   const isDesktop = windowWidth > 768;
-
-  // 2. MEMOIZED STYLES
   const styles = useMemo(
     () => createStyles(theme, isDesktop),
     [theme, isDesktop],
@@ -52,7 +47,6 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
     name: "",
     username: "",
     avatarUri: "",
-    base64: null as string | null | undefined,
     hasNewAvatar: false,
   });
 
@@ -62,14 +56,12 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
         name: currentUser.name || "",
         username: currentUser.username || "",
         avatarUri: currentUser.avatar || "",
-        base64: null,
         hasNewAvatar: false,
       });
     }
   }, [visible, currentUser]);
 
   const pickImage = async () => {
-    // Check permissions on mobile (Web doesn't strictly need this step)
     if (Platform.OS !== "web") {
       const { status } =
         await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -84,7 +76,8 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.5,
-      base64: true, // Needed for Supabase Upload
+      // Change 2: We don't need base64 for PocketBase; URI is enough for FormData
+      base64: false,
     });
 
     if (!result.canceled) {
@@ -92,7 +85,6 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
         ...prev,
         avatarUri: result.assets[0].uri,
         hasNewAvatar: true,
-        base64: result.assets[0].base64,
       }));
     }
   };
@@ -107,51 +99,42 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
 
     try {
       setLoading(true);
-      let avatarPath = null;
 
-      // 1. Upload new avatar if changed
-      if (formData.hasNewAvatar && formData.base64) {
-        const fileName = `${currentUser.id}/${Date.now()}.jpg`;
+      // Change 3: Use FormData for Multi-part (File + Text) updates
+      const data = new FormData();
 
-        const { error: uploadError } = await supabase.storage
-          .from("assets")
-          .upload(fileName, decode(formData.base64), {
-            contentType: "image/jpeg",
-            upsert: true,
-          });
+      data.append("name", formData.name);
+      data.append("username", formData.username);
 
-        if (uploadError) throw uploadError;
-        avatarPath = fileName;
+      if (formData.hasNewAvatar) {
+        // Create the file object for the FormData
+        const uri = formData.avatarUri;
+        const name = uri.split("/").pop();
+        const match = /\.(\w+)$/.exec(name || "");
+        const type = match ? `image/${match[1]}` : `image`;
+
+        // @ts-ignore - React Native FormData requires this structure
+        data.append("avatar", {
+          uri: uri,
+          name: name,
+          type: type,
+        });
       }
 
-      // 2. Prepare Database Updates
-      const updates: any = {
-        name: formData.name,
-        username: formData.username,
-      };
-
-      if (avatarPath) {
-        updates.avatar_url = avatarPath;
-      }
-
-      // 3. Update 'profiles' table
-      const { error: updateError } = await supabase
-        .from("profiles")
-        .update(updates)
-        .eq("id", currentUser.id);
-
-      if (updateError) {
-        if (updateError.code === "23505") {
-          throw new Error("This username is already taken.");
-        }
-        throw updateError;
-      }
+      // Change 4: Single update call handles everything
+      await pb.collection("users").update(currentUser.id, data);
 
       Alert.alert("Success", "Profile updated successfully!");
       onProfileUpdate();
       onClose();
     } catch (error: any) {
-      Alert.alert("Error", error.message);
+      // PocketBase validation errors (e.g. username taken)
+      const message =
+        error.data?.data?.username?.message ||
+        error.message ||
+        "An error occurred";
+
+      Alert.alert("Error", message);
     } finally {
       setLoading(false);
     }

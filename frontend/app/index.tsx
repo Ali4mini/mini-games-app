@@ -1,21 +1,19 @@
 import { useEffect, useState } from "react";
 import { View, ActivityIndicator } from "react-native";
 import { Redirect } from "expo-router";
-import { supabase } from "@/utils/supabase";
+import { pb } from "@/utils/pocketbase";
 
 export default function Index() {
-  const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    // 1. Check if we have an active session in storage
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setLoading(false);
-    });
+    // Check if the store has a valid token
+    // isValid checks if the token exists and is not expired
+    setIsAuthenticated(pb.authStore.isValid);
+    setLoading(false);
   }, []);
 
-  // 2. While checking, show a spinner (or your Splash Screen)
   if (loading) {
     return (
       <View
@@ -31,11 +29,11 @@ export default function Index() {
     );
   }
 
-  // 3. If Logged In -> Go to Tabs (This enables the Navbar)
-  if (session) {
+  // If Logged In -> Go to Tabs
+  if (isAuthenticated) {
     return <Redirect href="/(tabs)" />;
   }
 
-  // 4. If Not Logged In -> Go to Login
+  // If Not Logged In -> Go to Login
   return <Redirect href="/(auth)/login" />;
 }

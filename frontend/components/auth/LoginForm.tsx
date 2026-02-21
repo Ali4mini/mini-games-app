@@ -21,10 +21,12 @@ import {
   GoogleSignin,
   statusCodes,
 } from "@react-native-google-signin/google-signin";
-import { supabase } from "@/utils/supabase"; // Adjust path as needed
+
+// Changed to PocketBase
+import { pb } from "@/utils/pocketbase";
 
 // --- Types ---
-type LoginForm = {
+type LoginFormType = {
   email: string;
   password: string;
 };
@@ -61,7 +63,7 @@ export default function LoginForm() {
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginForm>({
+  } = useForm<LoginFormType>({
     resolver: zodResolver(loginSchema),
   });
 
@@ -80,28 +82,17 @@ export default function LoginForm() {
   const handleGoogleLogin = async () => {
     setIsSubmitting(true);
     try {
-      if (Platform.OS === "web") {
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: "google",
-          options: {
-            redirectTo: window.location.origin,
-            queryParams: { access_type: "offline", prompt: "consent" },
-          },
-        });
-        if (error) throw error;
-      } else {
-        await GoogleSignin.hasPlayServices();
-        const userInfo = await GoogleSignin.signIn();
-        if (userInfo.data?.idToken) {
-          const { error } = await supabase.auth.signInWithIdToken({
-            provider: "google",
-            token: userInfo.data.idToken,
-          });
-          if (error) throw error;
-          router.replace("/(tabs)");
-        } else {
-          throw new Error("No ID token present!");
-        }
+      /**
+       * POCKETBASE OAUTH LOGIC:
+       * On both Web and Mobile, PocketBase's standard SDK uses authWithOAuth2.
+       * On Web, it opens a popup. On Mobile, it typically uses the browser.
+       */
+      const authData = await pb.collection("users").authWithOAuth2({
+        provider: "google",
+      });
+
+      if (authData) {
+        router.replace("/(tabs)");
       }
     } catch (error: any) {
       if (
@@ -115,21 +106,22 @@ export default function LoginForm() {
     }
   };
 
-  const onEmailSubmit = async (data: LoginForm) => {
+  const onEmailSubmit = async (data: LoginFormType) => {
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: data.email,
-        password: data.password,
-      });
-      if (error)
-        Alert.alert(t("auth.loginFailed") || "Login Failed", error.message);
-      else router.replace("/(tabs)");
-    } catch (err) {
-      Alert.alert(
-        t("common.error") || "Error",
-        t("auth.unexpectedError") || "Unexpected error",
-      );
+      /**
+       * POCKETBASE PASSWORD AUTH:
+       * This automatically updates pb.authStore and triggers your AuthContext.
+       */
+      await pb.collection("users").authWithPassword(data.email, data.password);
+
+      router.replace("/(tabs)");
+    } catch (err: any) {
+      console.error("Login Error Details:", JSON.stringify(err, null, 2));
+      // PocketBase error messages are usually found in err.response.message
+      const errorMessage =
+        err.response?.message || err.message || "Login failed";
+      Alert.alert(t("auth.loginFailed") || "Login Failed", errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -295,7 +287,7 @@ const styles = StyleSheet.create({
     color: "#8F90A6",
     marginBottom: 8,
     marginLeft: 4,
-    fontFamily: "Poppins-Medium", // Ensure fonts are loaded in root
+    fontFamily: "Poppins-Medium",
     textTransform: "uppercase",
     letterSpacing: 1,
   },

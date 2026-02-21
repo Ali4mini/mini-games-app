@@ -24,7 +24,7 @@ import Animated, {
   cancelAnimation,
 } from "react-native-reanimated";
 import { useTranslation } from "react-i18next";
-import { supabase } from "@/utils/supabase";
+import { pb } from "@/utils/pocketbase";
 
 // --- CONTEXTS & HOOKS ---
 import { useTheme } from "@/context/ThemeContext";
@@ -125,11 +125,16 @@ export const LuckySpinUI: React.FC = () => {
     }
 
     showAd(async () => {
-      const { error } = await supabase.rpc("add_one_spin");
-      if (error) {
-        Alert.alert("Error", "Could not add spin. Please try again.");
-      } else {
+      try {
+        // Replacement for supabase.rpc("add_one_spin")
+        await pb.send("/api/add-one-spin", {
+          method: "POST",
+        });
+
         Alert.alert("Success!", "You've earned 1 Free Spin!");
+        refreshStats(); // Sync the UI
+      } catch (error) {
+        Alert.alert("Error", "Could not add spin. Please try again.");
       }
     });
   };
@@ -206,13 +211,15 @@ export const LuckySpinUI: React.FC = () => {
     }
 
     showAd(async () => {
-      const { error } = await supabase.rpc("add_coins", {
-        amount: winningAmount,
-      });
+      try {
+        // Replacement for supabase.rpc("add_coins", { amount: winningAmount })
+        await pb.send("/api/add-coins", {
+          method: "POST",
+          body: {
+            amount: winningAmount,
+          },
+        });
 
-      if (error) {
-        Alert.alert("Error", "Could not double coins.");
-      } else {
         handleModalClose();
         setTimeout(() => {
           Alert.alert(
@@ -220,6 +227,9 @@ export const LuckySpinUI: React.FC = () => {
             `You received an extra ${winningAmount} coins!`,
           );
         }, 500);
+        refreshStats();
+      } catch (error) {
+        Alert.alert("Error", "Could not double coins.");
       }
     });
   };

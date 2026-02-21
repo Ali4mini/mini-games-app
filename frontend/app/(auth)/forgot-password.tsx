@@ -19,7 +19,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
-import { supabase } from "@/utils/supabase";
+import { pb } from "@/utils/pocketbase";
 import { Ionicons } from "@expo/vector-icons";
 import MaskedView from "@react-native-masked-view/masked-view";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
@@ -63,22 +63,19 @@ export default function ForgotPasswordScreen() {
   const onSubmit = async (data: ForgotPasswordForm) => {
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
-        redirectTo: "yourappscheme://reset-password",
-      });
+      // PocketBase: requestPasswordReset
+      await pb.collection("users").requestPasswordReset(data.email);
 
-      if (error) {
-        Alert.alert(t("common.error"), error.message);
-      } else {
-        Alert.alert(t("auth.checkEmailTitle"), t("auth.checkEmailMessage"), [
-          {
-            text: t("auth.backToLogin"),
-            onPress: () => router.replace("/(auth)/login"),
-          },
-        ]);
-      }
-    } catch (err) {
-      Alert.alert(t("common.error"), t("auth.unexpectedError"));
+      Alert.alert(t("auth.checkEmailTitle"), t("auth.checkEmailMessage"), [
+        {
+          text: t("auth.backToLogin"),
+          onPress: () => router.replace("/(auth)/login"),
+        },
+      ]);
+    } catch (err: any) {
+      const msg =
+        err.response?.message || err.message || t("auth.unexpectedError");
+      Alert.alert(t("common.error"), msg);
     } finally {
       setIsSubmitting(false);
     }

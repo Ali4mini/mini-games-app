@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
-import { supabase } from "@/utils/supabase";
+import { pb } from "@/utils/pocketbase";
 import { Game } from "@/types";
+import { getStorageUrl } from "@/utils/imageHelpers";
 
 export const useFeaturedGames = () => {
   const [games, setGames] = useState<Game[]>([]);
@@ -10,33 +11,32 @@ export const useFeaturedGames = () => {
     try {
       setLoading(true);
 
-      // We fetch from 'featured_games' but we select the DATA from the linked 'game'
-      const { data, error } = await supabase
-        .from("featured_games")
-        .select(
-          `
-          game:games (
-            id,
-            title,
-            image,
-            category,
-            url,
-            orientation,
-            description
-          )
-        `,
-        )
-        .eq("is_active", true)
-        .order("display_order", { ascending: true });
+      // 1. Fetch from featured_games and expand the 'game' relation
+      const records = await pb.collection("featured_games").getFullList({
+        filter: "is_active = true",
+        sort: "display_order",
+        expand: "game", // This tells PB to include the related game record
+      });
 
-      if (error) throw error;
+      // 2. Flatten the structure
+      // PocketBase puts expanded relations in the 'expand' property
+      const formattedGames = records
+        .map((item) => {
+          const gameRecord = item.expand?.game;
+          if (!gameRecord) return null;
 
-      // Flatten the structure:
-      // The DB returns: [ { game: { title: "..." } }, ... ]
-      // We want: [ { title: "..." }, ... ]
-      const formattedGames = (data || [])
-        .map((item: any) => item.game) // Extract the inner game object
-        .filter((game: any) => game !== null); // Safety check
+          return {
+            id: gameRecord.id,
+            title: gameRecord.title,
+            // Don't forget to resolve the image from the expanded record
+            image: getStorageUrl(gameRecord, gameRecord.image),
+            category: gameRecord.category,
+            url: gameRecord.url,
+            orientation: gameRecord.orientation,
+            description: gameRecord.description,
+          };
+        })
+        .filter((g) => g !== null);
 
       setGames(formattedGames as Game[]);
     } catch (error) {
