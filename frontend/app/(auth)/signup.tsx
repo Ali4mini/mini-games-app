@@ -10,7 +10,9 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  useWindowDimensions, // <--- 1. Import this
+  useWindowDimensions,
+  StyleProp,
+  TextStyle,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
@@ -25,7 +27,44 @@ import MaskedView from "@react-native-masked-view/masked-view";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 import { BlurView } from "expo-blur";
 import { useTranslation } from "react-i18next";
+import { ClientResponseError } from "pocketbase";
 
+// --- Constants (Moved outside component) ---
+const COLORS = {
+  textPrimary: "#FFFFFF",
+  textSecondary: "#A0A0B0",
+  textPlaceholder: "#B0B0C0",
+  accentPurple: "#D500F9",
+  accentBlue: "#651FFF",
+  accentCyan: "#06B6D4",
+};
+
+// --- Helper Components (Moved outside) ---
+interface GradientTextProps {
+  style?: StyleProp<TextStyle>;
+  children: React.ReactNode;
+}
+
+const GradientText = ({ style, children }: GradientTextProps) => {
+  if (Platform.OS === "web") {
+    return (
+      <Text style={[style, { color: COLORS.accentCyan }]}>{children}</Text>
+    );
+  }
+  return (
+    <MaskedView maskElement={<Text style={style}>{children}</Text>}>
+      <LinearGradient
+        colors={[COLORS.accentCyan, COLORS.accentPurple]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+      >
+        <Text style={[style, { opacity: 0 }]}>{children}</Text>
+      </LinearGradient>
+    </MaskedView>
+  );
+};
+
+// --- Types ---
 type SignupForm = {
   username: string;
   email: string;
@@ -35,24 +74,15 @@ type SignupForm = {
 export default function SignupScreen() {
   const router = useRouter();
   const { t } = useTranslation();
-
-  // 2. Get screen dimensions for responsive logic
   const { width, height } = useWindowDimensions();
+
+  // Responsive check
   const isWebOrTablet = width > 768;
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [focusedField, setFocusedField] = useState<
-    "username" | "email" | "password" | null
-  >(null);
-
-  const colors = {
-    textPrimary: "#FFFFFF",
-    textSecondary: "#A0A0B0",
-    textPlaceholder: "#B0B0C0",
-    accentPurple: "#D500F9",
-    accentBlue: "#651FFF",
-    accentCyan: "#06B6D4",
-  };
+  const [focusedField, setFocusedField] = useState<keyof SignupForm | null>(
+    null,
+  );
 
   const signupSchema = z.object({
     username: z.string().min(3, { message: t("auth.errors.usernameMin") }),
@@ -63,6 +93,7 @@ export default function SignupScreen() {
   const {
     control,
     handleSubmit,
+    setError,
     formState: { errors },
   } = useForm<SignupForm>({
     resolver: zodResolver(signupSchema),
@@ -71,13 +102,12 @@ export default function SignupScreen() {
   const onSubmit = async (data: SignupForm) => {
     setIsSubmitting(true);
     try {
-      // PocketBase: Create record in 'users' collection
+      // PocketBase: Create record
       await pb.collection("users").create({
         email: data.email,
         password: data.password,
-        passwordConfirm: data.password, // Required by PocketBase
+        passwordConfirm: data.password, // UI doesn't have confirm field, so we match automatically
         username: data.username,
-        // Pass other fields directly
         avatar_url: `https://api.dicebear.com/9.x/avataaars/png?seed=${data.username}&backgroundColor=b6e3f4`,
         coins: 0,
         daily_spins_left: 3,
@@ -89,39 +119,38 @@ export default function SignupScreen() {
         [
           {
             text: t("auth.ok"),
+            // Use replace to ensure they can't go "back" to signup screen
             onPress: () => router.replace("/(auth)/login"),
           },
         ],
       );
     } catch (error: any) {
-      const msg =
-        error.response?.message || error.message || t("auth.signupFailed");
-      Alert.alert(t("auth.signupFailed"), msg);
+      // Improved Error Handling for PocketBase
+      if (
+        error instanceof ClientResponseError &&
+        error.data &&
+        error.data.data
+      ) {
+        const apiErrors = error.data.data;
+
+        // Map API errors to form fields
+        if (apiErrors.username) {
+          setError("username", { message: apiErrors.username.message });
+        }
+        if (apiErrors.email) {
+          setError("email", { message: apiErrors.email.message });
+        }
+        if (apiErrors.password) {
+          setError("password", { message: apiErrors.password.message });
+        }
+      } else {
+        // Fallback generic error
+        const msg = error.message || t("auth.signupFailed");
+        Alert.alert(t("auth.signupFailed"), msg);
+      }
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const GradientText = (props: any) => {
-    // 3. Web Fallback for MaskedView
-    if (Platform.OS === "web") {
-      return (
-        <Text {...props} style={[props.style, { color: colors.accentCyan }]}>
-          {props.children}
-        </Text>
-      );
-    }
-    return (
-      <MaskedView maskElement={<Text {...props} />}>
-        <LinearGradient
-          colors={[colors.accentCyan, colors.accentPurple]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-        >
-          <Text {...props} style={[props.style, { opacity: 0 }]} />
-        </LinearGradient>
-      </MaskedView>
-    );
   };
 
   return (
@@ -135,13 +164,11 @@ export default function SignupScreen() {
         <ScrollView
           contentContainerStyle={[
             styles.scrollContent,
-            { minHeight: height }, // Ensures vertical centering on large screens
+            { minHeight: height - 100 }, // Subtract approximate header/safe area
           ]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          removeClippedSubviews={false}
         >
-          {/* 4. Responsive Wrapper */}
           <View
             style={[
               styles.responsiveContainer,
@@ -188,20 +215,20 @@ export default function SignupScreen() {
                       <Ionicons
                         name="person-outline"
                         size={20}
-                        color={colors.textPlaceholder}
+                        color={COLORS.textPlaceholder}
                         style={styles.inputIcon}
                       />
                       <TextInput
                         style={styles.input}
                         placeholder={t("auth.usernamePlaceholder")}
-                        placeholderTextColor={colors.textPlaceholder}
+                        placeholderTextColor={COLORS.textPlaceholder}
                         autoCapitalize="none"
                         value={value}
                         onChangeText={onChange}
                         onFocus={() => setFocusedField("username")}
                         onBlur={() => setFocusedField(null)}
-                        cursorColor={colors.accentCyan}
-                        selectionColor={colors.accentCyan}
+                        cursorColor={COLORS.accentCyan}
+                        selectionColor={COLORS.accentCyan}
                       />
                     </BlurView>
                   )}
@@ -233,21 +260,21 @@ export default function SignupScreen() {
                       <Ionicons
                         name="mail-outline"
                         size={20}
-                        color={colors.textPlaceholder}
+                        color={COLORS.textPlaceholder}
                         style={styles.inputIcon}
                       />
                       <TextInput
                         style={styles.input}
                         placeholder={t("auth.emailPlaceholder")}
-                        placeholderTextColor={colors.textPlaceholder}
+                        placeholderTextColor={COLORS.textPlaceholder}
                         autoCapitalize="none"
                         keyboardType="email-address"
                         value={value}
                         onChangeText={onChange}
                         onFocus={() => setFocusedField("email")}
                         onBlur={() => setFocusedField(null)}
-                        cursorColor={colors.accentCyan}
-                        selectionColor={colors.accentCyan}
+                        cursorColor={COLORS.accentCyan}
+                        selectionColor={COLORS.accentCyan}
                       />
                     </BlurView>
                   )}
@@ -277,20 +304,20 @@ export default function SignupScreen() {
                       <Ionicons
                         name="lock-closed-outline"
                         size={20}
-                        color={colors.textPlaceholder}
+                        color={COLORS.textPlaceholder}
                         style={styles.inputIcon}
                       />
                       <TextInput
                         style={styles.input}
                         placeholder={t("auth.passwordPlaceholder")}
-                        placeholderTextColor={colors.textPlaceholder}
+                        placeholderTextColor={COLORS.textPlaceholder}
                         secureTextEntry
                         value={value}
                         onChangeText={onChange}
                         onFocus={() => setFocusedField("password")}
                         onBlur={() => setFocusedField(null)}
-                        cursorColor={colors.accentCyan}
-                        selectionColor={colors.accentCyan}
+                        cursorColor={COLORS.accentCyan}
+                        selectionColor={COLORS.accentCyan}
                       />
                     </BlurView>
                   )}
@@ -310,7 +337,7 @@ export default function SignupScreen() {
                 style={styles.buttonShadowWrapper}
               >
                 <LinearGradient
-                  colors={["#D500F9", "#651FFF"]}
+                  colors={[COLORS.accentPurple, COLORS.accentBlue]}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                   style={styles.gradientButton}
@@ -338,8 +365,7 @@ export default function SignupScreen() {
                 </Link>
               </Animated.View>
             </Animated.View>
-          </View>{" "}
-          {/* End Responsive Container */}
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -349,15 +375,12 @@ export default function SignupScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // Fix: Dark background instead of transparent to avoid white flashing on web
     backgroundColor: "#121212",
   },
   scrollContent: {
     flexGrow: 1,
     justifyContent: "center",
-    // Removed padding here, moved to responsiveContainer
   },
-  // --- New Responsive Styles ---
   responsiveContainer: {
     width: "100%",
     paddingHorizontal: 24,
@@ -377,7 +400,6 @@ const styles = StyleSheet.create({
   webInputBackground: {
     backgroundColor: "rgba(30, 30, 40, 1)",
   },
-  // ---------------------------
   headerContainer: {
     alignItems: "center",
     marginBottom: 30,
@@ -453,7 +475,7 @@ const styles = StyleSheet.create({
     fontFamily: "Poppins-Regular",
     height: "100%",
     // @ts-ignore
-    outlineStyle: "none", // Web fix
+    outlineStyle: "none",
   },
   errorText: {
     color: "#FF5252",
@@ -478,7 +500,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.2)",
     overflow: "hidden",
-    cursor: "pointer", // Web fix
+    cursor: "pointer",
   },
   buttonText: {
     color: "#FFFFFF",
@@ -508,6 +530,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "bold",
     fontFamily: "Poppins-Bold",
-    cursor: "pointer", // Web fix
+    cursor: "pointer",
   },
 });
