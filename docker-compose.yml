@@ -4,6 +4,7 @@ services:
     restart: unless-stopped
     volumes:
       - ./backend/pb_data/:/pb/pb_data
+      - ./migrations:/pb/migrations  
     ports:
       - "8090:8090"
 
