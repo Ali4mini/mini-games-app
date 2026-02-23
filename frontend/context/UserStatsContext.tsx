@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { pb } from "@/utils/pocketbase";
 import { useAuth } from "./AuthContext";
 import { getStorageUrl } from "@/utils/imageHelpers";
+import { Alert } from "react-native";
 
 type UserStats = {
   coins: number;
@@ -29,7 +30,7 @@ export const UserStatsProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const { user } = useAuth(); // Changed from 'session' to 'user'
+  const { session } = useAuth();
   const [stats, setStats] = useState<UserStats>({
     coins: 0,
     avatar: "https://via.placeholder.com/150",
@@ -39,11 +40,11 @@ export const UserStatsProvider = ({
   const [loading, setLoading] = useState(true);
 
   const fetchStats = async () => {
-    if (!user?.id) return;
+    if (!session?.id) return;
 
     try {
       // PocketBase: Fetch the user record directly from 'users' collection
-      const record = await pb.collection("users").getOne(user.id);
+      const record = await pb.collection("users").getOne(session.id);
 
       setStats({
         coins: record.coins || 0,
@@ -53,15 +54,19 @@ export const UserStatsProvider = ({
         name: record.name || record.username || "Player",
         spinsLeft: record.daily_spins_left ?? 0,
       });
-    } catch (err) {
+    } catch (err: any) {
+      if (err.isAbort) {
+        return;
+      }
       console.error("Error fetching user stats:", err);
+      Alert.alert("Error", "Could not load data.");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (!user?.id) return;
+    if (!session?.id) return;
 
     // 1. Initial Fetch
     fetchStats();
@@ -69,7 +74,7 @@ export const UserStatsProvider = ({
     // 2. Realtime Subscription
     // PocketBase subscription is much cleaner.
     // You can subscribe to a specific record ID directly.
-    pb.collection("users").subscribe(user.id, (e) => {
+    pb.collection("users").subscribe(session.id, (e) => {
       console.log("Realtime update received from PocketBase!", e.record);
 
       const newRecord = e.record;
@@ -86,9 +91,9 @@ export const UserStatsProvider = ({
 
     return () => {
       // Unsubscribe from specific record
-      pb.collection("users").unsubscribe(user.id);
+      pb.collection("users").unsubscribe(session.id);
     };
-  }, [user?.id]); // Only re-run if the user ID changes
+  }, [session?.id]); // Only re-run if the user ID changes
 
   return (
     <UserStatsContext.Provider

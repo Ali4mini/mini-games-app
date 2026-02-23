@@ -10,7 +10,7 @@ export const getStorageUrl = (
   if (filename.startsWith("http")) return filename;
 
   // PocketBase SDK helper: (record, filename, options)
-  return pb.files.getUrl(record, filename, {
+  return pb.files.getURL(record, filename, {
     thumb: "100x100", // Optional: PocketBase can auto-generate thumbs
   });
 };

@@ -19,12 +19,13 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Stack } from "expo-router";
 
 import { useTheme } from "@/context/ThemeContext";
-import { Theme } from "@/types";
 import { useLeaderboard } from "@/hooks/useLeaderboard";
+import { useAuth } from "@/context/AuthContext";
+import { getStorageUrl } from "@/utils/imageHelpers";
 
 // --- CONSTANTS ---
 const MAX_WIDTH = 1024;
-const TAB_BAR_OFFSET = 120; // Bottom spacing for navigation
+const TAB_BAR_OFFSET = 120;
 
 // --- SUB-COMPONENTS ---
 const FilterTabs = ({ activeTab, onTabChange, theme }: any) => (
@@ -136,45 +137,53 @@ const LeaderboardRow = ({ item, isCurrentUser, theme }: any) => {
   );
 };
 
-// --- MAIN COMPONENT ---
 export const LeaderboardUI: React.FC = () => {
   const { t } = useTranslation();
   const theme = useTheme();
   const [activeTab, setActiveTab] = useState("All Time");
+  const { session } = useAuth(); // Local user details
 
-  // 1. RESPONSIVE SETUP
   const { width: windowWidth } = useWindowDimensions();
   const isDesktop = windowWidth > 768;
 
-  // 2. DATA HOOK
-  const { leaderboard, currentUser, loading, refetch } = useLeaderboard();
+  // DATA HOOK: Custom Go Route Integration
+  const { leaderboard, currentUserRank, loading, refetch } = useLeaderboard();
 
   const flatListRef = useRef<FlatList>(null);
 
-  // 3. LOGIC
   const topThree = useMemo(() => {
-    const [first, second, third] = leaderboard;
-    return [first, second, third];
+    // Top 3 from the leaderboard array
+    return [leaderboard[0], leaderboard[1], leaderboard[2]];
   }, [leaderboard]);
 
   const unifiedListData = useMemo(() => {
+    // 1. Get everyone from rank 4 downwards
     const restOfList = leaderboard.filter((u) => u.rank > 3);
     const data: any[] = [...restOfList];
 
-    if (currentUser && currentUser.rank > 3) {
-      const isUserInList = restOfList.find((u) => u.id === currentUser.id);
-      if (!isUserInList) {
-        data.push({ id: "spacer", type: "spacer" });
-        data.push({ ...currentUser, type: "user" });
-      }
+    // 2. Logic: If I'm not in the top 50, show me at the bottom with a spacer
+    const amInTopList = leaderboard.some((u) => u.id === session?.id);
+
+    if (!amInTopList && currentUserRank > 50 && session) {
+      data.push({ id: "spacer", type: "spacer" });
+      data.push({
+        id: session.id,
+        username: session.username || session.name || "Player",
+        // Using session object for image resolution
+        avatar: getStorageUrl(session, session.avatar),
+        score: session.coins || 0,
+        rank: currentUserRank,
+        type: "user",
+      });
     }
     return data;
-  }, [leaderboard, currentUser]);
+  }, [leaderboard, currentUserRank, session]);
 
+  // Handle auto-scroll to current user
   useEffect(() => {
-    if (unifiedListData.length > 0 && currentUser) {
+    if (unifiedListData.length > 0 && session) {
       const userIndex = unifiedListData.findIndex(
-        (item) => item.id === currentUser.id,
+        (item) => item.id === session.id,
       );
 
       if (userIndex !== -1) {
@@ -188,7 +197,7 @@ export const LeaderboardUI: React.FC = () => {
         return () => clearTimeout(timer);
       }
     }
-  }, [unifiedListData, currentUser]);
+  }, [unifiedListData, session?.id]);
 
   const renderItem = ({ item }: { item: any }) => {
     if (item.type === "spacer") {
@@ -205,7 +214,7 @@ export const LeaderboardUI: React.FC = () => {
     return (
       <LeaderboardRow
         item={item}
-        isCurrentUser={currentUser && item.id === currentUser.id}
+        isCurrentUser={session?.id === item.id}
         theme={theme}
       />
     );
@@ -216,11 +225,7 @@ export const LeaderboardUI: React.FC = () => {
       <View
         style={[
           styles.rootBackground,
-          {
-            justifyContent: "center",
-            alignItems: "center",
-            backgroundColor: "#0f172a",
-          },
+          { justifyContent: "center", alignItems: "center" },
         ]}
       >
         <ActivityIndicator size="large" color={theme.primary} />
@@ -229,11 +234,9 @@ export const LeaderboardUI: React.FC = () => {
   }
 
   return (
-    // ROOT BACKGROUND: Handles full screen gradient
     <View style={styles.rootBackground}>
       <Stack.Screen options={{ headerShown: false }} />
 
-      {/* BACKGROUND GRADIENT */}
       <LinearGradient
         colors={[theme.primary, "#1e1b4b", "#0f172a"]}
         start={{ x: 0.5, y: 0 }}
@@ -241,10 +244,8 @@ export const LeaderboardUI: React.FC = () => {
         style={StyleSheet.absoluteFill}
       />
 
-      {/* CENTERED CONTAINER */}
       <View style={styles.container}>
         <SafeAreaView style={styles.safeArea} edges={["top"]}>
-          {/* HEADER */}
           <View style={styles.header}>
             <Animated.Text
               entering={FadeInUp.delay(100)}
@@ -259,7 +260,6 @@ export const LeaderboardUI: React.FC = () => {
             />
           </View>
 
-          {/* PODIUM */}
           <View style={styles.podiumContainer}>
             <PodiumItem
               user={topThree[1]}
@@ -281,17 +281,15 @@ export const LeaderboardUI: React.FC = () => {
             />
           </View>
 
-          {/* LIST SHEET */}
           <Animated.View
             entering={FadeInDown.delay(800).springify()}
             style={[
               styles.listSheet,
               {
                 backgroundColor: theme.backgroundSecondary,
-                // Desktop: Rounded bottom corners too
                 borderBottomLeftRadius: isDesktop ? 30 : 0,
                 borderBottomRightRadius: isDesktop ? 30 : 0,
-                marginBottom: isDesktop ? 20 : 0, // Floating effect
+                marginBottom: isDesktop ? 20 : 0,
               },
             ]}
           >
@@ -301,7 +299,9 @@ export const LeaderboardUI: React.FC = () => {
               ref={flatListRef}
               data={unifiedListData}
               renderItem={renderItem}
-              keyExtractor={(item) => item.id}
+              keyExtractor={(item, index) =>
+                item.id === "spacer" ? `spacer-${index}` : item.id
+              }
               contentContainerStyle={styles.listContent}
               showsVerticalScrollIndicator={false}
               refreshControl={
@@ -325,7 +325,7 @@ export const LeaderboardUI: React.FC = () => {
                     color: theme.textSecondary,
                   }}
                 >
-                  No players found yet. Be the first!
+                  No players found yet.
                 </Text>
               }
             />
@@ -335,6 +335,8 @@ export const LeaderboardUI: React.FC = () => {
     </View>
   );
 };
+
+// ... (Styles remain identical to your provided CSS)
 
 // --- STYLES ---
 const styles = StyleSheet.create({

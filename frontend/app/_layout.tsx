@@ -4,7 +4,7 @@ import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { I18nextProvider } from "react-i18next";
-import { StatusBar } from "expo-status-bar";
+import { StatusBar, View, ActivityIndicator } from "react-native"; // Added View/ActivityIndicator
 import BlobBackground from "@/components/common/BlobBackground";
 import i18n from "@/i18n";
 import { ThemeProvider, useTheme } from "@/context/ThemeContext";
@@ -12,8 +12,6 @@ import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { UserStatsProvider } from "@/context/UserStatsContext";
 import { enableFreeze } from "react-native-screens";
 
-// --- CHANGED: Use the Hook and Manager ---
-// The bundler will auto-select .native.ts (Mobile) or .ts (Web)
 import { AdManager } from "@/utils/adsManager";
 import { useAppOpenAd } from "@/hooks/ads/useAppOpenAd";
 
@@ -26,20 +24,13 @@ const RootNavigator = () => {
   const segments = useSegments();
   const router = useRouter();
 
-  // --- 1. INITIALIZE ADS ---
-  useEffect(() => {
-    // AdManager.native.ts handles real init
-    // AdManager.ts handles web mock
-    AdManager.initialize();
-  }, []);
+  // Use a ref to track if we've handled the initial navigation
+  const isInitialNav = React.useRef(true);
 
-  // --- 2. RUN APP OPEN ADS ---
-  // This hook handles everything. On Web, it does nothing.
-  useAppOpenAd();
-
-  // --- AUTH REDIRECT LOGIC ---
   useEffect(() => {
+    // Wait for Auth and Fonts
     if (authLoading) return;
+
     const inAuthGroup = segments[0] === "(auth)";
 
     if (!session && !inAuthGroup) {
@@ -47,7 +38,15 @@ const RootNavigator = () => {
     } else if (session && inAuthGroup) {
       router.replace("/(tabs)");
     }
-  }, [session, authLoading, segments]);
+
+    isInitialNav.current = false;
+  }, [session, authLoading, segments, router]);
+
+  // While loading, show a screen that MATCHES your background
+  // to make the transition seamless
+  if (authLoading) {
+    return <View style={{ flex: 1, backgroundColor: "#0B0B15" }} />;
+  }
 
   return (
     <BlobBackground>

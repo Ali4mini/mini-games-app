@@ -8,6 +8,7 @@ import {
   StyleSheet,
   Platform,
   useWindowDimensions,
+  Alert,
 } from "react-native";
 import {
   SafeAreaView,
@@ -28,16 +29,14 @@ import { useTheme } from "@/context/ThemeContext";
 import { Theme } from "@/types";
 import { useDailyCheckIn, DailyRewardItem } from "@/hooks/useDailyCheckIn";
 
-// --- CONSTANTS ---
 const MAX_WIDTH = 1024;
-const TAB_BAR_OFFSET = 120; // Bottom spacing for navigation
+const TAB_BAR_OFFSET = 120;
 
 export const DailyCheckInUI: React.FC = () => {
   const { t } = useTranslation();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
 
-  // 1. RESPONSIVE SETUP
   const { width: windowWidth } = useWindowDimensions();
   const isDesktop = windowWidth > 768;
 
@@ -48,11 +47,15 @@ export const DailyCheckInUI: React.FC = () => {
 
   const confettiRef = useRef<ConfettiCannon>(null);
 
-  // 2. DATA HOOK
+  // --- HOOK INTEGRATION ---
+  // gridData: Array of 7 days with isClaimed, isToday, reward
+  // claimReward: Calls the /api/claim-daily-reward custom Go route
   const { gridData, loading, canClaim, claimReward, currentStreak } =
     useDailyCheckIn();
 
-  // Animation logic
+  const [isClaiming, setIsClaiming] = useState(false);
+
+  // Animation logic for the progress bar
   const claimedCount = gridData.filter((r) => r.isClaimed).length;
   const progressPercentage = (claimedCount / 7) * 100;
   const animatedProgress = useSharedValue(0);
@@ -62,13 +65,22 @@ export const DailyCheckInUI: React.FC = () => {
       duration: 800,
       easing: Easing.out(Easing.quad),
     });
-  }, [progressPercentage, animatedProgress]);
+  }, [progressPercentage]);
 
   const handleClaimPress = async () => {
-    if (!canClaim) return;
-    const reward = await claimReward();
-    if (reward) {
-      setTimeout(() => confettiRef.current?.start(), 100);
+    if (!canClaim || isClaiming) return;
+
+    setIsClaiming(true);
+    try {
+      const rewardAmount = await claimReward();
+      if (rewardAmount) {
+        // Trigger confetti!
+        setTimeout(() => confettiRef.current?.start(), 100);
+      }
+    } catch (err) {
+      console.error("Claim error", err);
+    } finally {
+      setIsClaiming(false);
     }
   };
 
@@ -84,9 +96,9 @@ export const DailyCheckInUI: React.FC = () => {
         key={item.day}
         style={[
           styles.dayCell,
-          isGrandPrize && styles.dayCellGrandPrize, // Day 7 spans full width
+          isGrandPrize && styles.dayCellGrandPrize,
           item.isClaimed && styles.dayCellClaimed,
-          item.isToday && !item.isClaimed && styles.dayCellToday, // Active State
+          item.isToday && !item.isClaimed && styles.dayCellToday,
           !item.isClaimed && !item.isToday && styles.dayCellFuture,
         ]}
       >
@@ -98,7 +110,7 @@ export const DailyCheckInUI: React.FC = () => {
           style={[
             styles.rewardText,
             item.isClaimed && styles.rewardTextClaimed,
-            isGrandPrize && { fontSize: 24 }, // Bigger font for grand prize
+            isGrandPrize && { fontSize: 24 },
           ]}
         >
           💰 {item.reward}
@@ -116,19 +128,19 @@ export const DailyCheckInUI: React.FC = () => {
   if (loading && gridData.length === 0) {
     return (
       <View style={[styles.rootBackground, { justifyContent: "center" }]}>
+        <Stack.Screen options={{ headerShown: false, animation: "fade" }} />
         <ActivityIndicator size="large" color={theme.primary} />
       </View>
     );
   }
 
+  // Find the amount for the current day to show on the button
   const nextReward = gridData.find((d) => d.isToday)?.reward || 0;
 
   return (
-    // ROOT BACKGROUND
     <View style={styles.rootBackground}>
-      <Stack.Screen options={{ headerShown: false }} />
+      <Stack.Screen options={{ headerShown: false, animation: "fade" }} />
 
-      {/* CENTERED CONTAINER */}
       <View style={styles.container}>
         <SafeAreaView style={styles.safeArea} edges={["top"]}>
           <ScrollView
@@ -137,7 +149,6 @@ export const DailyCheckInUI: React.FC = () => {
             showsVerticalScrollIndicator={false}
             bounces={false}
           >
-            {/* HEADER */}
             <View style={styles.header}>
               <Text style={styles.title}>
                 {t("dailyCheckIn.title", "Daily Login")}
@@ -149,7 +160,6 @@ export const DailyCheckInUI: React.FC = () => {
                 )}
               </Text>
 
-              {/* PROGRESS BAR */}
               <View style={styles.progressBarContainer}>
                 <View style={styles.progressBarHeader}>
                   <Text style={styles.progressText}>
@@ -169,14 +179,13 @@ export const DailyCheckInUI: React.FC = () => {
                     style={[
                       styles.progressBarFill,
                       animatedProgressBarStyle,
-                      { backgroundColor: theme.buttonSecondary }, // Cyan/Green
+                      { backgroundColor: theme.buttonSecondary },
                     ]}
                   />
                 </View>
               </View>
             </View>
 
-            {/* GRID */}
             <View style={styles.gridContainer}>
               <View style={styles.daysGrid}>
                 {gridData.map((item) => renderDayCell(item))}
@@ -184,14 +193,17 @@ export const DailyCheckInUI: React.FC = () => {
             </View>
           </ScrollView>
 
-          {/* FOOTER BUTTON */}
           <View style={styles.footer}>
             <TouchableOpacity
               onPress={handleClaimPress}
-              disabled={!canClaim}
+              disabled={!canClaim || isClaiming}
               activeOpacity={0.8}
             >
-              {canClaim ? (
+              {isClaiming ? (
+                <View style={[styles.gradient, styles.buttonDisabled]}>
+                  <ActivityIndicator color={theme.textPrimary} />
+                </View>
+              ) : canClaim ? (
                 <LinearGradient
                   colors={theme.buttonGradient}
                   start={{ x: 0, y: 0 }}
@@ -199,7 +211,8 @@ export const DailyCheckInUI: React.FC = () => {
                   style={styles.gradient}
                 >
                   <Text style={styles.buttonText}>
-                    {t("dailyCheckIn.claimButton", { reward: nextReward })}
+                    {/* {t("dailyCheckIn.claimButton", { reward: nextReward })} */}
+                    fuck off
                   </Text>
                 </LinearGradient>
               ) : (
@@ -212,7 +225,6 @@ export const DailyCheckInUI: React.FC = () => {
             </TouchableOpacity>
           </View>
 
-          {/* CONFETTI - Positioned to not block interaction */}
           <View
             style={{
               position: "absolute",
@@ -228,14 +240,7 @@ export const DailyCheckInUI: React.FC = () => {
               count={60}
               origin={{ x: -10, y: 0 }}
               fallSpeed={2000}
-              colors={[
-                "#ff0000",
-                "#00ff00",
-                "#0000ff",
-                "#ffff00",
-                "#ff00ff",
-                "#00ffff",
-              ]}
+              colors={[theme.primary, theme.secondary, "#FFD700"]}
               fadeOut={true}
               autoStart={false}
             />
@@ -251,8 +256,8 @@ const createStyles = (theme: Theme, insets: any, isDesktop: boolean) =>
   StyleSheet.create({
     rootBackground: {
       flex: 1,
-      backgroundColor:
-        Platform.OS === "web" ? theme.backgroundPrimary : "transparent",
+      // Change this to use your theme background on ALL platforms
+      backgroundColor: "transparent",
       alignItems: "center",
     },
     container: {

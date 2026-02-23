@@ -1,28 +1,40 @@
-import PocketBase, { AsyncAuthStore } from "pocketbase";
+import PocketBase, { BaseAuthStore } from "pocketbase";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
+import EventSource from "react-native-sse";
 
-// Replace with your PocketBase URL
-const pbUrl = "http://192.168.1.100:8090/";
+// Polyfill EventSource
+// @ts-ignore
+global.EventSource = EventSource;
 
-// --- CUSTOM STORAGE HANDLER ---
-// PocketBase's AsyncAuthStore handles the logic for us,
-// but we wrap it to ensure SSR/Web compatibility.
-const store = new AsyncAuthStore({
-  save: async (batch) => {
-    if (Platform.OS === "web" && typeof window === "undefined") return;
-    return AsyncStorage.setItem("pb_auth", batch);
-  },
-  initial: undefined, // We will load this manually or let the store handle it
-});
+const pbUrl = "http://192.168.1.104:8090";
 
-export const pb = new PocketBase(pbUrl, store);
+// Use BaseAuthStore instead of AsyncAuthStore for manual control
+export const pb = new PocketBase(pbUrl);
 
-// Helper to check if we are hydrated (loaded from storage)
-export const initPocketBase = async () => {
-  if (Platform.OS === "web" && typeof window === "undefined") return;
-  const data = await AsyncStorage.getItem("pb_auth");
-  if (data) {
-    pb.authStore.loadFromCookie(data);
+// Disable auto-cancellation (prevents the "autocancelled" errors)
+pb.autoCancellation(false);
+
+export const persistAuth = async () => {
+  // Manual save: takes current state and puts it in storage
+  const authData = JSON.stringify({
+    token: pb.authStore.token,
+    model: pb.authStore.model,
+  });
+  await AsyncStorage.setItem("pb_auth", authData);
+};
+
+export const hydrateAuth = async () => {
+  try {
+    const data = await AsyncStorage.getItem("pb_auth");
+    if (data) {
+      const parsed = JSON.parse(data);
+      // Manually load the token and model into the store
+      pb.authStore.save(parsed.token, parsed.model);
+      return parsed.model;
+    }
+  } catch (e) {
+    console.error("Hydration failed", e);
   }
+  return null;
 };

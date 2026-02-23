@@ -37,7 +37,7 @@ export const useHomeData = () => {
         username: profileData.username,
         name: profileData.name || profileData.username || "Player",
         // PocketBase uses the record + filename to generate the URL
-        avatar_url: getStorageUrl(profileData, profileData.avatar),
+        avatar_url: getStorageUrl(profileData, profileData.avatar_url),
         coins: profileData.coins,
         joinDate: profileData.created,
         level: profileData.level,

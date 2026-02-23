@@ -1,70 +1,53 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { pb, initPocketBase } from "@/utils/pocketbase";
+import { pb, hydrateAuth, persistAuth } from "@/utils/pocketbase";
 import { AuthModel } from "pocketbase";
 
 type AuthContextType = {
-  user: AuthModel | null; // PocketBase calls the user object a "model"
-  token: string | null;
+  session: AuthModel | null;
   loading: boolean;
-  isAdmin: boolean;
-  isValid: boolean; // Helper to check if logged in
 };
 
 const AuthContext = createContext<AuthContextType>({
-  user: null,
-  token: null,
+  session: null,
   loading: true,
-  isAdmin: false,
-  isValid: false,
 });
 
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<AuthModel | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+  const [session, setSession] = useState<AuthModel | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 1. Initialize the store from AsyncStorage
-    const initializeAuth = async () => {
+    const bootstrap = async () => {
       try {
-        await initPocketBase();
-
-        // Sync initial state
-        setUser(pb.authStore.model);
-        setToken(pb.authStore.token);
-      } catch (error) {
-        console.error("PocketBase init error:", error);
+        // 1. Manually read the disk
+        const model = await hydrateAuth();
+        if (model) {
+          setSession(model);
+        }
+      } catch (e) {
+        console.log("Bootstrap error", e);
       } finally {
-        setLoading(false);
+        // 2. Delay loading slightly to ensure Expo Router is ready
+        setTimeout(() => setLoading(false), 100);
       }
     };
 
-    initializeAuth();
+    bootstrap();
 
-    // 2. Listen for auth changes (Login, Logout)
-    // PocketBase triggers this whenever the authStore changes
+    // 3. Listen for any auth changes (Login/Logout)
     const removeListener = pb.authStore.onChange((token, model) => {
-      setUser(model);
-      setToken(token);
+      setSession(model);
+      // Every time the user logs in or out, update the disk
+      persistAuth();
     });
 
-    return () => {
-      removeListener(); // Cleanup
-    };
+    return () => removeListener();
   }, []);
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        token,
-        loading,
-        isValid: pb.authStore.isValid,
-        isAdmin: false, // You can check user?.role === 'admin' here
-      }}
-    >
+    <AuthContext.Provider value={{ session, loading }}>
       {children}
     </AuthContext.Provider>
   );

@@ -38,9 +38,8 @@ export const ProfileUI: React.FC = () => {
   const { t } = useTranslation();
   const theme = useTheme();
 
-  // 1. RESPONSIVE SETUP
   const { width: windowWidth } = useWindowDimensions();
-  const isDesktop = windowWidth > 900; // Breakpoint for 2-column layout
+  const isDesktop = windowWidth > 900;
 
   const styles = useMemo(
     () => createStyles(theme, isDesktop),
@@ -55,34 +54,37 @@ export const ProfileUI: React.FC = () => {
 
   const fetchProfileData = useCallback(async () => {
     try {
-      // 1. Get User ID from PocketBase AuthStore
       const userId = pb.authStore.model?.id;
       if (!userId) return;
 
-      // 2. Fetch User Profile (from the 'users' collection)
-      const profileData = await pb.collection("users").getOne(userId);
-
-      // 3. Fetch Rank (Emulating maybeSingle with getList)
-      const rankResult = await pb.collection("leaderboard").getList(1, 1, {
-        filter: `user_id = "${userId}"`,
-      });
-      const rankData = rankResult.items[0];
+      // 1. Fetch User Data and Rank in parallel
+      // Using the custom Go API route /api/leaderboard for the rank
+      const [profileData, leaderboardData] = await Promise.all([
+        pb.collection("users").getOne(userId, { requestKey: "profile_fetch" }),
+        pb.send("/api/leaderboard", {
+          method: "GET",
+          requestKey: "rank_fetch",
+        }),
+      ]);
 
       setProfile({
         id: profileData.id,
         username: profileData.username,
         name: profileData.name || profileData.username || "Player",
-        // Pass the whole profileData record to the helper
-        avatar: getStorageUrl(profileData, profileData.avatar),
+        avatar: getStorageUrl(profileData, profileData.avatar_url),
         coins: profileData.coins,
-        joinDate: profileData.created, // PB uses 'created' instead of 'created_at'
+        joinDate: profileData.created,
         level: profileData.level,
         referralCode: profileData.referral_code,
       } as unknown as UserProfile);
 
-      if (rankData) setRank(rankData.rank);
+      if (leaderboardData.user_rank) {
+        setRank(leaderboardData.user_rank);
+      }
     } catch (error: any) {
-      console.error("Error loading profile:", error.message);
+      if (!error.isAbort) {
+        console.error("Error loading profile:", error);
+      }
     } finally {
       setLoading(false);
     }
@@ -90,6 +92,31 @@ export const ProfileUI: React.FC = () => {
 
   useEffect(() => {
     fetchProfileData();
+
+    // --- REALTIME SUBSCRIPTION ---
+    // Update UI instantly if coins/stats change elsewhere in the app
+    const userId = pb.authStore.model?.id;
+    if (userId) {
+      pb.collection("users").subscribe(userId, (e) => {
+        if (e.action === "update") {
+          const updated = e.record;
+          setProfile((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  coins: updated.coins,
+                  name: updated.name || updated.username,
+                  avatar: getStorageUrl(updated, updated.avatar),
+                }
+              : null,
+          );
+        }
+      });
+    }
+
+    return () => {
+      if (userId) pb.collection("users").unsubscribe(userId);
+    };
   }, [fetchProfileData]);
 
   const handleLogout = async () => {
@@ -97,6 +124,7 @@ export const ProfileUI: React.FC = () => {
     pb.authStore.clear();
   };
 
+  // Level logic: 1 level per 1000 coins
   const playerLevel = profile ? Math.floor(profile.coins / 1000) + 1 : 1;
 
   if (loading && !profile) {
@@ -145,7 +173,6 @@ export const ProfileUI: React.FC = () => {
               />
             }
           >
-            {/* --- SECTION 1: PLAYER IDENTITY (Full Width) --- */}
             <View style={styles.profileCard}>
               <View style={styles.avatarContainer}>
                 <View style={styles.avatarBorder}>
@@ -178,9 +205,8 @@ export const ProfileUI: React.FC = () => {
                 </Text>
               </View>
 
-              {/* Stats Grid: Constrained width on desktop so it doesn't stretch too far */}
               <View style={styles.statsGrid}>
-                <TouchableOpacity style={styles.statBox}>
+                <View style={styles.statBox}>
                   <FontAwesome5
                     name="coins"
                     size={16}
@@ -193,9 +219,9 @@ export const ProfileUI: React.FC = () => {
                   <Text style={styles.statLabel}>
                     {t("profile.credits", "CREDITS")}
                   </Text>
-                </TouchableOpacity>
+                </View>
                 <View style={styles.verticalDivider} />
-                <TouchableOpacity style={styles.statBox}>
+                <View style={styles.statBox}>
                   <FontAwesome5
                     name="trophy"
                     size={16}
@@ -206,9 +232,9 @@ export const ProfileUI: React.FC = () => {
                   <Text style={styles.statLabel}>
                     {t("profile.rank", "GLOBAL")}
                   </Text>
-                </TouchableOpacity>
+                </View>
                 <View style={styles.verticalDivider} />
-                <TouchableOpacity style={styles.statBox}>
+                <View style={styles.statBox}>
                   <MaterialCommunityIcons
                     name="fire"
                     size={18}
@@ -217,26 +243,16 @@ export const ProfileUI: React.FC = () => {
                   />
                   <Text style={styles.statValue}>5</Text>
                   <Text style={styles.statLabel}>STREAK</Text>
-                </TouchableOpacity>
+                </View>
               </View>
             </View>
 
-            {/* --- SECTION 2: SPLIT LAYOUT FOR DESKTOP --- */}
-            {/* On Desktop: Row (Achievements Left / Referral Right) */}
-            {/* On Mobile: Column (Referral Top / Achievements Bottom) */}
             <View style={isDesktop ? styles.desktopRow : styles.mobileColumn}>
-              {/* 
-                   LOGIC SWAP: On Desktop, Achievements usually look better on the left (wider), 
-                   and Referral as a side card. On Mobile, Referral is usually high priority so it's top.
-                */}
-
               {isDesktop ? (
                 <>
-                  {/* Desktop Left: Achievements */}
                   <View style={{ flex: 2 }}>
                     <AchievementsSection />
                   </View>
-                  {/* Desktop Right: Referral */}
                   <View style={{ flex: 1.2 }}>
                     <ReferralSection
                       code={profile?.referralCode || "LOADING"}
@@ -245,13 +261,11 @@ export const ProfileUI: React.FC = () => {
                 </>
               ) : (
                 <>
-                  {/* Mobile Top: Referral */}
                   <View style={styles.sectionContainer}>
                     <ReferralSection
                       code={profile?.referralCode || "LOADING"}
                     />
                   </View>
-                  {/* Mobile Bottom: Achievements */}
                   <AchievementsSection />
                 </>
               )}
@@ -261,7 +275,6 @@ export const ProfileUI: React.FC = () => {
           </ScrollView>
         </SafeAreaView>
 
-        {/* --- MODALS --- */}
         <EditProfileModal
           visible={isEditVisible}
           onClose={() => setEditVisible(false)}
@@ -269,6 +282,7 @@ export const ProfileUI: React.FC = () => {
           onProfileUpdate={fetchProfileData}
         />
 
+        {/* SETTINGS MODAL */}
         <Modal
           animationType="fade"
           transparent={true}

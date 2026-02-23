@@ -13,42 +13,28 @@ export type LeaderboardItem = {
 export const useLeaderboard = () => {
   const [loading, setLoading] = useState(true);
   const [leaderboard, setLeaderboard] = useState<LeaderboardItem[]>([]);
-  const [currentUser, setCurrentUser] = useState<LeaderboardItem | null>(null);
+  const [currentUserRank, setCurrentUserRank] = useState<number>(0);
 
   const fetchLeaderboard = useCallback(async () => {
     try {
       setLoading(true);
 
-      const currentUserId = pb.authStore.model?.id;
-
-      // 1. Fetch Top 50 Users
-      // Assuming leaderboard data comes from 'users' collection
-      // or a specific 'leaderboard' collection
-      const resultList = await pb.collection("users").getList(1, 50, {
-        sort: "-coins", // Sort by coins descending
+      // Call the custom Go route
+      const data = await pb.send("/api/leaderboard", {
+        method: "GET",
       });
 
-      // 2. Transform Data
-      const formattedData = resultList.items.map((record, index) => ({
-        id: record.id,
-        username: record.username || record.name || "Unknown",
-        // Pass the whole record to our updated helper
-        avatar: getStorageUrl(record, record.avatar),
-        score: record.coins || 0,
-        rank: index + 1, // Calculate rank based on index if not in DB
+      // Map the results
+      const formatted = data.leaderboard.map((item: any) => ({
+        id: item.id,
+        username: item.username,
+        avatar: getStorageUrl(item, item.avatar), // Make sure helper is updated
+        score: item.coins,
+        rank: item.rank,
       }));
 
-      setLeaderboard(formattedData);
-
-      // 3. Find Current User
-      if (currentUserId) {
-        const foundUser = formattedData.find((u) => u.id === currentUserId);
-        if (foundUser) {
-          setCurrentUser(foundUser);
-        } else {
-          // Optional: If user not in top 50, you could fetch their specific rank here
-        }
-      }
+      setLeaderboard(formatted);
+      setCurrentUserRank(data.user_rank);
     } catch (err) {
       console.error("Error fetching leaderboard:", err);
     } finally {
@@ -60,5 +46,5 @@ export const useLeaderboard = () => {
     fetchLeaderboard();
   }, [fetchLeaderboard]);
 
-  return { leaderboard, currentUser, loading, refetch: fetchLeaderboard };
+  return { leaderboard, currentUserRank, loading, refetch: fetchLeaderboard };
 };

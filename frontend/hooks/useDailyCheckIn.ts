@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { pb } from "@/utils/pocketbase";
+import { pb, persistAuth } from "@/utils/pocketbase";
 import { Alert } from "react-native";
 import { useUserStats } from "@/context/UserStatsContext";
 
@@ -24,44 +24,55 @@ export const useDailyCheckIn = () => {
       const userId = pb.authStore.model?.id;
       if (!userId) return;
 
-      // 1. Get Config and User Profile in parallel
+      // 1. Force absolute NO CACHE headers so React Native cannot serve stale data
       const [config, profile] = await Promise.all([
         pb.collection("daily_rewards_config").getFullList({
           sort: "day_number",
+          $autoCancel: false,
         }),
-        pb.collection("users").getOne(userId),
+        pb.collection("users").getOne(userId, {
+          $autoCancel: false,
+          headers: { "Cache-Control": "no-cache", Pragma: "no-cache" },
+          _: Date.now(), // Cache-buster
+        }),
       ]);
 
-      if (!config || !profile) return;
+      // 2. USE STRICT STRING MANIPULATION (No 'new Date()' for PB strings!)
+      // This prevents React Native from crashing with "Invalid Date"
+      const now = new Date();
+      const todayIso = now.toISOString().substring(0, 10); // "YYYY-MM-DD"
 
-      // 2. Logic: Determine status
-      const lastCheckIn = new Date(profile.last_check_in || 0).toDateString();
-      const today = new Date().toDateString();
-      const yesterday = new Date(Date.now() - 86400000).toDateString();
+      const yesterday = new Date();
+      yesterday.setUTCDate(yesterday.getUTCDate() - 1);
+      const yesterdayIso = yesterday.toISOString().substring(0, 10);
 
-      const hasClaimedToday = lastCheckIn === today;
-      const streakBroken = lastCheckIn !== today && lastCheckIn !== yesterday;
+      // PocketBase dates always start with "YYYY-MM-DD". Extracting just
+      // the first 10 characters prevents all timezone and formatting bugs.
+      const rawDate = profile.last_check_in || "1970-01-01";
+      const lastCheckInIso = rawDate.substring(0, 10);
 
-      let visualStreak = streakBroken ? 0 : profile.daily_streak;
+      const hasClaimedToday = lastCheckInIso === todayIso;
+      const streakBroken =
+        lastCheckInIso !== todayIso && lastCheckInIso !== yesterdayIso;
+      const visualStreak = streakBroken ? 0 : profile.daily_streak;
 
-      // 3. Map Data for Grid
+      // 3. Map Grid
       const mappedRewards = config.map((c) => {
-        const dayIndex = c.day_number - 1;
         let isClaimed = false;
-        let isCurrentTarget = false;
+        let isToday = false;
 
         if (hasClaimedToday) {
           const effectiveCycle =
             visualStreak === 0 ? 0 : ((visualStreak - 1) % 7) + 1;
           isClaimed = c.day_number <= effectiveCycle;
+          isToday = c.day_number === effectiveCycle;
         } else {
           if (streakBroken) {
-            isClaimed = false;
-            isCurrentTarget = c.day_number === 1;
+            isToday = c.day_number === 1;
           } else {
             const effectiveCycle = visualStreak % 7;
             isClaimed = c.day_number <= effectiveCycle;
-            isCurrentTarget = c.day_number === effectiveCycle + 1;
+            isToday = c.day_number === effectiveCycle + 1;
           }
         }
 
@@ -69,8 +80,8 @@ export const useDailyCheckIn = () => {
           day: c.day_number,
           reward: c.reward_amount,
           isClaimed,
-          isToday: isCurrentTarget,
-          isCurrentTarget,
+          isToday,
+          isCurrentTarget: isToday,
         };
       });
 
@@ -78,7 +89,7 @@ export const useDailyCheckIn = () => {
       setCanClaim(!hasClaimedToday);
       setCurrentStreak(profile.daily_streak);
     } catch (err) {
-      console.error("Daily check-in fetch error:", err);
+      console.error("Fetch Daily Check-in Error:", err);
     } finally {
       setLoading(false);
     }
@@ -86,23 +97,34 @@ export const useDailyCheckIn = () => {
 
   const claimReward = async () => {
     try {
-      // Calling a custom endpoint we will create in PocketBase hooks later
-      const data = await pb.send("/api/claim-daily-reward", {
+      const response = await pb.send("/api/claim-daily-reward", {
         method: "POST",
       });
 
-      if (!data.success) {
-        Alert.alert("Info", data.message);
+      if (!response.success) {
+        Alert.alert("Info", response.message);
         return false;
       }
 
-      await refreshStats();
+      // 1. Immediately update local auth store with the newly returned user
+      if (response.user) {
+        pb.authStore.save(pb.authStore.token, response.user);
+        if (persistAuth) await persistAuth();
+      }
+
+      // 2. Refetch the UI grid from scratch to guarantee it aligns perfectly
       await fetchData();
 
-      return data.reward;
+      // 3. Update global stats context (Coins/XP) AFTER the grid is updated
+      if (refreshStats) {
+        await refreshStats();
+      }
+
+      // 4. Return the integer so `if (rewardAmount)` fires Confetti in UI!
+      return response.reward || 0;
     } catch (err: any) {
-      const errorMsg = err.data?.message || err.message || "Failed to claim.";
-      Alert.alert("Error", errorMsg);
+      console.error("Claim Exception:", err);
+      Alert.alert("Error", err.message || "Failed to claim.");
       return false;
     }
   };
