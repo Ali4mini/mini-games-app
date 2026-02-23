@@ -32,7 +32,14 @@ import { getStorageUrl } from "@/utils/imageHelpers";
 import { UserProfile, Theme } from "@/types";
 
 // IMPORT INTENTS
+// We restore openStoreForReview to handle the click
 import { openStoreForReview, shareApp, contactSupport } from "@/utils/intents";
+
+// ==========================================
+// BUILD CONFIGURATION
+// Change this to "google", "bazaar", or "myket" before building!
+// ==========================================
+const TARGET_STORE: "google" | "bazaar" | "myket" = "myket";
 
 const MAX_WIDTH = 1024;
 const TAB_BAR_OFFSET = 120;
@@ -121,6 +128,77 @@ export const ProfileUI: React.FC = () => {
   const handleLogout = async () => {
     setSettingsVisible(false);
     pb.authStore.clear();
+  };
+
+  // Helper to render the correct rate button
+  const renderRateUsButton = () => {
+    switch (TARGET_STORE) {
+      case "google":
+        return (
+          <TouchableOpacity
+            style={styles.settingRow}
+            onPress={() => openStoreForReview("google")}
+          >
+            <View style={styles.settingLabelContainer}>
+              <Ionicons
+                name="logo-google-playstore"
+                size={20}
+                color={theme.textPrimary}
+              />
+              <Text style={styles.settingText}>Rate on Google Play</Text>
+            </View>
+            <Ionicons
+              name="star-outline"
+              size={20}
+              color={theme.textTertiary}
+            />
+          </TouchableOpacity>
+        );
+      case "bazaar":
+        return (
+          <TouchableOpacity
+            style={styles.settingRow}
+            onPress={() => openStoreForReview("bazaar")}
+          >
+            <View style={styles.settingLabelContainer}>
+              <Ionicons
+                name="basket-outline"
+                size={20}
+                color={theme.textPrimary}
+              />
+              <Text style={styles.settingText}>Rate on Cafe Bazaar</Text>
+            </View>
+            <Ionicons
+              name="star-outline"
+              size={20}
+              color={theme.textTertiary}
+            />
+          </TouchableOpacity>
+        );
+      case "myket":
+        return (
+          <TouchableOpacity
+            style={styles.settingRow}
+            onPress={() => openStoreForReview("myket")}
+          >
+            <View style={styles.settingLabelContainer}>
+              <Ionicons
+                name="apps-outline"
+                size={20}
+                color={theme.textPrimary}
+              />
+              <Text style={styles.settingText}>Rate on Myket</Text>
+            </View>
+            <Ionicons
+              name="star-outline"
+              size={20}
+              color={theme.textTertiary}
+            />
+          </TouchableOpacity>
+        );
+      default:
+        return null;
+    }
   };
 
   const playerLevel = profile ? Math.floor(profile.coins / 1000) + 1 : 1;
@@ -371,66 +449,9 @@ export const ProfileUI: React.FC = () => {
                       />
                     </TouchableOpacity>
 
-                    {/* RATE US SECTION */}
+                    {/* RATE US SECTION - DYNAMIC */}
                     <Text style={styles.sectionHeader}>RATE US</Text>
-                    <TouchableOpacity
-                      style={styles.settingRow}
-                      onPress={() => openStoreForReview("playstore")}
-                    >
-                      <View style={styles.settingLabelContainer}>
-                        <Ionicons
-                          name="logo-google-playstore"
-                          size={20}
-                          color={theme.textPrimary}
-                        />
-                        <Text style={styles.settingText}>
-                          Google Play Store
-                        </Text>
-                      </View>
-                      <Ionicons
-                        name="star-outline"
-                        size={20}
-                        color={theme.textTertiary}
-                      />
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      style={styles.settingRow}
-                      onPress={() => openStoreForReview("bazaar")}
-                    >
-                      <View style={styles.settingLabelContainer}>
-                        <Ionicons
-                          name="storefront-outline"
-                          size={20}
-                          color={theme.textPrimary}
-                        />
-                        <Text style={styles.settingText}>Cafe Bazaar</Text>
-                      </View>
-                      <Ionicons
-                        name="star-outline"
-                        size={20}
-                        color={theme.textTertiary}
-                      />
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      style={styles.settingRow}
-                      onPress={() => openStoreForReview("myket")}
-                    >
-                      <View style={styles.settingLabelContainer}>
-                        <Ionicons
-                          name="apps-outline"
-                          size={20}
-                          color={theme.textPrimary}
-                        />
-                        <Text style={styles.settingText}>Myket</Text>
-                      </View>
-                      <Ionicons
-                        name="star-outline"
-                        size={20}
-                        color={theme.textTertiary}
-                      />
-                    </TouchableOpacity>
+                    {renderRateUsButton()}
 
                     {/* ACCOUNT SECTION */}
                     <Text style={styles.sectionHeader}>ACCOUNT</Text>

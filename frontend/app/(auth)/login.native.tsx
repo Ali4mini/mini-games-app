@@ -65,13 +65,13 @@ export default function LoginScreenNative() {
     resolver: zodResolver(loginSchema),
   });
 
-  useEffect(() => {
-    GoogleSignin.configure({
-      webClientId:
-        "242972121222-21gnev3hlk29eqn2ckl6mcf7btialvg5.apps.googleusercontent.com",
-      offlineAccess: true,
-    });
-  }, []);
+  // useEffect(() => {
+  //   GoogleSignin.configure({
+  //     webClientId:
+  //       "242972121222-21gnev3hlk29eqn2ckl6mcf7btialvg5.apps.googleusercontent.com",
+  //     offlineAccess: true,
+  //   });
+  // }, []);
 
   const handleGoogleLogin = async () => {
     setIsSubmitting(true);
