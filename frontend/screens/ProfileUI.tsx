@@ -31,6 +31,9 @@ import { EditProfileModal } from "@/components/profile/EditProfileModal";
 import { getStorageUrl } from "@/utils/imageHelpers";
 import { UserProfile, Theme } from "@/types";
 
+// IMPORT INTENTS
+import { openStoreForReview, shareApp, contactSupport } from "@/utils/intents";
+
 const MAX_WIDTH = 1024;
 const TAB_BAR_OFFSET = 120;
 
@@ -57,8 +60,6 @@ export const ProfileUI: React.FC = () => {
       const userId = pb.authStore.model?.id;
       if (!userId) return;
 
-      // 1. Fetch User Data and Rank in parallel
-      // Using the custom Go API route /api/leaderboard for the rank
       const [profileData, leaderboardData] = await Promise.all([
         pb.collection("users").getOne(userId, { requestKey: "profile_fetch" }),
         pb.send("/api/leaderboard", {
@@ -93,8 +94,6 @@ export const ProfileUI: React.FC = () => {
   useEffect(() => {
     fetchProfileData();
 
-    // --- REALTIME SUBSCRIPTION ---
-    // Update UI instantly if coins/stats change elsewhere in the app
     const userId = pb.authStore.model?.id;
     if (userId) {
       pb.collection("users").subscribe(userId, (e) => {
@@ -124,7 +123,6 @@ export const ProfileUI: React.FC = () => {
     pb.authStore.clear();
   };
 
-  // Level logic: 1 level per 1000 coins
   const playerLevel = profile ? Math.floor(profile.coins / 1000) + 1 : 1;
 
   if (loading && !profile) {
@@ -303,41 +301,153 @@ export const ProfileUI: React.FC = () => {
                       />
                     </TouchableOpacity>
                   </View>
-                  <Text style={styles.sectionHeader}>PREFERENCES</Text>
-                  <View style={styles.settingRow}>
-                    <View style={styles.settingLabelContainer}>
-                      <Ionicons
-                        name="moon-outline"
-                        size={20}
-                        color={theme.textPrimary}
-                      />
-                      <Text style={styles.settingText}>Dark Mode</Text>
+
+                  {/* Wrapped in ScrollView to prevent overflow on small screens */}
+                  <ScrollView showsVerticalScrollIndicator={false}>
+                    {/* PREFERENCES SECTION */}
+                    <Text style={styles.sectionHeader}>PREFERENCES</Text>
+                    <View style={styles.settingRow}>
+                      <View style={styles.settingLabelContainer}>
+                        <Ionicons
+                          name="moon-outline"
+                          size={20}
+                          color={theme.textPrimary}
+                        />
+                        <Text style={styles.settingText}>Dark Mode</Text>
+                      </View>
+                      <ThemeToggle />
                     </View>
-                    <ThemeToggle />
-                  </View>
-                  <View style={styles.settingRow}>
-                    <View style={styles.settingLabelContainer}>
-                      <Ionicons
-                        name="language-outline"
-                        size={20}
-                        color={theme.textPrimary}
-                      />
-                      <Text style={styles.settingText}>Language</Text>
+                    <View style={styles.settingRow}>
+                      <View style={styles.settingLabelContainer}>
+                        <Ionicons
+                          name="language-outline"
+                          size={20}
+                          color={theme.textPrimary}
+                        />
+                        <Text style={styles.settingText}>Language</Text>
+                      </View>
+                      <LanguageSelector />
                     </View>
-                    <LanguageSelector />
-                  </View>
-                  <Text style={styles.sectionHeader}>ACCOUNT</Text>
-                  <TouchableOpacity
-                    style={styles.logoutButton}
-                    onPress={handleLogout}
-                  >
-                    <Ionicons
-                      name="log-out-outline"
-                      size={20}
-                      color="#FF4444"
-                    />
-                    <Text style={styles.logoutText}>Log Out</Text>
-                  </TouchableOpacity>
+
+                    {/* COMMUNITY & SUPPORT SECTION */}
+                    <Text style={styles.sectionHeader}>
+                      COMMUNITY & SUPPORT
+                    </Text>
+                    <TouchableOpacity
+                      style={styles.settingRow}
+                      onPress={shareApp}
+                    >
+                      <View style={styles.settingLabelContainer}>
+                        <Ionicons
+                          name="share-social-outline"
+                          size={20}
+                          color={theme.textPrimary}
+                        />
+                        <Text style={styles.settingText}>Invite Friends</Text>
+                      </View>
+                      <Ionicons
+                        name="chevron-forward"
+                        size={20}
+                        color={theme.textTertiary}
+                      />
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={styles.settingRow}
+                      onPress={() => contactSupport("support@test.com")}
+                    >
+                      <View style={styles.settingLabelContainer}>
+                        <Ionicons
+                          name="mail-outline"
+                          size={20}
+                          color={theme.textPrimary}
+                        />
+                        <Text style={styles.settingText}>Contact Support</Text>
+                      </View>
+                      <Ionicons
+                        name="chevron-forward"
+                        size={20}
+                        color={theme.textTertiary}
+                      />
+                    </TouchableOpacity>
+
+                    {/* RATE US SECTION */}
+                    <Text style={styles.sectionHeader}>RATE US</Text>
+                    <TouchableOpacity
+                      style={styles.settingRow}
+                      onPress={() => openStoreForReview("playstore")}
+                    >
+                      <View style={styles.settingLabelContainer}>
+                        <Ionicons
+                          name="logo-google-playstore"
+                          size={20}
+                          color={theme.textPrimary}
+                        />
+                        <Text style={styles.settingText}>
+                          Google Play Store
+                        </Text>
+                      </View>
+                      <Ionicons
+                        name="star-outline"
+                        size={20}
+                        color={theme.textTertiary}
+                      />
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={styles.settingRow}
+                      onPress={() => openStoreForReview("bazaar")}
+                    >
+                      <View style={styles.settingLabelContainer}>
+                        <Ionicons
+                          name="storefront-outline"
+                          size={20}
+                          color={theme.textPrimary}
+                        />
+                        <Text style={styles.settingText}>Cafe Bazaar</Text>
+                      </View>
+                      <Ionicons
+                        name="star-outline"
+                        size={20}
+                        color={theme.textTertiary}
+                      />
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={styles.settingRow}
+                      onPress={() => openStoreForReview("myket")}
+                    >
+                      <View style={styles.settingLabelContainer}>
+                        <Ionicons
+                          name="apps-outline"
+                          size={20}
+                          color={theme.textPrimary}
+                        />
+                        <Text style={styles.settingText}>Myket</Text>
+                      </View>
+                      <Ionicons
+                        name="star-outline"
+                        size={20}
+                        color={theme.textTertiary}
+                      />
+                    </TouchableOpacity>
+
+                    {/* ACCOUNT SECTION */}
+                    <Text style={styles.sectionHeader}>ACCOUNT</Text>
+                    <TouchableOpacity
+                      style={styles.logoutButton}
+                      onPress={handleLogout}
+                    >
+                      <Ionicons
+                        name="log-out-outline"
+                        size={20}
+                        color="#FF4444"
+                      />
+                      <Text style={styles.logoutText}>Log Out</Text>
+                    </TouchableOpacity>
+
+                    <View style={{ height: 20 }} />
+                  </ScrollView>
                 </View>
               </TouchableWithoutFeedback>
             </View>
@@ -458,7 +568,6 @@ const createStyles = (theme: Theme, isDesktop: boolean) =>
       flexDirection: "row",
       justifyContent: "space-between",
       width: "100%",
-      // IMPORTANT: Constrain width on desktop so stats aren't miles apart
       maxWidth: isDesktop ? 600 : "100%",
       backgroundColor: theme.backgroundPrimary,
       borderRadius: 16,
@@ -488,21 +597,19 @@ const createStyles = (theme: Theme, isDesktop: boolean) =>
       opacity: 0.1,
       marginHorizontal: 4,
     },
-    // --- LAYOUT CONTAINERS ---
     mobileColumn: {
       flexDirection: "column",
     },
     desktopRow: {
       flexDirection: "row",
-      alignItems: "flex-start", // Top align
-      paddingHorizontal: 20, // Add padding to wrapper
-      marginTop: 24, // Space from profile card
-      gap: 24, // Space between columns
+      alignItems: "flex-start",
+      paddingHorizontal: 20,
+      marginTop: 24,
+      gap: 24,
     },
     sectionContainer: {
       marginTop: 24,
     },
-    // --- MODALS ---
     modalOverlay: {
       flex: 1,
       backgroundColor: "rgba(0,0,0,0.7)",
@@ -519,7 +626,7 @@ const createStyles = (theme: Theme, isDesktop: boolean) =>
       padding: 24,
       paddingBottom: 40,
       width: isDesktop ? 450 : "100%",
-      minHeight: isDesktop ? undefined : "50%",
+      maxHeight: "85%", // Added max height so the scrollview works properly
       borderTopWidth: 1,
       borderTopColor: "rgba(255,255,255,0.1)",
       ...Platform.select({
@@ -530,7 +637,7 @@ const createStyles = (theme: Theme, isDesktop: boolean) =>
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      marginBottom: 30,
+      marginBottom: 20, // Reduced slightly since we have scrolling now
     },
     modalTitle: {
       fontSize: 20,
@@ -549,7 +656,7 @@ const createStyles = (theme: Theme, isDesktop: boolean) =>
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      paddingVertical: 12,
+      paddingVertical: 14, // increased slightly for better tap targets
       borderBottomWidth: 1,
       borderBottomColor: "rgba(255,255,255,0.05)",
     },
@@ -567,7 +674,7 @@ const createStyles = (theme: Theme, isDesktop: boolean) =>
       alignItems: "center",
       justifyContent: "center",
       gap: 10,
-      marginTop: 30,
+      marginTop: 20,
       paddingVertical: 15,
       backgroundColor: "rgba(255, 68, 68, 0.1)",
       borderRadius: 16,

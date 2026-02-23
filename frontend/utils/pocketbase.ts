@@ -7,7 +7,7 @@ import EventSource from "react-native-sse";
 // @ts-ignore
 global.EventSource = EventSource;
 
-const pbUrl = "http://192.168.1.104:8090";
+const pbUrl = "https://api.mysteryplay.fun";
 
 // Use BaseAuthStore instead of AsyncAuthStore for manual control
 export const pb = new PocketBase(pbUrl);

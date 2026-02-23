@@ -267,18 +267,18 @@ export default function LoginScreenNative() {
                   </LinearGradient>
                 </TouchableOpacity>
 
-                {/* Social Login */}
-                <View style={styles.socialSection}>
-                  <Text style={styles.orText}>{t("auth.or")}</Text>
-                  <View style={{ alignItems: "center", marginTop: 15 }}>
-                    <GoogleSigninButton
-                      size={GoogleSigninButton.Size.Wide}
-                      color={GoogleSigninButton.Color.Dark}
-                      onPress={handleGoogleLogin}
-                      disabled={isSubmitting}
-                    />
-                  </View>
-                </View>
+                {/* Social Login -- disabled for v1 */}
+                {/* <View style={styles.socialSection}> */}
+                {/*   <Text style={styles.orText}>{t("auth.or")}</Text> */}
+                {/*   <View style={{ alignItems: "center", marginTop: 15 }}> */}
+                {/*     <GoogleSigninButton */}
+                {/*       size={GoogleSigninButton.Size.Wide} */}
+                {/*       color={GoogleSigninButton.Color.Dark} */}
+                {/*       onPress={handleGoogleLogin} */}
+                {/*       disabled={isSubmitting} */}
+                {/*     /> */}
+                {/*   </View> */}
+                {/* </View> */}
 
                 {/* Footer */}
                 <View style={styles.footer}>

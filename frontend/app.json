@@ -27,7 +27,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.test.mysteryplay",
+      "package": "com.gharaee.mysteryplay",
       "usesCleartextTraffic": true,
       "googleServicesFile": "./google-services.json"
     },
