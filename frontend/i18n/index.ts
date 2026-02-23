@@ -53,7 +53,8 @@ const bestSupportedLanguage = deviceLocales.find((locale) =>
 i18n.use(initReactI18next).init({
   resources,
   // Use the best-matched language, or fall back to 'en' if no match is found.
-  lng: bestSupportedLanguage?.languageCode || "en",
+  // lng: bestSupportedLanguage?.languageCode || "en",
+  lng: "fa",
   fallbackLng: "en",
   interpolation: {
     escapeValue: false, // React already safes from xss

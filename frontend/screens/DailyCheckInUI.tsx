@@ -211,8 +211,7 @@ export const DailyCheckInUI: React.FC = () => {
                   style={styles.gradient}
                 >
                   <Text style={styles.buttonText}>
-                    {/* {t("dailyCheckIn.claimButton", { reward: nextReward })} */}
-                    fuck off
+                    {t("dailyCheckIn.claimButton", { reward: nextReward })}
                   </Text>
                 </LinearGradient>
               ) : (
