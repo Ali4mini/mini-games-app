@@ -41,6 +41,7 @@ app-example
 # generated native folders
 frontend/ios
 frontend/android
+frontend/node_modules
 
 
 .env

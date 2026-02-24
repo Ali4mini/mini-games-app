@@ -9,7 +9,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:157056951354:android:bd6ae94adf6fed8c1b4103",
         "android_client_info": {
-          "package_name": "com.test.mysteryplay"
+          "package_name": "com.gharaee.mysteryplay"
         }
       },
       "oauth_client": [
@@ -37,3 +37,4 @@
   ],
   "configuration_version": "1"
 }
+
