@@ -39,7 +39,7 @@ import { openStoreForReview, shareApp, contactSupport } from "@/utils/intents";
 // BUILD CONFIGURATION
 // Change this to "google", "bazaar", or "myket" before building!
 // ==========================================
-const TARGET_STORE: "google" | "bazaar" | "myket" = "myket";
+const TARGET_STORE: "google" | "bazaar" | "myket" = "bazaar";
 
 const MAX_WIDTH = 1024;
 const TAB_BAR_OFFSET = 120;

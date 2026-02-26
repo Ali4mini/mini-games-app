@@ -7,7 +7,7 @@ const PACKAGE_NAME = Application.applicationId || "com.mysteryplay.fun"; // Your
 
 // Change this manually before building, OR use an environment variable
 // Options: "google" | "bazaar" | "myket"
-const TARGET_STORE: "myket" | "bazar" | "google" = "myket";
+const TARGET_STORE: "myket" | "bazar" | "google" = "bazar";
 
 export const openStorePage = async () => {
   let url = "";
