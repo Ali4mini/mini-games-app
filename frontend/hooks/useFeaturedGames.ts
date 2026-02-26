@@ -11,34 +11,43 @@ export const useFeaturedGames = () => {
     try {
       setLoading(true);
 
-      // 1. Fetch from featured_games and expand the 'game' relation
       const records = await pb.collection("featured_games").getFullList({
         filter: "is_active = true",
         sort: "display_order",
-        expand: "game", // This tells PB to include the related game record
+        // 1. FIXED: Changed "game" to "game_id" to match your schema
+        expand: "game_id",
       });
 
-      // 2. Flatten the structure
-      // PocketBase puts expanded relations in the 'expand' property
+      console.log("Raw records from PB:", records);
+
+      // 2. Map the data using the correct expand key
       const formattedGames = records
         .map((item) => {
-          const gameRecord = item.expand?.game;
-          if (!gameRecord) return null;
+          // Use the correct field name here as well
+          const gameRecord = item.expand?.game_id;
 
-          return {
+          if (!gameRecord) {
+            console.warn(
+              `No expanded game found for featured record: ${item.id}. Check API permissions.`,
+            );
+            return null;
+          }
+
+          const gameFormattedRecord: Game = {
             id: gameRecord.id,
             title: gameRecord.title,
-            // Don't forget to resolve the image from the expanded record
             image: getStorageUrl(gameRecord, gameRecord.image),
             category: gameRecord.category,
             url: gameRecord.url,
             orientation: gameRecord.orientation,
             description: gameRecord.description,
           };
-        })
-        .filter((g) => g !== null);
 
-      setGames(formattedGames as Game[]);
+          return gameFormattedRecord;
+        })
+        .filter((g): g is Game => g !== null);
+
+      setGames(formattedGames);
     } catch (error) {
       console.error("Error fetching featured games:", error);
     } finally {

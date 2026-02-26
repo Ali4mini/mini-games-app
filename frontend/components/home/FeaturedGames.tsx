@@ -97,6 +97,7 @@ export const FeaturedGames: React.FC = () => {
   const { t } = useTranslation();
   const theme = useTheme();
   const { games, loading } = useFeaturedGames();
+  console.log("games;", games);
   const [selectedCategory, setSelectedCategory] = useState("All");
 
   // --- 2. RESPONSIVE LAYOUT LOGIC ---
